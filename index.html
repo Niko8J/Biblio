@@ -242,7 +242,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #mainTabs{grid-template-columns:repeat(3,1fr)}
 .prow{display:flex;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer}
 .prow:hover{background:color-mix(in srgb,var(--bc) 10%,transparent)}
-#podList .temas{max-height:none;overflow:visible}
+@media(hover:none),(pointer:coarse){#podList .temas{max-height:none;overflow:visible}}
 #podList .block>.head{cursor:pointer}
 .prow .pf{flex:none;border:0;background:transparent;font-size:1.35rem;line-height:1;padding:4px 2px;color:var(--muted);cursor:pointer;margin-left:-4px}
 .prow .pf.on{color:var(--gold)}
