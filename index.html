@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Facultativo de Bibliotecas</title>
 <meta name="description" content="Tests tipo oposición para preparar el Cuerpo Facultativo de Bibliotecas: 100 temas, modo tarjeta y penalización de un tercio.">
 <meta name="theme-color" content="#3a4fb5">
@@ -257,19 +257,20 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #podDock .pbar span{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:40px}
 #podDock .pbar span:last-child{text-align:right}
 #podSeek{flex:1;accent-color:var(--accent);min-width:0}
-#podDock .pctl{display:flex;align-items:center;justify-content:center;gap:10px}
-#podDock .pctl button{border:1px solid var(--line);background:var(--surface2);border-radius:999px;min-width:44px;height:44px;font-weight:700;font-size:.85rem;padding:0 12px}
-#podDock .pctl #podPlay{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);width:56px;height:56px;font-size:1.2rem}
-#podRates{position:relative;display:flex;gap:8px;justify-content:center;align-items:center;margin-top:8px}
-#podRates span{font-size:.78rem;color:var(--muted);margin-right:4px}
-#podRates button{border:1px solid var(--line);background:var(--surface2);border-radius:999px;min-width:44px;height:38px;font-weight:700;font-size:1rem}
+#podDock .pline{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+#podDock .pctl{display:flex;align-items:center;gap:6px}
+#podDock .pctl button{border:1px solid var(--line);background:var(--surface2);border-radius:999px;min-width:40px;height:36px;font-weight:700;font-size:.8rem;padding:0 10px}
+#podDock .pctl #podPlay{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);width:44px;height:44px;min-width:44px;padding:0;font-size:1rem}
+#podRates{position:relative;display:flex;gap:5px;align-items:center}
+#podRates button{border:1px solid var(--line);background:var(--surface2);border-radius:999px;min-width:34px;height:34px;font-weight:700;font-size:.95rem;padding:0 6px}
 #podRates button:disabled{opacity:.35}
-#podRates #podRateVal{min-width:68px;font-size:.9rem}
+#podRates #podRateVal{min-width:52px;font-size:.82rem}
 #podMenu{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:6px;display:flex;flex-direction:column;gap:2px;min-width:96px;z-index:30}
 #podRates #podMenu button{border:0;background:transparent;border-radius:9px;height:auto;min-width:0;padding:9px 14px;font-size:.95rem}
 #podRates #podMenu button.on{background:var(--accent);color:var(--accent-ink)}
-#podDock .pctl .sk{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:62px}
+#podDock .pctl .sk{display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:50px}
 body.podplay main#home{padding-bottom:230px}
+html,body,button,input,label,.prow,.card{touch-action:manipulation}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -373,8 +374,8 @@ body.podplay main#home{padding-bottom:230px}
 <div class="dock" id="podDock" hidden><div class="pl">
   <div class="pttl" id="podTitle"></div>
   <div class="pbar"><span id="podCur">0:00</span><input type="range" id="podSeek" min="0" max="1000" value="0" aria-label="Posición"><span id="podDur">-0:00</span></div>
-  <div class="pctl"><button id="podBack" class="sk" aria-label="Retroceder 10 segundos"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6 8.5 6V6l-8.5 6z"/></svg><span>10</span></button><button id="podPlay" aria-label="Reproducir o pausar">▶</button><button id="podFwd" class="sk" aria-label="Adelantar 10 segundos"><span>10</span><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg></button></div>
-  <div id="podRates"><span>Velocidad</span><button id="podSlower" aria-label="Más lento">−</button><button id="podRateVal" aria-label="Velocidad (toca para volver a 1×)">1.0×</button><button id="podFaster" aria-label="Más rápido">+</button><div id="podMenu" hidden></div></div>
+  <div class="pline"><div class="pctl"><button id="podBack" class="sk" aria-label="Retroceder 10 segundos"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6 8.5 6V6l-8.5 6z"/></svg><span>10</span></button><button id="podPlay" aria-label="Reproducir o pausar">▶</button><button id="podFwd" class="sk" aria-label="Adelantar 10 segundos"><span>10</span><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg></button></div>
+  <div id="podRates"><button id="podSlower" aria-label="Más lento">−</button><button id="podRateVal" aria-label="Velocidad (toca para volver a 1×)">1.0×</button><button id="podFaster" aria-label="Más rápido">+</button><div id="podMenu" hidden></div></div></div>
 </div></div>
 
 <!-- ============ TEST ============ -->
@@ -645,6 +646,8 @@ $("#podBack").onclick=()=>podSkip(-10); $("#podFwd").onclick=()=>podSkip(10);
 $("#podSeek").addEventListener("input",e=>{if(podAudio&&podAudio.duration)podAudio.currentTime=e.target.value/1000*podAudio.duration});
 podSetRate(U.get("podrate",1));
 window.addEventListener("pagehide",()=>podSave(true));
+["gesturestart","gesturechange","gestureend"].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault()));
+let lastTouchEnd=0; document.addEventListener("touchend",e=>{const n=Date.now(); if(n-lastTouchEnd<350&&!e.target.closest("input,textarea"))e.preventDefault(); lastTouchEnd=n},{passive:false});
 function loadUser(){
   if(typeof podRate!=="undefined"){podSetRate(U.get("podrate",1));if(podAudio){podAudio.pause();podN=0}}
   sel=new Set(U.get("sel",[]).filter(n=>perTema[n]));
