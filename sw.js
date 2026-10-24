@@ -1,5 +1,5 @@
 // Service worker: funciona sin conexión. Cambia VERSION al actualizar el banco de preguntas.
-const VERSION = "v7";
+const VERSION = "v9";
 const CACHE = "test-biblio-" + VERSION;
 const ASSETS = [
   "./", "index.html", "bank.js", "manifest.webmanifest",
@@ -21,6 +21,7 @@ self.addEventListener("activate", e => {
 // Caché primero, y actualiza en segundo plano (stale-while-revalidate)
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+  if (new URL(e.request.url).pathname.includes("/audio/")) return; // los audios no pasan por la caché
   e.respondWith(
     caches.open(CACHE).then(async cache => {
       const hit = await cache.match(e.request, { ignoreSearch: true });
