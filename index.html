@@ -304,8 +304,8 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <span class="sp"></span>
     <button class="iconbtn" id="btnInstall" hidden>Instalar</button>
     <button class="av" id="btnUser" aria-label="Usuario"></button>
-    <button class="iconbtn" id="btnAcct" hidden aria-label="Cuenta y sincronización">☁</button>
     <button class="iconbtn" id="btnTheme" aria-label="Cambiar tema claro/oscuro">◐</button>
+    <button class="iconbtn" id="btnAcct" hidden aria-label="Cuenta y sincronización">👤</button>
   </header>
 
   <div id="resumeBox" class="card resume" hidden>
@@ -477,8 +477,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 </div></dialog>
 <dialog id="dlgAcct"><div class="dlg">
   <div id="acOut">
-    <h3>Sincronizar entre dispositivos</h3>
-    <p>Inicia sesión para usar el mismo progreso, favoritos y pódcasts en el móvil y en la tablet.</p>
+    <h3 style="text-align:center;margin-bottom:14px">Inicia sesión</h3>
     <button class="btn" id="acGoogle" style="width:100%">Continuar con Google</button>
     <p style="text-align:center;margin:12px 0 8px;font-size:.85rem">o con tu correo</p>
     <input class="fld" id="acMail" type="email" inputmode="email" placeholder="Correo" autocomplete="email" style="margin-bottom:8px">
@@ -1293,7 +1292,6 @@ window.addEventListener("online",()=>{ syncPush() });
 function acctStart(){
   if(!fbOK)return;
   acctInit();
-  if(!LS.get("acct",null)&&!LS.get("acctAsked",false)){ LS.set("acctAsked",true); setTimeout(()=>{ if(!LS.get("acct",null)) $("#dlgAcct").showModal() },700) }
 }
 
 show("home"); renderHome();
