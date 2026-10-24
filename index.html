@@ -238,7 +238,13 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.88rem;z-index:50;box-shadow:var(--shadow)}
 @media (min-width:600px){.qtext{font-size:1.28rem}.qcard{padding:28px 28px}}
-#btnAcct.on{color:var(--accent);border-color:var(--accent)}
+.dlg{position:relative}
+.dlgx{position:absolute;top:10px;right:10px;border:0;background:transparent;color:var(--muted);font-size:1.15rem;line-height:1;width:36px;height:36px;border-radius:50%;z-index:2}
+.dlgx:hover{background:var(--surface2)}
+.dlg h3{padding-right:34px}
+#dlgAcct .dlg h3{padding-right:0}
+#btnAcct{position:relative}
+#btnAcct.on::after{content:"";position:absolute;right:3px;bottom:3px;width:11px;height:11px;border-radius:50%;background:#2fb457;border:2px solid var(--surface)}
 /* Pódcasts */
 #mainTabs{grid-template-columns:repeat(3,1fr)}
 .prow{display:flex;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer}
@@ -469,13 +475,15 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <div class="row"><button class="btn ghost" id="cNo">Cancelar</button><button class="btn" id="cYes">Aceptar</button></div>
 </div></dialog>
 <dialog id="dlgMap"><div class="dlg">
+  <button class="dlgx" id="mapClose" aria-label="Cerrar">✕</button>
   <h3>Mapa de preguntas</h3>
   <p id="mapInfo"></p>
   <div class="grid" id="mapGrid"></div>
   <div class="legend"><span><i style="background:var(--accent);border-color:var(--accent)"></i>Contestada</span><span><i></i>En blanco</span><span><i style="outline:2px solid var(--gold)"></i>Actual</span></div>
-  <div class="row"><button class="btn ghost" id="mapClose">Cerrar</button><button class="btn" id="mapSolve">Resolver</button></div>
+  <div class="row"><button class="btn" id="mapSolve">Resolver</button></div>
 </div></dialog>
 <dialog id="dlgAcct"><div class="dlg">
+  <button class="dlgx" id="acX" aria-label="Cerrar">✕</button>
   <div id="acOut">
     <h3 style="text-align:center;margin-bottom:14px">Inicia sesión</h3>
     <button class="btn" id="acGoogle" style="width:100%">Continuar con Google</button>
@@ -485,18 +493,18 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <div class="row" style="justify-content:space-between"><button class="btn" id="acIn">Entrar</button><button class="btn ghost" id="acNew">Crear cuenta</button></div>
     <button class="iconbtn" id="acReset" style="margin-top:10px">He olvidado mi contraseña</button>
     <p class="hint" id="acMsg" style="min-height:1.2em"></p>
-    <div class="row" style="margin-top:0"><button class="btn ghost" id="acLater">Ahora no</button></div>
   </div>
   <div id="acIn2" hidden>
     <h3>Cuenta</h3>
     <p id="acWho" style="color:var(--ink);font-weight:700"></p>
     <p id="acState"></p>
-    <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="acClose">Cerrar</button><button class="btn ghost" id="acSync">Sincronizar ahora</button><button class="btn" id="acSignOut">Cerrar sesión</button></div>
+    <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="acSync">Sincronizar ahora</button><button class="btn" id="acSignOut">Cerrar sesión</button></div>
   </div>
 </div></dialog>
 <dialog id="dlgUser"><div class="dlg">
+  <button class="dlgx" id="uClose" aria-label="Cerrar">✕</button>
   <div class="urow" style="cursor:default" id="uMe"></div>
-  <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="uClose">Cerrar</button><button class="btn ghost" id="uEdit">Editar perfil</button><button class="btn" id="uOut">Cerrar sesión</button></div>
+  <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="uEdit">Editar perfil</button><button class="btn" id="uOut">Cerrar sesión</button></div>
 </div></dialog>
 <dialog id="dlgProfile"><div class="dlg">
   <h3 id="pTitle">Usuario</h3>
@@ -1275,7 +1283,7 @@ async function acAction(fn){
 }
 const acCreds=()=>{const e=$("#acMail").value.trim(),p=$("#acPass").value; if(!e){setAcMsg("Escribe tu correo.");return null} return [e,p]};
 $("#btnAcct").onclick=()=>{acctUI();setAcMsg("");$("#dlgAcct").showModal()};
-$("#acLater").onclick=()=>$("#dlgAcct").close(); $("#acClose").onclick=()=>$("#dlgAcct").close();
+$("#acX").onclick=()=>$("#dlgAcct").close();
 $("#acGoogle").onclick=()=>acAction(async()=>{ await AD.google(); $("#dlgAcct").close() });
 $("#acIn").onclick=()=>acAction(async()=>{ const c=acCreds(); if(!c)return; await AD.signIn(...c); $("#dlgAcct").close() });
 $("#acNew").onclick=()=>acAction(async()=>{ const c=acCreds(); if(!c)return; await AD.signUp(...c); $("#dlgAcct").close() });
