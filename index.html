@@ -242,6 +242,8 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #mainTabs{grid-template-columns:repeat(3,1fr)}
 .prow{display:flex;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer}
 .prow:hover{background:color-mix(in srgb,var(--bc) 10%,transparent)}
+.prow .pf{flex:none;border:0;background:transparent;font-size:1.35rem;line-height:1;padding:4px 2px;color:var(--muted);cursor:pointer;margin-left:-4px}
+.prow .pf.on{color:var(--gold)}
 .prow .pn{font-weight:700;color:var(--bc);flex:none;width:46px;text-align:center;display:flex;flex-direction:column;align-items:center;line-height:1.15}
 .prow .pn small{font-weight:600;font-size:.68rem;color:var(--muted);font-variant-numeric:tabular-nums;min-height:.8rem}
 .prow .pt{flex:1;min-width:0;font-size:.88rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -313,7 +315,6 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <section class="sec" id="podView" hidden>
     <h2>Pódcasts por tema</h2>
     <div id="podList"></div>
-    <p class="hint" id="podInfo"></p>
   </section>
 
   <section class="sec" id="temaSec">
@@ -554,7 +555,7 @@ function podSave(force){
   if(t>podAudio.duration*0.95){const h=podHeard();h.add(podN);U.set("podheard",[...h])}
 }
 function renderPod(){
-  const host=$("#podList"), pos=podPos(), heard=podHeard();
+  const host=$("#podList"), pos=podPos(), heard=podHeard(), pf=new Set(U.get("podfavs",[]));
   host.innerHTML="";
   B.blocks.forEach((bl,i)=>{
     const ts=B.temas.filter(t=>t.b===i);
@@ -563,11 +564,9 @@ function renderPod(){
       <div class="temas">${ts.map(t=>{
         const na=podAvail[t.n]===false, now=podN===t.n, hd=heard.has(t.n);
         const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"✓ Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
-        return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><span class="pn"><span>${t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(t.t)}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`}).join("")}</div>`;
+        return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(t.t)}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`}).join("")}</div>`;
     host.appendChild(el);
   });
-  const nA=Object.values(podAvail).filter(v=>v===false).length;
-  $("#podInfo").textContent=nA?`${nA} temas aún sin audio. Los audios van en la carpeta audio/ con el nombre Tema_1.m4a, Tema_2.m4a…`:"Los audios se leen de la carpeta audio/ (Tema_1.m4a, Tema_2.m4a…).";
   probePods();
 }
 function probePods(){
@@ -640,7 +639,8 @@ $("#podRateVal").onclick=e=>{ e.stopPropagation(); if(!podMenu.hidden){podMenuCl
   podMenu.innerHTML=POD_FIXED.map(r=>`<button data-r="${r}" class="${Math.abs(r-podRate)<0.001?"on":""}">${r}×</button>`).join(""); podMenu.hidden=false };
 podMenu.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;e.stopPropagation();podSetRate(+b.dataset.r);podMenuClose()});
 document.addEventListener("click",podMenuClose);
-$("#podList").addEventListener("click",e=>{const r=e.target.closest(".prow");if(!r||r.classList.contains("na"))return;podPlay(+r.dataset.n)});
+$("#podList").addEventListener("click",e=>{const f=e.target.closest(".pf");if(f){e.stopPropagation();const n=+f.dataset.fav,a=new Set(U.get("podfavs",[]));a.has(n)?a.delete(n):a.add(n);U.set("podfavs",[...a]);f.classList.toggle("on",a.has(n));f.textContent=a.has(n)?"★":"☆";return}
+  const r=e.target.closest(".prow");if(!r||r.classList.contains("na"))return;podPlay(+r.dataset.n)});
 $("#podPlay").onclick=()=>{if(podAudio&&podN)podAudio.paused?podAudio.play():podAudio.pause()};
 $("#podBack").onclick=()=>podSkip(-10); $("#podFwd").onclick=()=>podSkip(10);
 $("#podSeek").addEventListener("input",e=>{if(podAudio&&podAudio.duration)podAudio.currentTime=e.target.value/1000*podAudio.duration});
@@ -1100,7 +1100,7 @@ const isAndroid=/android/i.test(navigator.userAgent);
 if((isIOS||isAndroid)&&!standalone)$("#btnInstall").hidden=false;
 $("#btnInstall").onclick=async()=>{
   if(deferred){deferred.prompt();await deferred.userChoice;deferred=null;$("#btnInstall").hidden=true}
-  else{$("#iosTitle").textContent=isIOS?"Instalar en iPhone/iPad":"Instalar en Android"; $("#iosText").textContent=isIOS?"Abre esta página en el navegador, pulsa el botón Compartir y elige «Añadir a pantalla de inicio».":"Abre esta página en el navegador, pulsa el menú ⋮ y elige «Instalar aplicación» (o «Añadir a pantalla de inicio»).";$("#dlgIos").showModal()}
+  else{$("#iosTitle").textContent=isIOS?"Instalar en iPhone/iPad":"Instalar en Android"; $("#iosText").textContent=isIOS?"Pulsa el botón Compartir del navegador y elige «Añadir a pantalla de inicio».":"Pulsa el menú ⋮ del navegador y elige «Instalar aplicación» (o «Añadir a pantalla de inicio»).";$("#dlgIos").showModal()}
 };
 $("#iosOk").onclick=()=>$("#dlgIos").close();
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
