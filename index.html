@@ -242,7 +242,8 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #mainTabs{grid-template-columns:repeat(3,1fr)}
 .prow{display:flex;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer}
 .prow:hover{background:color-mix(in srgb,var(--bc) 10%,transparent)}
-.prow .pn{font-weight:700;color:var(--bc);flex:none;width:30px;text-align:center;font-size:.85rem}
+.prow .pn{font-weight:700;color:var(--bc);flex:none;width:46px;text-align:center;display:flex;flex-direction:column;align-items:center;line-height:1.15}
+.prow .pn small{font-weight:600;font-size:.68rem;color:var(--muted);font-variant-numeric:tabular-nums;min-height:.8rem}
 .prow .pt{flex:1;min-width:0;font-size:.88rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .prow .ps{flex:none;font-size:.75rem;color:var(--muted);min-width:44px;text-align:right}
 .prow .pi{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--bc);color:var(--surface);font-size:.8rem}
@@ -259,11 +260,15 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #podDock .pctl{display:flex;align-items:center;justify-content:center;gap:10px}
 #podDock .pctl button{border:1px solid var(--line);background:var(--surface2);border-radius:999px;min-width:44px;height:44px;font-weight:700;font-size:.85rem;padding:0 12px}
 #podDock .pctl #podPlay{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);width:56px;height:56px;font-size:1.2rem}
-#podRates{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:8px}
+#podRates{position:relative;display:flex;gap:8px;justify-content:center;align-items:center;margin-top:8px}
 #podRates span{font-size:.78rem;color:var(--muted);margin-right:4px}
 #podRates button{border:1px solid var(--line);background:var(--surface2);border-radius:999px;min-width:44px;height:38px;font-weight:700;font-size:1rem}
 #podRates button:disabled{opacity:.35}
 #podRates #podRateVal{min-width:68px;font-size:.9rem}
+#podMenu{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:6px;display:flex;flex-direction:column;gap:2px;min-width:96px;z-index:30}
+#podRates #podMenu button{border:0;background:transparent;border-radius:9px;height:auto;min-width:0;padding:9px 14px;font-size:.95rem}
+#podRates #podMenu button.on{background:var(--accent);color:var(--accent-ink)}
+#podDock .pctl .sk{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:62px}
 body.podplay main#home{padding-bottom:230px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -367,9 +372,9 @@ body.podplay main#home{padding-bottom:230px}
 
 <div class="dock" id="podDock" hidden><div class="pl">
   <div class="pttl" id="podTitle"></div>
-  <div class="pbar"><span id="podCur">0:00</span><input type="range" id="podSeek" min="0" max="1000" value="0" aria-label="Posición"><span id="podDur">0:00</span></div>
-  <div class="pctl"><button id="podBack" aria-label="Atrasar 15 segundos">−15</button><button id="podPlay" aria-label="Reproducir o pausar">▶</button><button id="podFwd" aria-label="Adelantar 15 segundos">+15</button></div>
-  <div id="podRates"><span>Velocidad</span><button id="podSlower" aria-label="Más lento">−</button><button id="podRateVal" aria-label="Velocidad (toca para volver a 1×)">1.0×</button><button id="podFaster" aria-label="Más rápido">+</button></div>
+  <div class="pbar"><span id="podCur">0:00</span><input type="range" id="podSeek" min="0" max="1000" value="0" aria-label="Posición"><span id="podDur">-0:00</span></div>
+  <div class="pctl"><button id="podBack" class="sk" aria-label="Retroceder 10 segundos"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6 8.5 6V6l-8.5 6z"/></svg><span>10</span></button><button id="podPlay" aria-label="Reproducir o pausar">▶</button><button id="podFwd" class="sk" aria-label="Adelantar 10 segundos"><span>10</span><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg></button></div>
+  <div id="podRates"><span>Velocidad</span><button id="podSlower" aria-label="Más lento">−</button><button id="podRateVal" aria-label="Velocidad (toca para volver a 1×)">1.0×</button><button id="podFaster" aria-label="Más rápido">+</button><div id="podMenu" hidden></div></div>
 </div></div>
 
 <!-- ============ TEST ============ -->
@@ -533,7 +538,8 @@ let quiz=null;           // test en curso
 let cards=null;          // sesión de tarjetas
 let revFilter="all";
 /* ---------- Pódcasts ---------- */
-let podN=0, podRate=1, podAudio=null, podAvail={}, podProbed=false, podSaveAt=0;
+let podN=0, podRate=1, podAudio=null, podAvail={}, podProbed=false, podSaveAt=0, podDurs=LS.get("podDurs",{});
+const POD_FIXED=[0.5,1,1.5,2,2.5,3];
 function podURL(n){return `audio/Tema_${n}.m4a`}
 function podFmt(t){t=Math.max(0,Math.floor(t||0));const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0")}
 function podPos(){return U.get("podpos",{})}
@@ -556,7 +562,7 @@ function renderPod(){
       <div class="temas">${ts.map(t=>{
         const na=podAvail[t.n]===false, now=podN===t.n, hd=heard.has(t.n);
         const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"✓ Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
-        return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><span class="pn">${t.n}</span><span class="pt">${esc(t.t)}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`}).join("")}</div>`;
+        return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><span class="pn"><span>${t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(t.t)}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`}).join("")}</div>`;
     host.appendChild(el);
   });
   const nA=Object.values(podAvail).filter(v=>v===false).length;
@@ -565,11 +571,18 @@ function renderPod(){
 }
 function probePods(){
   if(podProbed)return; podProbed=true;
-  const q=B.temas.map(t=>t.n); let active=0;
+  const q=B.temas.map(t=>t.n).filter(n=>!podDurs[n]); let active=0, since=0;
   const next=()=>{
-    while(active<6&&q.length){
+    while(active<4&&q.length){
       const n=q.shift(); active++;
-      fetch(podURL(n),{method:"HEAD",cache:"no-store"}).then(r=>{podAvail[n]=r.ok?true:(r.status===404?false:undefined)}).catch(()=>{}).finally(()=>{active--;if(!q.length&&!active){if(mode==="pod")renderPod()}else next()});
+      const a=new Audio(); a.preload="metadata"; let done=false;
+      const fin=ok=>{ if(done)return; done=true; clearTimeout(tm); a.removeAttribute("src"); a.load(); active--; since++;
+        if(ok===true){podAvail[n]=true;podDurs[n]=Math.round(a.__d)} else if(ok===false){podAvail[n]=false}
+        if(!q.length&&!active){LS.set("podDurs",podDurs);if(mode==="pod")renderPod()} else {if(since%15===0&&mode==="pod")renderPod();next()} };
+      const tm=setTimeout(()=>fin(null),20000);
+      a.addEventListener("loadedmetadata",()=>{a.__d=a.duration;fin(isFinite(a.duration)&&a.duration>0)});
+      a.addEventListener("error",()=>fin(false));
+      a.src=podURL(n);
     }
   };
   next();
@@ -579,10 +592,10 @@ function podEnsure(){
   podAudio=new Audio(); podAudio.preload="metadata";
   podAudio.addEventListener("timeupdate",()=>{
     const d=podAudio.duration||0;
-    if(d){ $("#podSeek").value=Math.round(podAudio.currentTime/d*1000); $("#podCur").textContent=podFmt(podAudio.currentTime); $("#podDur").textContent=podFmt(d) }
+    if(d){ $("#podSeek").value=Math.round(podAudio.currentTime/d*1000); $("#podCur").textContent=podFmt(podAudio.currentTime); $("#podDur").textContent="-"+podFmt(d-podAudio.currentTime) }
     podSave(false);
   });
-  podAudio.addEventListener("loadedmetadata",()=>{$("#podDur").textContent=podFmt(podAudio.duration)});
+  podAudio.addEventListener("loadedmetadata",()=>{$("#podDur").textContent="-"+podFmt(podAudio.duration-podAudio.currentTime); if(podN&&podAudio.duration){podDurs[podN]=Math.round(podAudio.duration);LS.set("podDurs",podDurs)}});
   podAudio.addEventListener("play",podUI); podAudio.addEventListener("pause",()=>{podSave(true);podUI()});
   podAudio.addEventListener("ended",()=>{
     const h=podHeard();h.add(podN);U.set("podheard",[...h]); const p=podPos();delete p[podN];U.set("podpos",p);
@@ -595,7 +608,7 @@ function podEnsure(){
   if("mediaSession" in navigator){
     const ms=navigator.mediaSession;
     ms.setActionHandler("play",()=>podAudio.play()); ms.setActionHandler("pause",()=>podAudio.pause());
-    ms.setActionHandler("seekbackward",()=>podSkip(-15)); ms.setActionHandler("seekforward",()=>podSkip(15));
+    ms.setActionHandler("seekbackward",()=>podSkip(-10)); ms.setActionHandler("seekforward",()=>podSkip(10));
     ms.setActionHandler("previoustrack",()=>podStep(-1)); ms.setActionHandler("nexttrack",()=>podStep(1));
   }
 }
@@ -612,7 +625,7 @@ function podPlay(n,fromStart){
   const start=fromStart?0:(podPos()[n]||0);
   podAudio.addEventListener("loadedmetadata",function f(){podAudio.removeEventListener("loadedmetadata",f); if(start&&start<podAudio.duration-5)podAudio.currentTime=start; podAudio.playbackRate=podRate},{once:true});
   podAudio.play().catch(()=>{});
-  $("#podTitle").textContent=`Tema ${n} · ${t.t}`; $("#podSeek").value=0; $("#podCur").textContent=podFmt(start); $("#podDur").textContent="0:00";
+  $("#podTitle").textContent=`Tema ${n} · ${t.t}`; $("#podSeek").value=0; $("#podCur").textContent=podFmt(start); $("#podDur").textContent="-0:00";
   $("#podDock").hidden=false; document.body.classList.add("podplay");
   if("mediaSession" in navigator) navigator.mediaSession.metadata=new MediaMetadata({title:`Tema ${n}`,artist:"Facultativo de Bibliotecas",album:t.t.slice(0,120)});
   podUI();
@@ -620,10 +633,15 @@ function podPlay(n,fromStart){
 function podSkip(d){ if(!podAudio||!podN)return; podAudio.currentTime=Math.max(0,Math.min((podAudio.duration||1e9)-1,podAudio.currentTime+d)) }
 function podStep(d){ const ns=B.temas.map(t=>t.n).filter(n=>podAvail[n]!==false); const i=ns.indexOf(podN); const n=ns[i+d]; if(n)podPlay(n,true) }
 function podSetRate(r){ r=Math.round(Math.min(3,Math.max(0.5,r))*10)/10; podRate=r; U.set("podrate",r); if(podAudio)podAudio.playbackRate=r; $("#podRateVal").textContent=r.toFixed(1)+"×"; $("#podSlower").disabled=r<=0.5; $("#podFaster").disabled=r>=3 }
-$("#podSlower").onclick=()=>podSetRate(podRate-0.1); $("#podFaster").onclick=()=>podSetRate(podRate+0.1); $("#podRateVal").onclick=()=>podSetRate(1);
+$("#podSlower").onclick=()=>podSetRate(podRate-0.1); $("#podFaster").onclick=()=>podSetRate(podRate+0.1); const podMenu=$("#podMenu");
+function podMenuClose(){podMenu.hidden=true}
+$("#podRateVal").onclick=e=>{ e.stopPropagation(); if(!podMenu.hidden){podMenuClose();return}
+  podMenu.innerHTML=POD_FIXED.map(r=>`<button data-r="${r}" class="${Math.abs(r-podRate)<0.001?"on":""}">${r}×</button>`).join(""); podMenu.hidden=false };
+podMenu.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;e.stopPropagation();podSetRate(+b.dataset.r);podMenuClose()});
+document.addEventListener("click",podMenuClose);
 $("#podList").addEventListener("click",e=>{const r=e.target.closest(".prow");if(!r||r.classList.contains("na"))return;podPlay(+r.dataset.n)});
 $("#podPlay").onclick=()=>{if(podAudio&&podN)podAudio.paused?podAudio.play():podAudio.pause()};
-$("#podBack").onclick=()=>podSkip(-15); $("#podFwd").onclick=()=>podSkip(15);
+$("#podBack").onclick=()=>podSkip(-10); $("#podFwd").onclick=()=>podSkip(10);
 $("#podSeek").addEventListener("input",e=>{if(podAudio&&podAudio.duration)podAudio.currentTime=e.target.value/1000*podAudio.duration});
 podSetRate(U.get("podrate",1));
 window.addEventListener("pagehide",()=>podSave(true));
