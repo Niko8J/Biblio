@@ -242,7 +242,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #mainTabs{grid-template-columns:repeat(3,1fr)}
 .prow{display:flex;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer}
 .prow:hover{background:color-mix(in srgb,var(--bc) 10%,transparent)}
-.prow .pn{font-weight:700;color:var(--bc);flex:none;width:58px;font-size:.85rem}
+.prow .pn{font-weight:700;color:var(--bc);flex:none;width:30px;text-align:center;font-size:.85rem}
 .prow .pt{flex:1;min-width:0;font-size:.88rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .prow .ps{flex:none;font-size:.75rem;color:var(--muted);min-width:44px;text-align:right}
 .prow .pi{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--bc);color:var(--surface);font-size:.8rem}
@@ -338,12 +338,12 @@ body.podplay main#home{padding-bottom:230px}
 
   <div id="cardOpts" hidden>
   <section class="sec">
-    <h2><span class="n">2</span>Cuántas tarjetas</h2>
+    <h2><span class="n">2</span>Número de tarjetas</h2>
     <div class="chips" id="cchips"></div>
     <p class="hint">Preguntas directas con respuesta corta y frases incompletas para completar.</p>
   </section>
   <section class="sec">
-    <h2><span class="n">3</span>Qué tarjetas</h2>
+    <h2><span class="n">3</span>Tipos de tarjetas</h2>
     <div class="seg" id="ctypes" style="margin:0 0 10px"><button data-t="all">Todas</button><button data-t="q">Preguntas</button><button data-t="c">Completar</button></div>
     <label class="card switch" hidden><input type="checkbox" id="optUnk"><div><span id="unkInfo"></span></div></label>
   </section>
@@ -556,7 +556,7 @@ function renderPod(){
       <div class="temas">${ts.map(t=>{
         const na=podAvail[t.n]===false, now=podN===t.n, hd=heard.has(t.n);
         const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"✓ Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
-        return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><span class="pn">Tema ${t.n}</span><span class="pt">${esc(t.t)}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`}).join("")}</div>`;
+        return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><span class="pn">${t.n}</span><span class="pt">${esc(t.t)}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`}).join("")}</div>`;
     host.appendChild(el);
   });
   const nA=Object.values(podAvail).filter(v=>v===false).length;
