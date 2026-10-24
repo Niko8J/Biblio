@@ -238,6 +238,33 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.88rem;z-index:50;box-shadow:var(--shadow)}
 @media (min-width:600px){.qtext{font-size:1.28rem}.qcard{padding:28px 28px}}
+/* Pódcasts */
+#mainTabs{grid-template-columns:repeat(3,1fr)}
+.prow{display:flex;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer}
+.prow:hover{background:color-mix(in srgb,var(--bc) 10%,transparent)}
+.prow .pn{font-weight:700;color:var(--bc);flex:none;width:58px;font-size:.85rem}
+.prow .pt{flex:1;min-width:0;font-size:.88rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.prow .ps{flex:none;font-size:.75rem;color:var(--muted);min-width:44px;text-align:right}
+.prow .pi{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--bc);color:var(--surface);font-size:.8rem}
+.prow.now{background:color-mix(in srgb,var(--bc) 16%,transparent)}
+.prow.na{opacity:.45;cursor:default}
+.prow.na .pi{background:var(--line);color:var(--muted)}
+.prow.heard .ps{color:var(--ok);font-weight:700}
+#podDock .pl{max-width:760px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:10px 14px 12px}
+#podDock .pttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#podDock .pbar{display:flex;align-items:center;gap:8px;margin:4px 0}
+#podDock .pbar span{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:40px}
+#podDock .pbar span:last-child{text-align:right}
+#podSeek{flex:1;accent-color:var(--accent);min-width:0}
+#podDock .pctl{display:flex;align-items:center;justify-content:center;gap:10px}
+#podDock .pctl button{border:1px solid var(--line);background:var(--surface2);border-radius:999px;min-width:44px;height:44px;font-weight:700;font-size:.85rem;padding:0 12px}
+#podDock .pctl #podPlay{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);width:56px;height:56px;font-size:1.2rem}
+#podRates{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:8px}
+#podRates span{font-size:.78rem;color:var(--muted);margin-right:4px}
+#podRates button{border:1px solid var(--line);background:var(--surface2);border-radius:999px;min-width:44px;height:38px;font-weight:700;font-size:1rem}
+#podRates button:disabled{opacity:.35}
+#podRates #podRateVal{min-width:68px;font-size:.9rem}
+body.podplay main#home{padding-bottom:230px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -245,7 +272,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 
 <!-- ============ ACCESO ============ -->
 <main id="login" class="wrap" hidden>
-  <header class="top"><img src="icons/icon-192.png" alt=""><div><h1>Facultativo de Bibliotecas</h1><p>Inicia sesión para empezar</p></div></header>
+  <header class="top"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFjElEQVR4nO3cMU4cMRiG4X9RLpFj0FLRE4k+XCBSepQjROkj5QLQI4WeipZj5BikgCW7xDNjj+2x/X/v04dM8b3j2c2QnXXm7PL+ufU1oJ7Hu4td62s41PRiGDvM2kax+V/M6DFn6xg2+8sYPlJsFUL1v4ThI0ftEKr9cIaPkmqFUPyHMnzUVDqEk5I/jPGjttIbK1ITw0cLJU6D7BOA8aOVEtvLCoDxo7XcDa4OgPGjFzlbXBUA40dv1m4yOQDGj16t2WZSAIwfvUvdaHQAjB+jSNlqVACMH6OJ3exiAIwfo4rZbtFXIYDRzAbA3R+jW9rwZACMH17MbZlHIEgLBsDdH95MbZoTANL+C4C7P7wKbZsTANKOAuDuD+/eb5wTANLeAuDuDxWHW+cEgDQCgLQTMx5/oGe/eU4ASCMASCMASCMASNvxARjKOAEgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgbdgAHm5OW18CXv3++bH1Jaz2ofUF5AhFcH711OBKdIw89pChAwghinK8jT3EXQAhRLFMYewhEgGEKEehOvYQ2QBCvEbB4KcRwILRomDsaQhghV6iYOz5CKCQ2lEw9joIoKK1UTD27RDAxg6jOIyB0bcx7KsQQAkEAGkEAGkEAGkEAGkEAGkEgCjXTn8BiQCwaD9+jxEQAJJc35y6CoEAMGtq7F4iIABMWhq5h9PAdQC3v763vgT3fnT8uxEx3L8MFxvB5y/fKl/JWEa/s8dyHUDsqG9/fU86LYjlxeh3fzPnAcRKGXRKLKOGEnP39zB+MwJIlnKqjEjl0WfP9Yfglka9+8fwcvc3IwAcULv7mxEAXsWO39Pd34wAkMDb+M0IAKb56LNHAIji8e5vRgDylL7zDyEAB9Y+wig/+uwRwOBq/7KK57u/mfMARv3X2FjvR58Sgfqjz577VyG8vrcz94sqS8Pl0ecf1wF4fRs05hdVcu/eCnd/M+cBxBrpbdDYu/dUBNz9jxFAotZvg/64elodgerrDnNcfwhuqeZjUs2BKo3fjACGFTtUz/+nTwkEMLDUCEr9PE8IYHClRqs4fjMCcEF1vCUQAKQDIgAnlEecgwAcWROBejgE4EzKoNXHb+Y8AO9vg05h2PHcvwqxFEHrF9tqWXplgkheuA5gadxLL7aNHkcoAoZ/zHUAS2ICyfnzPWDw86QDWDI38JjXokcIRB0BrJR7eqAPrr8Faom7/xgIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANKGfR36PPCLHg/8/5eb+PT1T+tLKGbYAEKIojxPYw9xFUAIUcTzPvYQ9wGEEIXm2EMkAwjxHAVjn0YAM0aNgsHHI4BEvUXB2PMQQAFbRcHYyyOASnKjYOzb2J1d3j+3vgigFV6FgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgLSTx7uLXeuLAFp4vLvYcQJAGgFAGgFAGgFA2onZy4eB1hcCbGm/eU4ASCMASHsLgMcgqDjcOicApB0FwCkA795vnBMA0v4LgFMAXoW2zQkAacEAOAXgzdSmOQEgbTIATgF4Mbfl2ROACDC6pQ3zCARpiwFwCmBUMduNOgGIAKOJ3Wz0IxARYBQpW036DEAE6F3qRpM/BBMBerVmm6u+BSIC9GbtJld/DUoE6EXOFrP+HYAI0FruBrP/IYwI0EqJ7RUd79nl/XPJnweElLzpFn0VgtMAtZXeWLXBchqgpFo31+p3bEJAjtpPFZs9shACUmz1OL35MzshYM7WnyObfmglBpi1/fKku29tiMK33r4p/As8I9w3LxeJggAAAABJRU5ErkJggg==" alt=""><div><h1>Facultativo de Bibliotecas</h1><p>Inicia sesión para empezar</p></div></header>
   <section class="sec">
     <h2 id="lgTitle">¿Quién eres?</h2>
     <div class="hist" id="lgList"></div>
@@ -258,7 +285,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 <!-- ============ INICIO ============ -->
 <main id="home" class="wrap">
   <header class="top">
-    <img src="icons/icon-192.png" alt="">
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFjElEQVR4nO3cMU4cMRiG4X9RLpFj0FLRE4k+XCBSepQjROkj5QLQI4WeipZj5BikgCW7xDNjj+2x/X/v04dM8b3j2c2QnXXm7PL+ufU1oJ7Hu4td62s41PRiGDvM2kax+V/M6DFn6xg2+8sYPlJsFUL1v4ThI0ftEKr9cIaPkmqFUPyHMnzUVDqEk5I/jPGjttIbK1ITw0cLJU6D7BOA8aOVEtvLCoDxo7XcDa4OgPGjFzlbXBUA40dv1m4yOQDGj16t2WZSAIwfvUvdaHQAjB+jSNlqVACMH6OJ3exiAIwfo4rZbtFXIYDRzAbA3R+jW9rwZACMH17MbZlHIEgLBsDdH95MbZoTANL+C4C7P7wKbZsTANKOAuDuD+/eb5wTANLeAuDuDxWHW+cEgDQCgLQTMx5/oGe/eU4ASCMASCMASCMASNvxARjKOAEgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgbdgAHm5OW18CXv3++bH1Jaz2ofUF5AhFcH711OBKdIw89pChAwghinK8jT3EXQAhRLFMYewhEgGEKEehOvYQ2QBCvEbB4KcRwILRomDsaQhghV6iYOz5CKCQ2lEw9joIoKK1UTD27RDAxg6jOIyB0bcx7KsQQAkEAGkEAGkEAGkEAGkEAGkEgCjXTn8BiQCwaD9+jxEQAJJc35y6CoEAMGtq7F4iIABMWhq5h9PAdQC3v763vgT3fnT8uxEx3L8MFxvB5y/fKl/JWEa/s8dyHUDsqG9/fU86LYjlxeh3fzPnAcRKGXRKLKOGEnP39zB+MwJIlnKqjEjl0WfP9Yfglka9+8fwcvc3IwAcULv7mxEAXsWO39Pd34wAkMDb+M0IAKb56LNHAIji8e5vRgDylL7zDyEAB9Y+wig/+uwRwOBq/7KK57u/mfMARv3X2FjvR58Sgfqjz577VyG8vrcz94sqS8Pl0ecf1wF4fRs05hdVcu/eCnd/M+cBxBrpbdDYu/dUBNz9jxFAotZvg/64elodgerrDnNcfwhuqeZjUs2BKo3fjACGFTtUz/+nTwkEMLDUCEr9PE8IYHClRqs4fjMCcEF1vCUQAKQDIgAnlEecgwAcWROBejgE4EzKoNXHb+Y8AO9vg05h2PHcvwqxFEHrF9tqWXplgkheuA5gadxLL7aNHkcoAoZ/zHUAS2ICyfnzPWDw86QDWDI38JjXokcIRB0BrJR7eqAPrr8Faom7/xgIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANKGfR36PPCLHg/8/5eb+PT1T+tLKGbYAEKIojxPYw9xFUAIUcTzPvYQ9wGEEIXm2EMkAwjxHAVjn0YAM0aNgsHHI4BEvUXB2PMQQAFbRcHYyyOASnKjYOzb2J1d3j+3vgigFV6FgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgLSTx7uLXeuLAFp4vLvYcQJAGgFAGgFAGgFA2onZy4eB1hcCbGm/eU4ASCMASHsLgMcgqDjcOicApB0FwCkA795vnBMA0v4LgFMAXoW2zQkAacEAOAXgzdSmOQEgbTIATgF4Mbfl2ROACDC6pQ3zCARpiwFwCmBUMduNOgGIAKOJ3Wz0IxARYBQpW036DEAE6F3qRpM/BBMBerVmm6u+BSIC9GbtJld/DUoE6EXOFrP+HYAI0FruBrP/IYwI0EqJ7RUd79nl/XPJnweElLzpFn0VgtMAtZXeWLXBchqgpFo31+p3bEJAjtpPFZs9shACUmz1OL35MzshYM7WnyObfmglBpi1/fKku29tiMK33r4p/As8I9w3LxeJggAAAABJRU5ErkJggg==" alt="">
     <div>
       <h1>Facultativo de Bibliotecas</h1>
       <p><span id="bankInfo"></span></p>
@@ -275,9 +302,15 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
     <button class="btn ghost" id="btnDiscard" style="padding:11px 14px" aria-label="Descartar">✕</button>
   </div>
 
-  <nav class="seg" id="mainTabs"><button data-m="tests" class="on">Tests</button><button data-m="cards">Tarjetas</button></nav>
+  <nav class="seg" id="mainTabs"><button data-m="tests" class="on">Tests</button><button data-m="cards">Tarjetas</button><button data-m="pod">Pódcasts</button></nav>
 
-  <section class="sec">
+  <section class="sec" id="podView" hidden>
+    <h2>Pódcasts por tema</h2>
+    <div id="podList"></div>
+    <p class="hint" id="podInfo"></p>
+  </section>
+
+  <section class="sec" id="temaSec">
     <h2><span class="n">1</span>Elige los temas</h2>
     <div class="quick">
       <button class="pill" id="selAll">Todos los temas</button>
@@ -332,6 +365,13 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 </main>
 <div class="dock" id="homeDock"><div class="in"><button class="btn grow" id="btnStart" disabled>Empezar test</button></div></div>
 
+<div class="dock" id="podDock" hidden><div class="pl">
+  <div class="pttl" id="podTitle"></div>
+  <div class="pbar"><span id="podCur">0:00</span><input type="range" id="podSeek" min="0" max="1000" value="0" aria-label="Posición"><span id="podDur">0:00</span></div>
+  <div class="pctl"><button id="podBack" aria-label="Atrasar 15 segundos">−15</button><button id="podPlay" aria-label="Reproducir o pausar">▶</button><button id="podFwd" aria-label="Adelantar 15 segundos">+15</button></div>
+  <div id="podRates"><span>Velocidad</span><button id="podSlower" aria-label="Más lento">−</button><button id="podRateVal" aria-label="Velocidad (toca para volver a 1×)">1.0×</button><button id="podFaster" aria-label="Más rápido">+</button></div>
+</div></div>
+
 <!-- ============ TEST ============ -->
 <main id="quiz" class="wrap" hidden>
   <div class="qtop">
@@ -385,7 +425,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 
 <!-- ============ RESULTADOS ============ -->
 <main id="result" class="wrap" hidden>
-  <header class="top"><img src="icons/icon-192.png" alt=""><div><h1>Resultado</h1><p id="rInfo"></p></div></header>
+  <header class="top"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFjElEQVR4nO3cMU4cMRiG4X9RLpFj0FLRE4k+XCBSepQjROkj5QLQI4WeipZj5BikgCW7xDNjj+2x/X/v04dM8b3j2c2QnXXm7PL+ufU1oJ7Hu4td62s41PRiGDvM2kax+V/M6DFn6xg2+8sYPlJsFUL1v4ThI0ftEKr9cIaPkmqFUPyHMnzUVDqEk5I/jPGjttIbK1ITw0cLJU6D7BOA8aOVEtvLCoDxo7XcDa4OgPGjFzlbXBUA40dv1m4yOQDGj16t2WZSAIwfvUvdaHQAjB+jSNlqVACMH6OJ3exiAIwfo4rZbtFXIYDRzAbA3R+jW9rwZACMH17MbZlHIEgLBsDdH95MbZoTANL+C4C7P7wKbZsTANKOAuDuD+/eb5wTANLeAuDuDxWHW+cEgDQCgLQTMx5/oGe/eU4ASCMASCMASCMASNvxARjKOAEgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgbdgAHm5OW18CXv3++bH1Jaz2ofUF5AhFcH711OBKdIw89pChAwghinK8jT3EXQAhRLFMYewhEgGEKEehOvYQ2QBCvEbB4KcRwILRomDsaQhghV6iYOz5CKCQ2lEw9joIoKK1UTD27RDAxg6jOIyB0bcx7KsQQAkEAGkEAGkEAGkEAGkEAGkEgCjXTn8BiQCwaD9+jxEQAJJc35y6CoEAMGtq7F4iIABMWhq5h9PAdQC3v763vgT3fnT8uxEx3L8MFxvB5y/fKl/JWEa/s8dyHUDsqG9/fU86LYjlxeh3fzPnAcRKGXRKLKOGEnP39zB+MwJIlnKqjEjl0WfP9Yfglka9+8fwcvc3IwAcULv7mxEAXsWO39Pd34wAkMDb+M0IAKb56LNHAIji8e5vRgDylL7zDyEAB9Y+wig/+uwRwOBq/7KK57u/mfMARv3X2FjvR58Sgfqjz577VyG8vrcz94sqS8Pl0ecf1wF4fRs05hdVcu/eCnd/M+cBxBrpbdDYu/dUBNz9jxFAotZvg/64elodgerrDnNcfwhuqeZjUs2BKo3fjACGFTtUz/+nTwkEMLDUCEr9PE8IYHClRqs4fjMCcEF1vCUQAKQDIgAnlEecgwAcWROBejgE4EzKoNXHb+Y8AO9vg05h2PHcvwqxFEHrF9tqWXplgkheuA5gadxLL7aNHkcoAoZ/zHUAS2ICyfnzPWDw86QDWDI38JjXokcIRB0BrJR7eqAPrr8Faom7/xgIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANKGfR36PPCLHg/8/5eb+PT1T+tLKGbYAEKIojxPYw9xFUAIUcTzPvYQ9wGEEIXm2EMkAwjxHAVjn0YAM0aNgsHHI4BEvUXB2PMQQAFbRcHYyyOASnKjYOzb2J1d3j+3vgigFV6FgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgLSTx7uLXeuLAFp4vLvYcQJAGgFAGgFAGgFA2onZy4eB1hcCbGm/eU4ASCMASHsLgMcgqDjcOicApB0FwCkA795vnBMA0v4LgFMAXoW2zQkAacEAOAXgzdSmOQEgbTIATgF4Mbfl2ROACDC6pQ3zCARpiwFwCmBUMduNOgGIAKOJ3Wz0IxARYBQpW036DEAE6F3qRpM/BBMBerVmm6u+BSIC9GbtJld/DUoE6EXOFrP+HYAI0FruBrP/IYwI0EqJ7RUd79nl/XPJnweElLzpFn0VgtMAtZXeWLXBchqgpFo31+p3bEJAjtpPFZs9shACUmz1OL35MzshYM7WnyObfmglBpi1/fKku29tiMK33r4p/As8I9w3LxeJggAAAABJRU5ErkJggg==" alt=""><div><h1>Resultado</h1><p id="rInfo"></p></div></header>
   <section class="card res">
     <div class="ring">
       <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" stroke-width="10"/><circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="327"/></svg>
@@ -492,7 +532,103 @@ let mode=LS.get("mode","tests");
 let quiz=null;           // test en curso
 let cards=null;          // sesión de tarjetas
 let revFilter="all";
+/* ---------- Pódcasts ---------- */
+let podN=0, podRate=1, podAudio=null, podAvail={}, podProbed=false, podSaveAt=0;
+function podURL(n){return `audio/Tema_${n}.m4a`}
+function podFmt(t){t=Math.max(0,Math.floor(t||0));const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0")}
+function podPos(){return U.get("podpos",{})}
+function podHeard(){return new Set(U.get("podheard",[]))}
+function podSave(force){
+  if(!podN||!podAudio||!podAudio.duration)return;
+  const now=Date.now(); if(!force&&now-podSaveAt<4000)return; podSaveAt=now;
+  const p=podPos(), t=podAudio.currentTime;
+  if(t>podAudio.duration-8){delete p[podN]} else p[podN]=Math.floor(t);
+  U.set("podpos",p);
+  if(t>podAudio.duration*0.95){const h=podHeard();h.add(podN);U.set("podheard",[...h])}
+}
+function renderPod(){
+  const host=$("#podList"), pos=podPos(), heard=podHeard();
+  host.innerHTML="";
+  B.blocks.forEach((bl,i)=>{
+    const ts=B.temas.filter(t=>t.b===i);
+    const el=document.createElement("div"); el.className="card block open"; el.style.setProperty("--bc",`var(${BLOCKCOL[i]})`);
+    el.innerHTML=`<div class="head"><div class="info"><div class="name">${bl.name}</div><div class="meta">Temas ${bl.from}–${bl.to} · ${ts.filter(t=>heard.has(t.n)).length}/${ts.length} escuchados</div></div></div>
+      <div class="temas">${ts.map(t=>{
+        const na=podAvail[t.n]===false, now=podN===t.n, hd=heard.has(t.n);
+        const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"✓ Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
+        return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><span class="pn">Tema ${t.n}</span><span class="pt">${esc(t.t)}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`}).join("")}</div>`;
+    host.appendChild(el);
+  });
+  const nA=Object.values(podAvail).filter(v=>v===false).length;
+  $("#podInfo").textContent=nA?`${nA} temas aún sin audio. Los audios van en la carpeta audio/ con el nombre Tema_1.m4a, Tema_2.m4a…`:"Los audios se leen de la carpeta audio/ (Tema_1.m4a, Tema_2.m4a…).";
+  probePods();
+}
+function probePods(){
+  if(podProbed)return; podProbed=true;
+  const q=B.temas.map(t=>t.n); let active=0;
+  const next=()=>{
+    while(active<6&&q.length){
+      const n=q.shift(); active++;
+      fetch(podURL(n),{method:"HEAD",cache:"no-store"}).then(r=>{podAvail[n]=r.ok?true:(r.status===404?false:undefined)}).catch(()=>{}).finally(()=>{active--;if(!q.length&&!active){if(mode==="pod")renderPod()}else next()});
+    }
+  };
+  next();
+}
+function podEnsure(){
+  if(podAudio)return;
+  podAudio=new Audio(); podAudio.preload="metadata";
+  podAudio.addEventListener("timeupdate",()=>{
+    const d=podAudio.duration||0;
+    if(d){ $("#podSeek").value=Math.round(podAudio.currentTime/d*1000); $("#podCur").textContent=podFmt(podAudio.currentTime); $("#podDur").textContent=podFmt(d) }
+    podSave(false);
+  });
+  podAudio.addEventListener("loadedmetadata",()=>{$("#podDur").textContent=podFmt(podAudio.duration)});
+  podAudio.addEventListener("play",podUI); podAudio.addEventListener("pause",()=>{podSave(true);podUI()});
+  podAudio.addEventListener("ended",()=>{
+    const h=podHeard();h.add(podN);U.set("podheard",[...h]); const p=podPos();delete p[podN];U.set("podpos",p);
+    const nx=B.temas.map(t=>t.n).filter(n=>n>podN&&podAvail[n]!==false)[0];
+    if(nx)podPlay(nx,true); else podUI();
+  });
+  podAudio.addEventListener("error",()=>{
+    if(podN){podAvail[podN]=false; toast(`No se encuentra Tema_${podN}.m4a en la carpeta audio`); $("#podDock").hidden=true; document.body.classList.remove("podplay"); podN=0; if(mode==="pod")renderPod()}
+  });
+  if("mediaSession" in navigator){
+    const ms=navigator.mediaSession;
+    ms.setActionHandler("play",()=>podAudio.play()); ms.setActionHandler("pause",()=>podAudio.pause());
+    ms.setActionHandler("seekbackward",()=>podSkip(-15)); ms.setActionHandler("seekforward",()=>podSkip(15));
+    ms.setActionHandler("previoustrack",()=>podStep(-1)); ms.setActionHandler("nexttrack",()=>podStep(1));
+  }
+}
+function podUI(){
+  $("#podPlay").textContent=podAudio&&!podAudio.paused?"❚❚":"▶";
+  if(mode==="pod"&&!$("#podView").hidden) renderPod();
+}
+function podPlay(n,fromStart){
+  podEnsure();
+  if(podN===n&&!fromStart){ podAudio.paused?podAudio.play():podAudio.pause(); return }
+  if(podN) podSave(true);
+  podN=n; const t=B.temas[n-1];
+  podAudio.src=podURL(n); podAudio.playbackRate=podRate;
+  const start=fromStart?0:(podPos()[n]||0);
+  podAudio.addEventListener("loadedmetadata",function f(){podAudio.removeEventListener("loadedmetadata",f); if(start&&start<podAudio.duration-5)podAudio.currentTime=start; podAudio.playbackRate=podRate},{once:true});
+  podAudio.play().catch(()=>{});
+  $("#podTitle").textContent=`Tema ${n} · ${t.t}`; $("#podSeek").value=0; $("#podCur").textContent=podFmt(start); $("#podDur").textContent="0:00";
+  $("#podDock").hidden=false; document.body.classList.add("podplay");
+  if("mediaSession" in navigator) navigator.mediaSession.metadata=new MediaMetadata({title:`Tema ${n}`,artist:"Facultativo de Bibliotecas",album:t.t.slice(0,120)});
+  podUI();
+}
+function podSkip(d){ if(!podAudio||!podN)return; podAudio.currentTime=Math.max(0,Math.min((podAudio.duration||1e9)-1,podAudio.currentTime+d)) }
+function podStep(d){ const ns=B.temas.map(t=>t.n).filter(n=>podAvail[n]!==false); const i=ns.indexOf(podN); const n=ns[i+d]; if(n)podPlay(n,true) }
+function podSetRate(r){ r=Math.round(Math.min(3,Math.max(0.5,r))*10)/10; podRate=r; U.set("podrate",r); if(podAudio)podAudio.playbackRate=r; $("#podRateVal").textContent=r.toFixed(1)+"×"; $("#podSlower").disabled=r<=0.5; $("#podFaster").disabled=r>=3 }
+$("#podSlower").onclick=()=>podSetRate(podRate-0.1); $("#podFaster").onclick=()=>podSetRate(podRate+0.1); $("#podRateVal").onclick=()=>podSetRate(1);
+$("#podList").addEventListener("click",e=>{const r=e.target.closest(".prow");if(!r||r.classList.contains("na"))return;podPlay(+r.dataset.n)});
+$("#podPlay").onclick=()=>{if(podAudio&&podN)podAudio.paused?podAudio.play():podAudio.pause()};
+$("#podBack").onclick=()=>podSkip(-15); $("#podFwd").onclick=()=>podSkip(15);
+$("#podSeek").addEventListener("input",e=>{if(podAudio&&podAudio.duration)podAudio.currentTime=e.target.value/1000*podAudio.duration});
+podSetRate(U.get("podrate",1));
+window.addEventListener("pagehide",()=>podSave(true));
 function loadUser(){
+  if(typeof podRate!=="undefined"){podSetRate(U.get("podrate",1));if(podAudio){podAudio.pause();podN=0}}
   sel=new Set(U.get("sel",[]).filter(n=>perTema[n]));
   count=U.get("count",20); instant=U.get("instant",false);
   favs=new Set(U.get("favs",[]).filter(h=>IDX.has(h)));
@@ -529,6 +665,9 @@ function show(name){
   $("#login").hidden=name!=="login";
   $("#cards").hidden=name!=="cards"; $("#cardsDock").hidden=name!=="cards"||!!(cards&&cards.end);
   $("#result").hidden=name!=="result"; $("#resDock").hidden=name!=="result";
+  $("#podDock").hidden=name!=="home"||mode!=="pod"||!podN;
+  if(name==="home"&&mode==="pod")$("#homeDock").hidden=true;
+  if(name!=="home"&&podAudio&&!podAudio.paused)podAudio.pause();
   window.scrollTo(0,0);
 }
 function toast(msg){const t=document.createElement("div");t.className="toast";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
@@ -597,6 +736,11 @@ function refresh(){
   U.set("sel",[...sel]);
   $$("#mainTabs button").forEach(b=>b.classList.toggle("on",b.dataset.m===mode));
   $("#bankInfo").textContent=mode==="cards"?`${CARDS.length} tarjetas · ${temasConBanco.length} temas`:`${B.qs.length} preguntas · ${temasConBanco.length} temas`;
+  const isP=mode==="pod";
+  $("#podView").hidden=!isP; $("#temaSec").hidden=isP; $("#favSec").hidden=isP; $("#homeDock").hidden=isP;
+  $("#podDock").hidden=!isP||!podN; document.body.classList.toggle("podplay",isP&&!!podN);
+  if(!isP&&podAudio&&!podAudio.paused) podAudio.pause();
+  if(isP){ renderPod(); $("#testOpts").hidden=true; $("#cardOpts").hidden=true; $("#histSec").hidden=true; const f0=document.querySelector(".foot"); if(f0)f0.hidden=true; $("#bankInfo").textContent="100 pódcasts · uno por tema"; return }
   const ft=document.querySelector(".foot"); if(ft) ft.hidden=mode==="cards";
   $("#testOpts").hidden=mode!=="tests"; $("#cardOpts").hidden=mode!=="cards"; $("#histSec").hidden=mode!=="tests"||!U.get("hist",[]).length;
   renderBlocks();
