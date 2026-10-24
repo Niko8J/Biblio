@@ -497,8 +497,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <div id="acIn2" hidden>
     <h3>Cuenta</h3>
     <p id="acWho" style="color:var(--ink);font-weight:700"></p>
-    <p id="acState"></p>
-    <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="acSync">Sincronizar ahora</button><button class="btn" id="acSignOut">Cerrar sesión</button></div>
+    <div class="row" style="flex-wrap:wrap"><button class="btn" id="acSignOut">Cerrar sesión</button></div>
   </div>
 </div></dialog>
 <dialog id="dlgUser"><div class="dlg">
@@ -1214,7 +1213,7 @@ async function signedIn(u){
   const ns="fb:"+u.uid;
   if(cur!==ns){ if(!onFb())LS.set("curLocal",cur); migrate(cur,ns); cur=ns; LS.set("cur",cur); }
   LS.set("acct",{uid:u.uid,email:u.email,name:u.name});
-  try{ await syncInitial(u.uid); startListen(u.uid); syncMsg="Sincronizado."; }catch(e){ syncMsg="No se pudo sincronizar. Se reintentará."; }
+  try{ await syncInitial(u.uid); startListen(u.uid); syncMsg="Sincronizado."; }catch(e){ syncMsg="No se pudo sincronizar. Se reintentará."; setTimeout(()=>{ if(adUser)resync() },30000); }
   loadUser(true); reloadUI(); acctUI();
 }
 const jparse=s=>{try{return JSON.parse(s)}catch(e){return undefined}};
@@ -1250,7 +1249,7 @@ async function syncPush(){
     if(docs.length) await AD.setMany(adUser.uid,docs);
     const now=new Set(LS.get(dKey(),[])); dirty.forEach(k=>{ if(LS.get(tKey(k),0)<=((docs.find(x=>x.id===k)||{}).t||Infinity)) now.delete(k) }); LS.set(dKey(),[...now]);
     syncMsg="Sincronizado."; 
-  }catch(e){ syncMsg="No se pudo sincronizar. Se reintentará."; }
+  }catch(e){ syncMsg="No se pudo sincronizar. Se reintentará."; clearTimeout(syncTimer); syncTimer=setTimeout(syncPush,30000); }
   syncBusy=false; acctUI();
 }
 function stopListen(){ if(syncUnsub){try{syncUnsub()}catch(e){} syncUnsub=null} }
@@ -1275,7 +1274,7 @@ function acctUI(){
   const a=LS.get("acct",null), b=$("#btnAcct");
   b.classList.toggle("on",!!a); b.title=a?`Sesión iniciada: ${a.email}`:"Iniciar sesión para sincronizar";
   $("#acOut").hidden=!!a; $("#acIn2").hidden=!a;
-  if(a){ $("#acWho").textContent=a.email||a.name||"Cuenta"; const nd=LS.get(dKey(),[]).length; $("#acState").textContent=(nd?`Cambios pendientes de subir (${nd}). `:"")+syncMsg }
+  if(a){ $("#acWho").textContent=a.email||a.name||"Cuenta"; }
 }
 const setAcMsg=t=>{$("#acMsg").textContent=t};
 async function acAction(fn){
@@ -1288,7 +1287,6 @@ $("#acGoogle").onclick=()=>acAction(async()=>{ await AD.google(); $("#dlgAcct").
 $("#acIn").onclick=()=>acAction(async()=>{ const c=acCreds(); if(!c)return; await AD.signIn(...c); $("#dlgAcct").close() });
 $("#acNew").onclick=()=>acAction(async()=>{ const c=acCreds(); if(!c)return; await AD.signUp(...c); $("#dlgAcct").close() });
 $("#acReset").onclick=()=>acAction(async()=>{ const c=$("#acMail").value.trim(); if(!c){setAcMsg("Escribe tu correo y vuelve a pulsar.");return} await AD.reset(c); setAcMsg("Te hemos enviado un correo para cambiar la contraseña.") });
-$("#acSync").onclick=async()=>{ $("#acState").textContent="Sincronizando…"; try{ if(adUser){await syncInitial(adUser.uid);syncMsg="Sincronizado."} }catch(e){syncMsg="No se pudo sincronizar."} loadUser(true);reloadUI();acctUI() };
 $("#acSignOut").onclick=async()=>{
   $("#dlgAcct").close();
   try{ await syncPush() }catch(e){}
@@ -1296,7 +1294,8 @@ $("#acSignOut").onclick=async()=>{
   LS.del("acct"); adUser=null; toLocalNs(); acctUI();
 };
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden"){clearTimeout(syncTimer);syncPush()} });
-window.addEventListener("online",()=>{ syncPush() });
+async function resync(){ try{ if(adUser){ await syncInitial(adUser.uid); if(!syncUnsub)startListen(adUser.uid); loadUser(true); reloadUI() } }catch(e){} }
+window.addEventListener("online",resync);
 function acctStart(){
   if(!fbOK)return;
   acctInit();
