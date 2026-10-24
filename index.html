@@ -238,6 +238,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.88rem;z-index:50;box-shadow:var(--shadow)}
 @media (min-width:600px){.qtext{font-size:1.28rem}.qcard{padding:28px 28px}}
+#btnAcct.on{color:var(--accent);border-color:var(--accent)}
 /* Pódcasts */
 #mainTabs{grid-template-columns:repeat(3,1fr)}
 .prow{display:flex;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer}
@@ -303,6 +304,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <span class="sp"></span>
     <button class="iconbtn" id="btnInstall" hidden>Instalar</button>
     <button class="av" id="btnUser" aria-label="Usuario"></button>
+    <button class="iconbtn" id="btnAcct" hidden aria-label="Cuenta y sincronización">☁</button>
     <button class="iconbtn" id="btnTheme" aria-label="Cambiar tema claro/oscuro">◐</button>
   </header>
 
@@ -473,6 +475,26 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <div class="legend"><span><i style="background:var(--accent);border-color:var(--accent)"></i>Contestada</span><span><i></i>En blanco</span><span><i style="outline:2px solid var(--gold)"></i>Actual</span></div>
   <div class="row"><button class="btn ghost" id="mapClose">Cerrar</button><button class="btn" id="mapSolve">Resolver</button></div>
 </div></dialog>
+<dialog id="dlgAcct"><div class="dlg">
+  <div id="acOut">
+    <h3>Sincronizar entre dispositivos</h3>
+    <p>Inicia sesión para usar el mismo progreso, favoritos y pódcasts en el móvil y en la tablet.</p>
+    <button class="btn" id="acGoogle" style="width:100%">Continuar con Google</button>
+    <p style="text-align:center;margin:12px 0 8px;font-size:.85rem">o con tu correo</p>
+    <input class="fld" id="acMail" type="email" inputmode="email" placeholder="Correo" autocomplete="email" style="margin-bottom:8px">
+    <input class="fld" id="acPass" type="password" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="current-password">
+    <div class="row" style="justify-content:space-between"><button class="btn" id="acIn">Entrar</button><button class="btn ghost" id="acNew">Crear cuenta</button></div>
+    <button class="iconbtn" id="acReset" style="margin-top:10px">He olvidado mi contraseña</button>
+    <p class="hint" id="acMsg" style="min-height:1.2em"></p>
+    <div class="row" style="margin-top:0"><button class="btn ghost" id="acLater">Ahora no</button></div>
+  </div>
+  <div id="acIn2" hidden>
+    <h3>Cuenta</h3>
+    <p id="acWho" style="color:var(--ink);font-weight:700"></p>
+    <p id="acState"></p>
+    <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="acClose">Cerrar</button><button class="btn ghost" id="acSync">Sincronizar ahora</button><button class="btn" id="acSignOut">Cerrar sesión</button></div>
+  </div>
+</div></dialog>
 <dialog id="dlgUser"><div class="dlg">
   <div class="urow" style="cursor:default" id="uMe"></div>
   <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="uClose">Cerrar</button><button class="btn ghost" id="uEdit">Editar perfil</button><button class="btn" id="uOut">Cerrar sesión</button></div>
@@ -499,6 +521,7 @@ window.addEventListener("error",function(e){try{var d=document.getElementById("e
 </script>
 <script src="bank.js"></script>
 <script src="cards.js"></script>
+<script src="firebase-config.js"></script>
 <script>
 (()=>{
 "use strict";
@@ -522,9 +545,10 @@ if(!users||!users.length){
   }
   LS.set("users",users); LS.del("cur");
 }
-if(!cur||!users.some(u=>u.id===cur)) cur=users.length?users[0].id:"local";
+{const a0=LS.get("acct",null); if(a0&&a0.uid) cur="fb:"+a0.uid; else if(!cur||!users.some(u=>u.id===cur)) cur=users.length?users[0].id:"local";}
 LS.set("cur",cur);
-const U={get(k,d){return cur?LS.get(`u:${cur}:${k}`,d):d},set(k,v){if(cur)LS.set(`u:${cur}:${k}`,v)},del(k){if(cur)LS.del(`u:${cur}:${k}`)}};
+let AD=null, adUser=null, syncUnsub=null, syncTimer=0, syncMsg="", syncBusy=false;
+const U={get(k,d){return cur?LS.get(`u:${cur}:${k}`,d):d},set(k,v){if(cur){LS.set(`u:${cur}:${k}`,v);syncTouch(k)}},del(k){if(cur){LS.del(`u:${cur}:${k}`);syncTouch(k)}}};
 
 /* ---------- Datos ---------- */
 const hq=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)};
@@ -635,7 +659,7 @@ function podPlay(n,fromStart){
 }
 function podSkip(d){ if(!podAudio||!podN)return; podAudio.currentTime=Math.max(0,Math.min((podAudio.duration||1e9)-1,podAudio.currentTime+d)) }
 function podStep(d){ const ns=B.temas.map(t=>t.n).filter(n=>podAvail[n]!==false); const i=ns.indexOf(podN); const n=ns[i+d]; if(n)podPlay(n,true) }
-function podSetRate(r){ r=Math.round(Math.min(3,Math.max(0.5,r))*10)/10; podRate=r; U.set("podrate",r); if(podAudio)podAudio.playbackRate=r; $("#podRateVal").textContent=r.toFixed(1)+"×"; $("#podSlower").disabled=r<=0.5; $("#podFaster").disabled=r>=3 }
+function podSetRate(r,nosave){ r=Math.round(Math.min(3,Math.max(0.5,r))*10)/10; podRate=r; if(!nosave)U.set("podrate",r); if(podAudio)podAudio.playbackRate=r; $("#podRateVal").textContent=r.toFixed(1)+"×"; $("#podSlower").disabled=r<=0.5; $("#podFaster").disabled=r>=3 }
 $("#podSlower").onclick=()=>podSetRate(podRate-0.1); $("#podFaster").onclick=()=>podSetRate(podRate+0.1); const podMenu=$("#podMenu");
 function podMenuClose(){podMenu.hidden=true}
 $("#podRateVal").onclick=e=>{ e.stopPropagation(); if(!podMenu.hidden){podMenuClose();return}
@@ -648,12 +672,12 @@ $("#podList").addEventListener("click",e=>{const hd=e.target.closest(".block>.he
 $("#podPlay").onclick=()=>{if(podAudio&&podN)podAudio.paused?podAudio.play():podAudio.pause()};
 $("#podBack").onclick=()=>podSkip(-10); $("#podFwd").onclick=()=>podSkip(10);
 $("#podSeek").addEventListener("input",e=>{if(podAudio&&podAudio.duration)podAudio.currentTime=e.target.value/1000*podAudio.duration});
-podSetRate(U.get("podrate",1));
+podSetRate(U.get("podrate",1),true);
 window.addEventListener("pagehide",()=>podSave(true));
 ["gesturestart","gesturechange","gestureend"].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault()));
 let lastTouchEnd=0; document.addEventListener("touchend",e=>{const n=Date.now(); if(n-lastTouchEnd<350&&!e.target.closest("input,textarea"))e.preventDefault(); lastTouchEnd=n},{passive:false});
-function loadUser(){
-  if(typeof podRate!=="undefined"){podSetRate(U.get("podrate",1));if(podAudio){podAudio.pause();podN=0}}
+function loadUser(keepPod){
+  if(!keepPod&&typeof podRate!=="undefined"){podSetRate(U.get("podrate",1),true);if(podAudio){podAudio.pause();podN=0}}
   sel=new Set(U.get("sel",[]).filter(n=>perTema[n]));
   count=U.get("count",20); instant=U.get("instant",false);
   favs=new Set(U.get("favs",[]).filter(h=>IDX.has(h)));
@@ -1112,7 +1136,168 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){
 }
 
 /* ---------- Arranque ---------- */
+/* ---------- Cuenta y sincronización (Firebase) ---------- */
+const FBV="10.14.1", FBCFG=window.FIREBASE_CONFIG||{};
+const fbOK=!!(window.__SYNC_ADAPTER||(FBCFG.apiKey&&!/REEMPLAZA/i.test(FBCFG.apiKey)));
+const SET_KEYS=new Set(["favs","cfavs","cknown","podheard","podfavs"]), LIST_KEYS=new Set(["hist","tests"]);
+function onFb(){return typeof cur==="string"&&cur.startsWith("fb:")}
+function tKey(k){return `t:${cur}:${k}`}
+function dKey(){return `dirty:${cur}`}
+function syncTouch(k){
+  if(!onFb())return;
+  LS.set(tKey(k),Date.now());
+  const d=new Set(LS.get(dKey(),[])); d.add(k); LS.set(dKey(),[...d]);
+  clearTimeout(syncTimer); syncTimer=setTimeout(syncPush,2500);
+}
+async function getAdapter(){
+  if(AD)return AD;
+  if(window.__SYNC_ADAPTER){AD=window.__SYNC_ADAPTER;return AD}
+  const base=`https://www.gstatic.com/firebasejs/${FBV}/`;
+  const [ap,au,fs]=await Promise.all([import(base+"firebase-app.js"),import(base+"firebase-auth.js"),import(base+"firebase-firestore.js")]);
+  const app=ap.initializeApp(FBCFG), auth=au.getAuth(app), db=fs.getFirestore(app);
+  const col=uid=>fs.collection(db,"users",uid,"kv");
+  const mapU=u=>u?{uid:u.uid,email:u.email||"",name:u.displayName||""}:null;
+  AD={
+    onAuth:cb=>au.onAuthStateChanged(auth,u=>cb(mapU(u))),
+    google:()=>au.signInWithPopup(auth,new au.GoogleAuthProvider()),
+    signIn:(e,p)=>au.signInWithEmailAndPassword(auth,e,p),
+    signUp:(e,p)=>au.createUserWithEmailAndPassword(auth,e,p),
+    reset:e=>au.sendPasswordResetEmail(auth,e),
+    signOut:()=>au.signOut(auth),
+    getAll:async uid=>(await fs.getDocs(col(uid))).docs.map(d=>({id:d.id,...d.data()})),
+    setMany:async(uid,docs)=>{const b=fs.writeBatch(db);docs.forEach(x=>b.set(fs.doc(db,"users",uid,"kv",x.id),{v:x.v,t:x.t,d:!!x.d}));await b.commit()},
+    listen:(uid,cb,err)=>fs.onSnapshot(col(uid),snap=>{if(snap.metadata.hasPendingWrites&&!snap.docChanges().length)return;cb(snap.docChanges().filter(c=>c.type!=="removed"&&!c.doc.metadata.hasPendingWrites).map(c=>({id:c.doc.id,...c.doc.data()})))},err)
+  };
+  return AD;
+}
+function errMsg(e){
+  const c=(e&&e.code)||""; const m={
+    "auth/invalid-email":"El correo no es válido.","auth/missing-password":"Escribe la contraseña.","auth/weak-password":"La contraseña debe tener al menos 6 caracteres.",
+    "auth/email-already-in-use":"Ya existe una cuenta con ese correo. Pulsa «Entrar».","auth/invalid-credential":"Correo o contraseña incorrectos.",
+    "auth/user-not-found":"No hay ninguna cuenta con ese correo.","auth/wrong-password":"Contraseña incorrecta.","auth/too-many-requests":"Demasiados intentos. Espera un poco.",
+    "auth/network-request-failed":"No hay conexión.","auth/popup-closed-by-user":"Has cerrado la ventana de Google.","auth/cancelled-popup-request":"",
+    "auth/popup-blocked":"El navegador ha bloqueado la ventana. Usa el correo y la contraseña.","auth/unauthorized-domain":"Esta web no está autorizada en Firebase (Authentication > Configuración > Dominios autorizados).",
+    "auth/operation-not-allowed":"Este método de acceso no está activado en Firebase."}[c];
+  return m!==undefined?m:("No se ha podido completar: "+(c||e&&e.message||"error"));
+}
+async function acctInit(){
+  if(!fbOK)return;
+  $("#btnAcct").hidden=false; acctUI();
+  try{ await getAdapter() }catch(e){ syncMsg="Sin conexión con el servidor de cuentas."; acctUI(); return }
+  AD.onAuth(async u=>{
+    adUser=u;
+    if(u) await signedIn(u);
+    else if(LS.get("acct",null)){ stopListen(); LS.del("acct"); toLocalNs(); }
+    acctUI();
+  });
+}
+function toLocalNs(){
+  const prev=LS.get("curLocal",null);
+  cur=(prev&&!String(prev).startsWith("fb:"))?prev:(users.length?users[0].id:"local"); LS.set("cur",cur);
+  loadUser(); quiz=null; cards=null; show("home"); renderHome();
+}
+function migrate(prev,ns){
+  if(!prev)return; const pre=`u:${prev}:`;
+  Object.keys(localStorage).filter(k=>k.startsWith(pre)).forEach(k=>{
+    const key=k.slice(pre.length), nk=`u:${ns}:${key}`;
+    if(localStorage.getItem(nk)===null){localStorage.setItem(nk,localStorage.getItem(k));LS.set(`t:${ns}:${key}`,1);const d=new Set(LS.get(`dirty:${ns}`,[]));d.add(key);LS.set(`dirty:${ns}`,[...d])}
+  });
+}
+async function signedIn(u){
+  const ns="fb:"+u.uid;
+  if(cur!==ns){ if(!onFb())LS.set("curLocal",cur); migrate(cur,ns); cur=ns; LS.set("cur",cur); }
+  LS.set("acct",{uid:u.uid,email:u.email,name:u.name});
+  try{ await syncInitial(u.uid); startListen(u.uid); syncMsg="Sincronizado."; }catch(e){ syncMsg="No se pudo sincronizar. Se reintentará."; }
+  loadUser(true); reloadUI(); acctUI();
+}
+const jparse=s=>{try{return JSON.parse(s)}catch(e){return undefined}};
+function mergeVal(k,a,b){ // a=local, b=remote
+  if(SET_KEYS.has(k)&&Array.isArray(a)&&Array.isArray(b)) return [...new Set([...a,...b])];
+  if(LIST_KEYS.has(k)&&Array.isArray(a)&&Array.isArray(b)){const m=new Map();[...a,...b].forEach(x=>{if(x&&!m.has(x.d))m.set(x.d,x)});return [...m.values()].sort((x,y)=>y.d-x.d).slice(0,30)}
+  return undefined;
+}
+async function syncInitial(uid){
+  const remote=new Map((await AD.getAll(uid)).map(r=>[r.id,r]));
+  const pre=`u:${cur}:`, local=new Set(Object.keys(localStorage).filter(k=>k.startsWith(pre)).map(k=>k.slice(pre.length)));
+  const dirty=new Set(LS.get(dKey(),[]));
+  new Set([...local,...remote.keys()]).forEach(k=>{
+    const r=remote.get(k), lraw=localStorage.getItem(pre+k), lt=LS.get(tKey(k),0);
+    if(!r){ if(lraw!==null){dirty.add(k); if(!lt)LS.set(tKey(k),1)} return }
+    if(lraw===null||lraw===undefined){ if(!r.d){localStorage.setItem(pre+k,r.v)} LS.set(tKey(k),r.t); dirty.delete(k); return }
+    if(r.d){ if(lt>r.t)dirty.add(k); else{localStorage.removeItem(pre+k);LS.set(tKey(k),r.t);dirty.delete(k)} return }
+    if(lraw===r.v){ LS.set(tKey(k),Math.max(lt,r.t)); dirty.delete(k); return }
+    const mv=mergeVal(k,jparse(lraw),jparse(r.v));
+    if(mv!==undefined){ const s2=JSON.stringify(mv); localStorage.setItem(pre+k,s2); LS.set(tKey(k),Date.now()); if(s2!==r.v)dirty.add(k); else dirty.delete(k); return }
+    if(lt>r.t){dirty.add(k)} else {localStorage.setItem(pre+k,r.v); LS.set(tKey(k),r.t); dirty.delete(k)}
+  });
+  LS.set(dKey(),[...dirty]);
+  await syncPush();
+}
+async function syncPush(){
+  if(!AD||!adUser||!onFb()||syncBusy||navigator.onLine===false)return;
+  const dirty=LS.get(dKey(),[]); if(!dirty.length)return;
+  const pre=`u:${cur}:`, docs=[];
+  dirty.forEach(k=>{const raw=localStorage.getItem(pre+k); if(raw!==null&&raw.length>900000)return; docs.push({id:k,v:raw===null?"":raw,d:raw===null,t:LS.get(tKey(k),Date.now())})});
+  syncBusy=true;
+  try{
+    if(docs.length) await AD.setMany(adUser.uid,docs);
+    const now=new Set(LS.get(dKey(),[])); dirty.forEach(k=>{ if(LS.get(tKey(k),0)<=((docs.find(x=>x.id===k)||{}).t||Infinity)) now.delete(k) }); LS.set(dKey(),[...now]);
+    syncMsg="Sincronizado."; 
+  }catch(e){ syncMsg="No se pudo sincronizar. Se reintentará."; }
+  syncBusy=false; acctUI();
+}
+function stopListen(){ if(syncUnsub){try{syncUnsub()}catch(e){} syncUnsub=null} }
+function startListen(uid){
+  stopListen();
+  syncUnsub=AD.listen(uid,docs=>{
+    let ch=false; const pre=`u:${cur}:`;
+    docs.forEach(r=>{
+      const lt=LS.get(tKey(r.id),0); if(r.t<=lt)return;
+      if(r.id==="quiz"&&quiz&&!quiz.done)return;
+      if(r.d)localStorage.removeItem(pre+r.id); else localStorage.setItem(pre+r.id,r.v);
+      LS.set(tKey(r.id),r.t); ch=true;
+    });
+    if(ch){loadUser(true);reloadUI()}
+  },()=>{syncMsg="Sin conexión con el servidor.";acctUI()});
+}
+function reloadUI(){
+  if(!$("#home").hidden){ renderHome(); refresh() }
+  if(mode==="pod"&&!$("#podView").hidden) renderPod();
+}
+function acctUI(){
+  const a=LS.get("acct",null), b=$("#btnAcct");
+  b.classList.toggle("on",!!a); b.title=a?`Sesión iniciada: ${a.email}`:"Iniciar sesión para sincronizar";
+  $("#acOut").hidden=!!a; $("#acIn2").hidden=!a;
+  if(a){ $("#acWho").textContent=a.email||a.name||"Cuenta"; const nd=LS.get(dKey(),[]).length; $("#acState").textContent=(nd?`Cambios pendientes de subir (${nd}). `:"")+syncMsg }
+}
+const setAcMsg=t=>{$("#acMsg").textContent=t};
+async function acAction(fn){
+  setAcMsg(""); try{ await getAdapter(); await fn(); }catch(e){ setAcMsg(errMsg(e)) }
+}
+const acCreds=()=>{const e=$("#acMail").value.trim(),p=$("#acPass").value; if(!e){setAcMsg("Escribe tu correo.");return null} return [e,p]};
+$("#btnAcct").onclick=()=>{acctUI();setAcMsg("");$("#dlgAcct").showModal()};
+$("#acLater").onclick=()=>$("#dlgAcct").close(); $("#acClose").onclick=()=>$("#dlgAcct").close();
+$("#acGoogle").onclick=()=>acAction(async()=>{ await AD.google(); $("#dlgAcct").close() });
+$("#acIn").onclick=()=>acAction(async()=>{ const c=acCreds(); if(!c)return; await AD.signIn(...c); $("#dlgAcct").close() });
+$("#acNew").onclick=()=>acAction(async()=>{ const c=acCreds(); if(!c)return; await AD.signUp(...c); $("#dlgAcct").close() });
+$("#acReset").onclick=()=>acAction(async()=>{ const c=$("#acMail").value.trim(); if(!c){setAcMsg("Escribe tu correo y vuelve a pulsar.");return} await AD.reset(c); setAcMsg("Te hemos enviado un correo para cambiar la contraseña.") });
+$("#acSync").onclick=async()=>{ $("#acState").textContent="Sincronizando…"; try{ if(adUser){await syncInitial(adUser.uid);syncMsg="Sincronizado."} }catch(e){syncMsg="No se pudo sincronizar."} loadUser(true);reloadUI();acctUI() };
+$("#acSignOut").onclick=async()=>{
+  $("#dlgAcct").close();
+  try{ await syncPush() }catch(e){}
+  stopListen(); try{ await AD.signOut() }catch(e){}
+  LS.del("acct"); adUser=null; toLocalNs(); acctUI();
+};
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden"){clearTimeout(syncTimer);syncPush()} });
+window.addEventListener("online",()=>{ syncPush() });
+function acctStart(){
+  if(!fbOK)return;
+  acctInit();
+  if(!LS.get("acct",null)&&!LS.get("acctAsked",false)){ LS.set("acctAsked",true); setTimeout(()=>{ if(!LS.get("acct",null)) $("#dlgAcct").showModal() },700) }
+}
+
 show("home"); renderHome();
+acctStart();
 })();
 </script>
 </body>
