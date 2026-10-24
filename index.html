@@ -705,7 +705,7 @@ function ask(title,text,yes="Aceptar",no="Cancelar"){
 
 /* ---------- Inicio: bloques y temas ---------- */
 function renderBlocks(){
-  const host=$("#blocks"); const openIds=$$(".block.open").map(b=>b.dataset.i);
+  const host=$("#blocks"); const openIds=$$("#blocks .block.open").map(b=>b.dataset.i);
   host.innerHTML="";
   B.blocks.forEach((bl,i)=>{
     const ts=temasConBanco.filter(t=>t.b===i); if(!ts.length) return;
