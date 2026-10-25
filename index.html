@@ -907,7 +907,7 @@ function openFavList(){
   show("favlist");
 }
 $("#flBack").onclick=()=>{show("home");renderHome();window.scrollTo(0,favScroll);requestAnimationFrame(()=>window.scrollTo(0,favScroll))};
-$("#flGo").onclick=()=>{ (mode==="cards"?$("#favCards"):$("#favTest")).click() };
+$("#flGo").onclick=()=>{ (mode==="cards"?$("#favCards").onclick:$("#favTest").onclick)() };
 $("#favTest").onclick=()=>{
   const idxs=shuffle([...favs].map(h=>IDX.get(h)).filter(i=>i!==undefined)).slice(0,100); if(!idxs.length)return;
   start(idxs.map(makeItem),instant,0);
