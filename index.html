@@ -127,6 +127,9 @@ body.nomin{min-height:0}
 .resume{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px}
 .resume .t b{font-size:.95rem}.resume .hint{font-size:.8rem}
 .resume{cursor:pointer}
+#btnSearch,#btnTheme{width:40px;height:36px;padding:0;display:grid;place-items:center;font-size:1rem}
+#sInput{flex:1;min-width:0;font:inherit;font-size:16px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);outline:none}
+#sInput:focus{border-color:var(--accent)}
 .ric{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none;font-size:.95rem}
 .resume .t{flex:1}
 .hist{display:grid;gap:8px}
@@ -320,6 +323,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <span class="sp"></span>
     <button class="iconbtn" id="btnInstall" hidden>Instalar</button>
     <button class="av" id="btnUser" aria-label="Usuario"></button>
+    <button class="iconbtn" id="btnSearch" aria-label="Buscar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="display:block"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button>
     <button class="iconbtn" id="btnTheme" aria-label="Cambiar tema claro/oscuro">◐</button>
     <button class="iconbtn" id="btnAcct" hidden aria-label="Cuenta y sincronización">👤</button>
   </header>
@@ -424,6 +428,17 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 </div></div>
 
 <!-- ============ TARJETAS ============ -->
+<main id="search" class="wrap" hidden>
+  <div class="qtop">
+    <div class="qbar">
+      <button class="iconbtn" id="sBack">← Volver</button>
+      <input id="sInput" type="search" placeholder="Buscar en preguntas y tarjetas…" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Buscar">
+    </div>
+    <nav class="seg" id="sTabs" style="margin:8px 0 0"><button data-k="q" class="on">Preguntas</button><button data-k="c">Tarjetas</button></nav>
+  </div>
+  <div id="sBody" style="margin-top:12px"></div>
+</main>
+
 <main id="favlist" class="wrap" hidden>
   <div class="qtop"><div class="qbar">
     <button class="iconbtn" id="flBack">← Volver</button>
@@ -449,7 +464,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <section class="card cend" id="cEnd" hidden>
     <h2 id="cEndT">Sesión terminada</h2>
     <p class="hint" id="cEndS"></p>
-    <div class="row"><button class="btn" id="cEndRetry">Repasar las pendientes</button><button class="btn ghost" id="cEndHome">Volver al inicio</button></div>
+    <div class="row"><button class="btn" id="cEndRetry">Repasar las pendientes</button><button class="btn ghost" id="cEndHome">Página principal</button></div>
   </section>
 </main>
 <div class="dock" id="cardsDock" hidden><div class="in">
@@ -484,7 +499,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 </main>
 <div class="dock" id="resDock" hidden><div class="in">
   <button class="btn ghost" id="btnRetry">Repetir falladas</button>
-  <button class="btn grow" id="btnNew">Nuevo test</button>
+  <button class="btn grow" id="btnNew">Página principal</button>
 </div></div>
 
 <!-- ============ DIÁLOGOS ============ -->
@@ -585,6 +600,7 @@ const CARDS=(window.CARDS||[]).map(c=>c.length===3?[c[0],"q",B.qs[c[2]][1],B.qs[
 const CID=CARDS.map(c=>hq(c[2]+"|"+c[3]));
 const CIDX=new Map(CID.map((h,i)=>[h,i]));
 const perTema={}; B.qs.forEach(q=>perTema[q[0]]=(perTema[q[0]]||0)+1);
+const perTemaC={}; CARDS.forEach(c=>perTemaC[c[0]]=(perTemaC[c[0]]||0)+1);
 const temasConBanco=B.temas.filter(t=>perTema[t.n]);
 let sel,count,instant,favs,known,cfavs,cardCount,onlyUnk;
 let mode=LS.get("mode","tests");
@@ -746,7 +762,7 @@ function show(name){
   document.body.classList.toggle("nomin",name==="quiz"||name==="cards");
   $("#home").hidden=name!=="home"; $("#homeDock").hidden=name!=="home";
   $("#quiz").hidden=name!=="quiz"; $("#quizDock").hidden=name!=="quiz";
-  $("#login").hidden=name!=="login"; $("#favlist").hidden=name!=="favlist"; $("#flDock").hidden=name!=="favlist";
+  $("#login").hidden=name!=="login"; $("#search").hidden=name!=="search"; $("#favlist").hidden=name!=="favlist"; $("#flDock").hidden=name!=="favlist";
   $("#cards").hidden=name!=="cards"; $("#cardsDock").hidden=name!=="cards"||!!(cards&&cards.end);
   $("#result").hidden=name!=="result"; $("#resDock").hidden=name!=="result";
   $("#podDock").hidden=name!=="home"||mode!=="pod"||!podN;
@@ -768,16 +784,16 @@ function renderBlocks(){
   host.innerHTML="";
   B.blocks.forEach((bl,i)=>{
     const ts=temasConBanco.filter(t=>t.b===i); if(!ts.length) return;
-    const nsel=ts.filter(t=>sel.has(t.n)).length, nq=ts.reduce((s,t)=>s+perTema[t.n],0);
+    const nsel=ts.filter(t=>sel.has(t.n)).length, CM=mode==="cards", PT=CM?perTemaC:perTema, nq=ts.reduce((s,t)=>s+(PT[t.n]||0),0);
     const el=document.createElement("div"); el.className="card block"+(openIds.includes(String(i))?" open":""); el.dataset.i=i;
     el.style.setProperty("--bc",`var(${BLOCKCOL[i]})`);
     el.innerHTML=`<div class="head">
       <div class="info"><div class="name">${bl.name}</div>
-      <div class="meta">Temas ${bl.from}–${bl.to} · ${nsel}/${ts.length} elegidos · ${nq} preguntas</div></div>
+      <div class="meta">Temas ${bl.from}–${bl.to} · ${nsel}/${ts.length} elegidos · ${nq} ${CM?"tarjetas":"preguntas"}</div></div>
       <button class="tog ${nsel===ts.length?"on":nsel?"part":""}" data-act="blk">${nsel===ts.length?"Quitar":"Todos"}</button>
       <button class="chev" data-act="open" aria-label="Ver temas">▾</button></div>
       <div class="temas">${ts.map(t=>`<label class="trow"><input type="checkbox" data-n="${t.n}" ${sel.has(t.n)?"checked":""}>
-        <span class="tn">Tema ${t.n}</span><span class="tt">${esc(t.t)}</span><span class="tq">${perTema[t.n]}</span></label>`).join("")}</div>`;
+        <span class="tn">Tema ${t.n}</span><span class="tt">${esc(t.t)}</span><span class="tq">${PT[t.n]||0}</span></label>`).join("")}</div>`;
     host.appendChild(el);
   });
 }
@@ -793,7 +809,7 @@ $("#blocks").addEventListener("click",e=>{
 $("#selAll").onclick=()=>{temasConBanco.forEach(t=>sel.add(t.n));refresh()};
 $("#selNone").onclick=()=>{sel.clear();refresh()};
 
-function poolSize(){let s=0;sel.forEach(n=>s+=perTema[n]||0);return s}
+function poolSize(){const P=mode==="cards"?perTemaC:perTema;let s=0;sel.forEach(n=>s+=P[n]||0);return s}
 function maxQ(){ if(!sel.size) return 0; const cap=sel.size<=3?30:100; return Math.min(cap,poolSize()); }
 function renderChips(){
   const mx=maxQ(); const host=$("#chips"); host.innerHTML="";
@@ -828,7 +844,7 @@ function refresh(){
   const ft=document.querySelector(".foot"); if(ft) ft.hidden=mode==="cards";
   $("#testOpts").hidden=mode!=="tests"; $("#cardOpts").hidden=mode!=="cards"; $("#histSec").hidden=mode!=="tests"; $("#histEmpty").hidden=!!U.get("hist",[]).length;
   renderBlocks();
-  const k=sel.size; $("#selInfo").textContent=k?`${k} ${k===1?"tema elegido":"temas elegidos"} · ${poolSize()} preguntas en el banco`:"Elige al menos un tema para empezar.";
+  const k=sel.size; $("#selInfo").textContent=k?`${k} ${k===1?"tema elegido":"temas elegidos"} · ${poolSize()} ${mode==="cards"?"tarjetas":"preguntas"} disponibles`:"Elige al menos un tema para empezar.";
   const b=$("#btnStart");
   if(mode==="tests"){
     const mx=maxQ(); if(mx && count>mx){count=Math.max(10,Math.floor(mx/10)*10);} if(mx>=10 && count<10)count=10;
@@ -871,6 +887,49 @@ $("#btnStart").onclick=()=>{
   start(idxs.map(makeItem),instant,sel.size);
 };
 let favScroll=0;
+/* ---------- Búsqueda ---------- */
+const norm=t=>t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+let SQ=null,SC=null,sKind="q",sRes={q:[],c:[]},sShown=40,sScroll=0,sTimer;
+function itemCard(isC,i){
+  const d=document.createElement("div"); d.className="card rev";
+  let t,h,html;
+  if(isC){ const c=CARDS[i]; t=c[0]; h=CID[i]; const q=c[2],a=c[3];
+    if(c[1]==="c"){ const p=q.split(BLANK); html=`<div class="qtext">${esc(p[0])}<mark class="ans">${esc(a)}</mark>${esc(p.slice(1).join("______"))}</div>` }
+    else html=`<div class="qtext">${esc(q)}</div><div class="opt ok" style="cursor:default">${esc(a)}</div>`;
+  } else { const q=B.qs[i]; t=q[0]; h=HID[i];
+    html=`<div class="qtext">${esc(q[1])}</div>`+[0,1,2,3].map(k=>`<div class="opt${k===0?" ok":""}" style="cursor:default"><span class="l">${"ABCD"[k]}</span><span>${esc(q[2+k])}</span></div>`).join("")+(q[6]?`<p class="hint" style="margin:10px 0 0">${esc(q[6])}</p>`:"");
+  }
+  const set=isC?cfavs:favs;
+  d.style.setProperty("--st",bcOf(t));
+  d.innerHTML=`<div class="tag">${esc(temaTag(t))}<button class="star" aria-label="Favorita">☆</button></div><div class="hint" style="margin:-2px 0 10px;font-size:.8rem">${esc(temaName(t))}</div>`+html;
+  const st=d.querySelector(".star"); setStar(st,set.has(h));
+  st.onclick=()=>{ if(set.has(h))set.delete(h); else set.add(h); setStar(st,set.has(h)); isC?saveCFavs():saveFavs() };
+  return d;
+}
+function doSearch(){
+  const raw=$("#sInput").value, w=norm(raw).split(/\s+/).filter(Boolean);
+  if(!SQ){ SQ=B.qs.map(r=>norm(r.slice(1,7).join(" ")+" "+temaName(r[0]))); SC=CARDS.map(c=>norm(c[2]+" "+c[3]+" "+temaName(c[0]))) }
+  sRes={q:[],c:[]};
+  if(norm(raw).trim().length>=2){
+    SQ.forEach((x,i)=>{ if(w.every(k=>x.includes(k))) sRes.q.push(i) });
+    SC.forEach((x,i)=>{ if(w.every(k=>x.includes(k))) sRes.c.push(i) });
+  }
+  sShown=40; renderSearch();
+}
+function renderSearch(){
+  const act=norm($("#sInput").value).trim().length>=2;
+  $$("#sTabs button").forEach(b=>{const k=b.dataset.k; b.classList.toggle("on",k===sKind); b.textContent=(k==="q"?"Preguntas":"Tarjetas")+(act?` (${sRes[k].length})`:"")});
+  const body=$("#sBody"); body.innerHTML="";
+  if(!act){ body.innerHTML='<p class="hint">Escribe al menos dos letras. Busca en el enunciado, las respuestas, la explicación y el título del tema.</p>'; return }
+  const L=sRes[sKind]; if(!L.length){ body.innerHTML='<p class="hint">Sin resultados.</p>'; return }
+  const isC=sKind==="c";
+  L.slice(0,sShown).forEach(i=>body.appendChild(itemCard(isC,i)));
+  if(L.length>sShown){ const m=document.createElement("button"); m.className="btn ghost"; m.style.cssText="width:100%;margin:4px 0 12px"; m.textContent=`Mostrar más (${L.length-sShown})`; m.onclick=()=>{sShown+=40;renderSearch()}; body.appendChild(m) }
+}
+$("#btnSearch").onclick=()=>{ sScroll=window.scrollY; show("search"); renderSearch(); $("#sInput").focus() };
+$("#sInput").addEventListener("input",()=>{clearTimeout(sTimer);sTimer=setTimeout(doSearch,200)});
+$("#sTabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;sKind=b.dataset.k;sShown=40;renderSearch();window.scrollTo(0,0)});
+$("#sBack").onclick=()=>{show("home");renderHome();window.scrollTo(0,sScroll);requestAnimationFrame(()=>window.scrollTo(0,sScroll))};
 $("#favBox").addEventListener("click",()=>{ if($("#favView").disabled)return; openFavList() });
 function temaTag(t){return `Tema ${t}`}
 function temaName(t){const T=B.temas.find(x=>x.n===t);return T&&T.t?shortT(T):""}
@@ -1072,7 +1131,7 @@ function renderHome(){
 $("#hist").addEventListener("click",e=>{
   const r=e.target.closest(".click"); if(!r) return;
   const t=U.get("tests",[]).find(t=>String(t.d)===r.dataset.d); if(!t) return;
-  const items=expand(t); if(!items.length){toast("Esas preguntas ya no están en el banco");return}
+  const items=expand(t);
   quiz={items,k:t.k,idx:0,instant:t.instant,el:t.el,done:true,d:t.d}; showResult(score(items));
 });
 function resRow(title,info,id){return `<div class="card resume" data-id="${id}"><span class="ric" aria-hidden="true">⏸</span><div class="t"><b>${title}</b><div class="hint" style="margin:0">${info}</div></div><button class="btn" data-act="go" style="padding:9px 12px">Continuar</button><button class="btn ghost" data-act="x" style="padding:9px 12px" aria-label="Descartar">✕</button></div>`}
