@@ -126,6 +126,7 @@ body.nomin{min-height:0}
 
 .resume{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px}
 .resume .t b{font-size:.95rem}.resume .hint{font-size:.8rem}
+.resume{cursor:pointer}
 .ric{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none;font-size:.95rem}
 .resume .t{flex:1}
 .hist{display:grid;gap:8px}
@@ -232,7 +233,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 .favbox .col{display:grid;gap:8px}
 .hrow.click{cursor:pointer;width:100%;text-align:left;border:1px solid var(--line)}
 @media(hover:hover){.hrow.click:hover{border-color:var(--accent)}}
-.top .iconbtn{flex:none}.top>div{min-width:0}@media(max-width:430px){.top>img{display:none}.top h1{font-size:1.2rem}}
+.foot{text-align:center;margin:32px 8px 0;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;line-height:1.7}
 .foot{text-align:center;margin-top:30px;color:var(--muted);font-size:.85rem;line-height:1.7}
 .fcard{padding:26px 20px 20px;margin-top:10px;min-height:36vh;position:relative;overflow:hidden;cursor:pointer;display:flex;flex-direction:column}
 .fcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--bc,var(--accent))}
@@ -1082,8 +1083,8 @@ function renderQResume(){
     return resRow(dShort(sv.id)+" · Test",`${sv.items.length} preguntas · ${a} contestadas · vas por la ${sv.idx+1}`,sv.id)}).join("");
 }
 $("#resumeBox").addEventListener("click",async e=>{
-  const b=e.target.closest("button[data-act]"); if(!b)return; const id=b.closest("[data-id]").dataset.id;
-  if(b.dataset.act==="go"){ const q=pend().find(x=>x.id===id); if(q){quiz=q;quiz.items.forEach(hOf);show("quiz");renderQ()} }
+  const row=e.target.closest("[data-id]"); if(!row)return; const id=row.dataset.id, x=e.target.closest('button[data-act="x"]');
+  if(!x){ const q=pend().find(x=>x.id===id); if(q){quiz=q;quiz.items.forEach(hOf);show("quiz");renderQ()} }
   else if(await ask("¿Descartar el test?","Se perderán las respuestas dadas.","Descartar","Cancelar")){ U.set("qpend",pend().filter(x=>x.id!==id)); renderQResume() }
 });
 
@@ -1109,9 +1110,9 @@ function renderCardsResume(){
   box.innerHTML=cpend().map(sv=>resRow(dShort(sv.id)+" · Tarjetas",`${sv.h.length} tarjetas · vas por la ${sv.idx+1}`,sv.id)).join("");
 }
 $("#cardsResume").addEventListener("click",async e=>{
-  const b=e.target.closest("button[data-act]"); if(!b)return; const id=b.closest("[data-id]").dataset.id;
+  const row=e.target.closest("[data-id]"); if(!row)return; const id=row.dataset.id, xb=e.target.closest('button[data-act="x"]');
   const sv=cpend().find(x=>x.id===id); if(!sv)return;
-  if(b.dataset.act==="go"){
+  if(!xb){
     const items=sv.h.map(h=>CIDX.get(h)).filter(i=>i!==undefined); if(!items.length){U.set("cpend",cpend().filter(x=>x.id!==id));renderCardsResume();return}
     cards={id,items,idx:Math.min(sv.idx,items.length-1),flipped:false,know:0,again:[],end:false};
     show("cards"); renderCard();
