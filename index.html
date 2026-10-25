@@ -6,6 +6,7 @@
 <title>Facultativo de Bibliotecas</title>
 <meta name="description" content="Tests tipo oposición para preparar el Cuerpo Facultativo de Bibliotecas: 100 temas, modo tarjeta y penalización de un tercio.">
 <meta name="theme-color" content="#3a4fb5">
+<meta name="color-scheme" content="light dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -41,7 +42,11 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
-html,body{margin:0}
+html,body{margin:0;overscroll-behavior:none}
+html{background:var(--bg);color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}}
+html.lock,html.lock body{overflow:hidden;height:100%;touch-action:manipulation}
 body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans);min-height:100vh;min-height:100dvh;
   background-image:radial-gradient(1200px 500px at 50% -200px,var(--accent-soft),transparent 70%);background-repeat:no-repeat}
 button{font:inherit;color:inherit;cursor:pointer}
@@ -731,6 +736,14 @@ $("#btnTheme").onclick=()=>{const cur=root.dataset.theme||(matchMedia("(prefers-
   const nx=cur==="dark"?"light":"dark";LS.set("theme",nx);applyTheme(nx)};
 
 /* ---------- Pantallas ---------- */
+function fitLock(){
+  const h=document.documentElement; h.classList.remove("lock");
+  const on=!$("#quiz").hidden||!$("#cards").hidden;
+  if(on && h.scrollHeight<=innerHeight+2) h.classList.add("lock");
+}
+addEventListener("resize",()=>setTimeout(fitLock,50));
+let _fl; const mo=new MutationObserver(()=>{clearTimeout(_fl);_fl=setTimeout(fitLock,30)});
+["#quiz","#cards"].forEach(q=>mo.observe($(q),{childList:true,subtree:true,attributes:true,characterData:true}));
 function show(name){
   document.body.classList.toggle("nomin",name==="quiz"||name==="cards");
   $("#home").hidden=name!=="home"; $("#homeDock").hidden=name!=="home";
@@ -741,7 +754,7 @@ function show(name){
   $("#podDock").hidden=name!=="home"||mode!=="pod"||!podN;
   if(name==="home"&&mode==="pod")$("#homeDock").hidden=true;
   if(name!=="home"&&podAudio&&!podAudio.paused)podAudio.pause();
-  window.scrollTo(0,0);
+  window.scrollTo(0,0); setTimeout(fitLock,0);
 }
 function toast(msg){const t=document.createElement("div");t.className="toast";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
 function ask(title,text,yes="Aceptar",no="Cancelar"){
@@ -1109,7 +1122,7 @@ function renderCard(){
   $("#fBack").hidden=!c.flipped||isC; $("#fHint").hidden=c.flipped;
   $("#cFlip").hidden=c.flipped; $("#cAgain").hidden=false; $("#cAgain").disabled=c.idx===0; $("#cKnow").hidden=!c.flipped;
   setStar($("#cFav"),cfavs.has(h));
-  window.scrollTo({top:0});
+  window.scrollTo({top:0}); fitLock();
 }
 function flipCard(){ if(!cards||cards.end||cards.flipped) return; cards.flipped=true; renderCard() }
 function rateCard(ok){
