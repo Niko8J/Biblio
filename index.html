@@ -226,7 +226,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 .star.on{color:var(--gold)}
 .qcard .star,.fcard .star{position:absolute;right:10px;top:8px;z-index:2}
 .rev .tag .star{margin-left:auto;font-size:1.35rem;padding:0 4px}
-.favbox{display:flex;align-items:center;gap:12px;padding:14px;border-left:5px solid var(--gold)}
+.favbox{display:flex;align-items:center;gap:12px;padding:12px 14px}
 .favbox .t{flex:1;min-width:0}
 .favbox .btn{padding:10px 14px;font-size:.9rem}
 .favbox .col{display:grid;gap:8px}
@@ -362,7 +362,6 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <h2><span class="n">2</span>Número de tarjetas</h2>
     <div class="chips" id="cchips"></div>
     <p class="hint">Preguntas directas con respuesta corta y frases incompletas para completar.</p>
-    <label class="card switch" hidden><input type="checkbox" id="optUnk"><div><span id="unkInfo"></span></div></label>
   </section>
 
   </div>
@@ -370,9 +369,15 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <section class="sec" id="favSec">
     <h2><span class="n" id="favN">4</span><span id="favTitle">Preguntas favoritas</span></h2>
     <div class="card favbox" id="favBox" style="cursor:pointer">
-      <div class="t"><b id="favCount">0 favoritas</b><div class="hint" id="favHint" style="margin:0"></div></div>
+      <span class="ric" aria-hidden="true">★</span><div class="t"><b id="favCount">0 favoritas</b><div class="hint" id="favHint" style="margin:0"></div></div>
       <div class="col"><button class="btn" id="favView">Ver</button><button class="btn" id="favTest" hidden></button><button class="btn" id="favCards" hidden></button></div>
     </div>
+  </section>
+
+  <section class="sec" id="histSec" hidden>
+    <h2><span class="n">5</span>Tests terminados</h2>
+    <div class="hist" id="hist"></div>
+    <p class="hint" id="histEmpty" hidden>Aún no has terminado ningún test.</p>
   </section>
 
   <section class="sec" id="pendSec">
@@ -381,10 +386,6 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <p class="hint" id="pendEmpty" hidden></p>
   </section>
 
-  <section class="sec" id="histSec" hidden>
-    <h2><span class="n">6</span>Tests terminados</h2>
-    <div class="hist" id="hist"></div>
-  </section>
   <p class="foot">Tres respuestas equivocadas quitan una bien<br>Las preguntas en blanco ni puntúan ni penalizan</p>
 </main>
 <div class="dock" id="homeDock"><div class="in"><button class="btn grow" id="btnStart" disabled>Empezar test</button></div></div>
@@ -810,8 +811,6 @@ function renderCardOpts(){
   const host=$("#cchips"); host.innerHTML=""; const n=cardPool().length;
   [10,20,30,50,0].forEach(v=>{const b=document.createElement("button");b.className="chip"+(v===cardCount?" on":"");b.textContent=v?v:"Todas";b.disabled=!n;
     b.onclick=()=>{cardCount=v;U.set("ccount",v);refresh()};host.appendChild(b)});
-  let kn=0,tot=0; CARDS.forEach((c,i)=>{if(sel.has(c[0])&&cardTypeOk(c)){tot++;if(known.has(CID[i]))kn++}});
-  $("#unkInfo").textContent=sel.size?`Ya sabes ${kn} de las ${tot} tarjetas de los temas elegidos.`:"Oculta las que ya marcaste como sabidas.";
 }
 function refresh(){
   U.set("sel",[...sel]);
@@ -819,14 +818,14 @@ function refresh(){
   $("#bankInfo").textContent=mode==="cards"?`${CARDS.length} tarjetas · ${temasConBanco.length} temas`:`${B.qs.length} preguntas · ${temasConBanco.length} temas`;
   const isP=mode==="pod";
   $("#pendSec").hidden=mode==="pod"; renderQResume(); renderCardsResume();
-  { const isC=mode==="cards"; $("#pendN").textContent=isC?4:5; $("#pendTitle").textContent=isC?"Tarjetas pendientes":"Tests pendientes";
-    const n=(isC?cpend():pend()).length; const e=$("#pendEmpty"); e.hidden=!!n||mode==="pod"; e.textContent=isC?"No tienes tarjetas a medias.":"No tienes tests a medias."; }
+  { const isC=mode==="cards"; $("#pendN").textContent=isC?4:6; $("#pendTitle").textContent=isC?"Tarjetas pendientes":"Tests pendientes";
+    const n=(isC?cpend():pend()).length; const e=$("#pendEmpty"); e.hidden=!!n||mode==="pod"; e.textContent=isC?"No tienes ninguna tarjeta pendiente.":"No tienes ningún test pendiente."; }
   $("#podView").hidden=!isP; $("#temaSec").hidden=isP; $("#favSec").hidden=isP; $("#homeDock").hidden=isP;
   $("#podDock").hidden=!isP||!podN; document.body.classList.toggle("podplay",isP&&!!podN);
   if(!isP&&podAudio&&!podAudio.paused) podAudio.pause();
   if(isP){ renderPod(); $("#testOpts").hidden=true; $("#cardOpts").hidden=true; $("#histSec").hidden=true; const f0=document.querySelector(".foot"); if(f0)f0.hidden=true; $("#bankInfo").textContent="100 pódcasts · uno por tema"; return }
   const ft=document.querySelector(".foot"); if(ft) ft.hidden=mode==="cards";
-  $("#testOpts").hidden=mode!=="tests"; $("#cardOpts").hidden=mode!=="cards"; $("#histSec").hidden=mode!=="tests"||!U.get("hist",[]).length;
+  $("#testOpts").hidden=mode!=="tests"; $("#cardOpts").hidden=mode!=="cards"; $("#histSec").hidden=mode!=="tests"; $("#histEmpty").hidden=!!U.get("hist",[]).length;
   renderBlocks();
   const k=sel.size; $("#selInfo").textContent=k?`${k} ${k===1?"tema elegido":"temas elegidos"} · ${poolSize()} preguntas en el banco`:"Elige al menos un tema para empezar.";
   const b=$("#btnStart");
@@ -850,8 +849,6 @@ function refresh(){
 }
 $("#optInstant").checked=instant;
 $("#optInstant").onchange=e=>{instant=e.target.checked;U.set("instant",instant)};
-$("#optUnk").checked=onlyUnk;
-$("#optUnk").onchange=e=>{onlyUnk=e.target.checked;U.set("onlyUnk",onlyUnk);refresh()};
 $("#mainTabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;mode=b.dataset.m;LS.set("mode",mode);refresh()});
 
 /* ---------- Crear test ---------- */
