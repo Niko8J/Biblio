@@ -42,7 +42,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans);min-height:100vh;
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans);min-height:100vh;min-height:100dvh;
   background-image:radial-gradient(1200px 500px at 50% -200px,var(--accent-soft),transparent 70%);background-repeat:no-repeat}
 button{font:inherit;color:inherit;cursor:pointer}
 h1,h2,h3{font-family:var(--serif);line-height:1.2;margin:0}
@@ -53,7 +53,8 @@ h1,h2,h3{font-family:var(--serif);line-height:1.2;margin:0}
 .top{display:flex;align-items:center;gap:12px;padding:calc(18px + env(safe-area-inset-top)) 0 10px}
 .top img{width:44px;height:44px;border-radius:12px;box-shadow:var(--shadow)}
 .top h1{font-size:1.35rem;letter-spacing:.2px}
-.top p{margin:0;color:var(--muted);font-size:.85rem}
+.top p{margin:0;color:var(--muted);font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.nomin{min-height:0}
 .top .sp{flex:1}
 .iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 12px;font-size:.85rem;font-weight:600;color:var(--ink)}
 @media(hover:hover){.iconbtn:hover{border-color:var(--accent)}}
@@ -315,6 +316,8 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <button class="iconbtn" id="btnAcct" hidden aria-label="Cuenta y sincronización">👤</button>
   </header>
 
+  <nav class="seg" id="mainTabs"><button data-m="tests" class="on">Tests</button><button data-m="cards">Tarjetas</button><button data-m="pod">Pódcasts</button></nav>
+
   <div id="resumeBox" class="card resume" hidden>
     <div class="t"><b>Tienes un test sin terminar</b><div class="hint" id="resumeInfo" style="margin:0"></div></div>
     <button class="btn" id="btnResume" style="padding:11px 16px">Continuar</button>
@@ -327,7 +330,6 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <button class="btn ghost" id="btnCDiscard" style="padding:11px 14px" aria-label="Descartar">✕</button>
   </div>
 
-  <nav class="seg" id="mainTabs"><button data-m="tests" class="on">Tests</button><button data-m="cards">Tarjetas</button><button data-m="pod">Pódcasts</button></nav>
 
   <section class="sec" id="podView" hidden>
     <h2>Pódcasts por tema</h2>
@@ -730,6 +732,7 @@ $("#btnTheme").onclick=()=>{const cur=root.dataset.theme||(matchMedia("(prefers-
 
 /* ---------- Pantallas ---------- */
 function show(name){
+  document.body.classList.toggle("nomin",name==="quiz"||name==="cards");
   $("#home").hidden=name!=="home"; $("#homeDock").hidden=name!=="home";
   $("#quiz").hidden=name!=="quiz"; $("#quizDock").hidden=name!=="quiz";
   $("#login").hidden=name!=="login"; $("#favlist").hidden=name!=="favlist"; $("#flDock").hidden=name!=="favlist";
