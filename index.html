@@ -237,7 +237,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 .fcard .qtext{margin-right:34px}
 .fcard .tg{font-size:.76rem;font-weight:700;color:var(--bc,var(--accent));margin-bottom:10px}
 .fcard .blank{display:inline-block;min-width:3.2em;border-bottom:2.5px solid var(--accent);color:transparent;line-height:1}
-.fcard mark.ans{background:var(--ok-bg);color:var(--ok);border-radius:6px;padding:0 5px;font-weight:700}
+.fcard mark.ans,.rev mark.ans{background:var(--ok-bg);color:var(--ok);border-radius:6px;padding:0 5px;font-weight:700}
 .fans{border-radius:14px;border:1.5px solid var(--ok);background:var(--ok-bg);padding:13px 14px;font-weight:600;margin-top:4px}
 .fhint{margin:auto 0 0;padding-top:18px;text-align:center;color:var(--muted);font-size:.85rem}
 .cend{text-align:center;padding:30px 18px;margin-top:20px}
@@ -383,7 +383,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <h2 id="favTitle">Preguntas favoritas</h2>
     <div class="card favbox" id="favBox" style="cursor:pointer">
       <div class="t"><b id="favCount">0 favoritas</b><div class="hint" id="favHint" style="margin:0"></div></div>
-      <div class="col"><button class="btn" id="favTest">Hacer test</button><button class="btn" id="favCards" hidden>Repasar</button></div>
+      <div class="col"><button class="btn" id="favView">Ver</button><button class="btn" id="favTest" hidden></button><button class="btn" id="favCards" hidden></button></div>
     </div>
   </section>
 
@@ -579,6 +579,8 @@ let AD=null, adUser=null, syncUnsub=null, syncTimer=0, syncMsg="", syncBusy=fals
 const U={get(k,d){return cur?LS.get(`u:${cur}:${k}`,d):d},set(k,v){if(cur){LS.set(`u:${cur}:${k}`,v);syncTouch(k)}},del(k){if(cur){LS.del(`u:${cur}:${k}`);syncTouch(k)}}};
 
 /* ---------- Datos ---------- */
+const TSHORT={12:"La Ley 39/2015 del Procedimiento Administrativo Común",16:"Estructura y competencias en bibliotecas de las Administraciones Públicas",24:"La Ley 19/2013 de Transparencia y Buen Gobierno",71:"OPAC, herramientas de descubrimiento y portales bibliotecarios",61:"Fuentes de información de publicaciones periódicas y oficiales"};
+const shortT=t=>TSHORT[t.n]||t.t.split(/\.\s|:/)[0].trim().replace(/\.$/,"");
 const hq=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)};
 const HID=B.qs.map(r=>hq(r[1]+"|"+r[2]));
 const IDX=new Map(HID.map((h,i)=>[h,i]));
@@ -619,7 +621,7 @@ function renderPod(){
       <div class="temas">${ts.map(t=>{
         const na=podAvail[t.n]===false, now=podN===t.n, hd=heard.has(t.n);
         const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"✓ Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
-        return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(t.t)}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`}).join("")}</div>`;
+        return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(shortT(t))}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`}).join("")}</div>`;
     host.appendChild(el);
   });
   probePods();
@@ -680,7 +682,7 @@ function podPlay(n,fromStart){
   const start=fromStart?0:(podPos()[n]||0);
   podAudio.addEventListener("loadedmetadata",function f(){podAudio.removeEventListener("loadedmetadata",f); if(start&&start<podAudio.duration-5)podAudio.currentTime=start; podAudio.playbackRate=podRate},{once:true});
   podAudio.play().catch(()=>{});
-  $("#podTitle").textContent=`Tema ${n} · ${t.t}`; $("#podSeek").value=0; $("#podCur").textContent=podFmt(start); $("#podDur").textContent="-0:00";
+  $("#podTitle").textContent=`Tema ${n} · ${shortT(t)}`; $("#podSeek").value=0; $("#podCur").textContent=podFmt(start); $("#podDur").textContent="-0:00";
   $("#podDock").hidden=false; document.body.classList.add("podplay");
   if("mediaSession" in navigator) navigator.mediaSession.metadata=new MediaMetadata({title:`Tema ${n}`,artist:"Facultativo de Bibliotecas",album:t.t.slice(0,120)});
   podUI();
@@ -848,8 +850,7 @@ function refresh(){
   $("#favTitle").textContent=isC?"Tarjetas favoritas":"Preguntas favoritas";
   $("#favCount").textContent=nf===1?"1 favorita":`${nf} favoritas`;
   $("#favHint").textContent=isC?"Márcalas con ☆ mientras estudias las tarjetas.":"Márcalas con ☆ durante un test o al revisar un resultado.";
-  $("#favTest").hidden=isC; $("#favCards").hidden=!isC;
-  $("#favTest").disabled=$("#favCards").disabled=!nf;
+  $("#favView").disabled=!nf;
 }
 $("#optInstant").checked=instant;
 $("#optInstant").onchange=e=>{instant=e.target.checked;U.set("instant",instant)};
@@ -875,10 +876,12 @@ $("#btnStart").onclick=()=>{
   const n=Math.min(count,maxQ()); const idxs=pickIndexes(sel,n);
   start(idxs.map(makeItem),instant,sel.size);
 };
-$("#favBox").addEventListener("click",e=>{ if(e.target.closest("button"))return; openFavList() });
+let favScroll=0;
+$("#favBox").addEventListener("click",()=>{ if($("#favView").disabled)return; openFavList() });
 function temaTag(t){return `Tema ${t}`}
-function temaName(t){const T=B.temas.find(x=>x.n===t);return T&&T.t?T.t:""}
+function temaName(t){const T=B.temas.find(x=>x.n===t);return T&&T.t?shortT(T):""}
 function openFavList(){
+  favScroll=window.scrollY;
   const isC=mode==="cards", body=$("#flBody"); body.innerHTML="";
   const keys=isC?[...cfavs]:[...favs];
   const rows=keys.map(h=>isC?CIDX.get(h):IDX.get(h)).filter(i=>i!==undefined);
@@ -903,7 +906,7 @@ function openFavList(){
   $("#flGo").textContent=isC?"Repasar estas tarjetas":"Hacer test con estas preguntas"; $("#flGo").disabled=!rows.length;
   show("favlist");
 }
-$("#flBack").onclick=()=>{show("home");renderHome()};
+$("#flBack").onclick=()=>{show("home");renderHome();window.scrollTo(0,favScroll);requestAnimationFrame(()=>window.scrollTo(0,favScroll))};
 $("#flGo").onclick=()=>{ (mode==="cards"?$("#favCards"):$("#favTest")).click() };
 $("#favTest").onclick=()=>{
   const idxs=shuffle([...favs].map(h=>IDX.get(h)).filter(i=>i!==undefined)).slice(0,100); if(!idxs.length)return;
