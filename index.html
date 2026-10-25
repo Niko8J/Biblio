@@ -47,6 +47,7 @@ body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans);min-height:
 button{font:inherit;color:inherit;cursor:pointer}
 h1,h2,h3{font-family:var(--serif);line-height:1.2;margin:0}
 .wrap{max-width:760px;margin:0 auto;padding:0 16px calc(120px + env(safe-area-inset-bottom))}
+#quiz.wrap,#cards.wrap,#result.wrap{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
 
 /* Cabecera */
 .top{display:flex;align-items:center;gap:12px;padding:calc(18px + env(safe-area-inset-top)) 0 10px}
@@ -225,7 +226,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 @media(hover:hover){.hrow.click:hover{border-color:var(--accent)}}
 .top .iconbtn{flex:none}.top>div{min-width:0}@media(max-width:430px){.top>img{display:none}.top h1{font-size:1.2rem}}
 .foot{text-align:center;margin-top:30px;color:var(--muted);font-size:.85rem;line-height:1.7}
-.fcard{padding:26px 20px 20px;margin-top:10px;min-height:46vh;position:relative;overflow:hidden;cursor:pointer;display:flex;flex-direction:column}
+.fcard{padding:26px 20px 20px;margin-top:10px;min-height:36vh;position:relative;overflow:hidden;cursor:pointer;display:flex;flex-direction:column}
 .fcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--bc,var(--accent))}
 .fcard .qtext{margin-right:34px}
 .fcard .tg{font-size:.76rem;font-weight:700;color:var(--bc,var(--accent));margin-bottom:10px}
@@ -320,6 +321,12 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <button class="btn ghost" id="btnDiscard" style="padding:11px 14px" aria-label="Descartar">✕</button>
   </div>
 
+  <div id="cardsResume" class="card resume" hidden>
+    <div class="t"><b>Tienes tarjetas a medias</b><div class="hint" id="cardsResumeInfo" style="margin:0"></div></div>
+    <button class="btn" id="btnCResume" style="padding:11px 16px">Continuar</button>
+    <button class="btn ghost" id="btnCDiscard" style="padding:11px 14px" aria-label="Descartar">✕</button>
+  </div>
+
   <nav class="seg" id="mainTabs"><button data-m="tests" class="on">Tests</button><button data-m="cards">Tarjetas</button><button data-m="pod">Pódcasts</button></nav>
 
   <section class="sec" id="podView" hidden>
@@ -360,15 +367,14 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <p class="hint">Preguntas directas con respuesta corta y frases incompletas para completar.</p>
   </section>
   <section class="sec">
-    <h2><span class="n">3</span>Tipos de tarjetas</h2>
-    <div class="seg" id="ctypes" style="margin:0 0 10px"><button data-t="all">Todas</button><button data-t="q">Preguntas</button><button data-t="c">Completar</button></div>
+    <h2><span class="n">3</span>Tarjetas pendientes</h2>
     <label class="card switch" hidden><input type="checkbox" id="optUnk"><div><span id="unkInfo"></span></div></label>
   </section>
   </div>
 
   <section class="sec" id="favSec">
     <h2 id="favTitle">Preguntas favoritas</h2>
-    <div class="card favbox">
+    <div class="card favbox" id="favBox" style="cursor:pointer">
       <div class="t"><b id="favCount">0 favoritas</b><div class="hint" id="favHint" style="margin:0"></div></div>
       <div class="col"><button class="btn" id="favTest">Hacer test</button><button class="btn" id="favCards" hidden>Repasar</button></div>
     </div>
@@ -415,6 +421,15 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 </div></div>
 
 <!-- ============ TARJETAS ============ -->
+<main id="favlist" class="wrap" hidden>
+  <div class="qtop"><div class="qbar">
+    <button class="iconbtn" id="flBack">← Volver</button>
+    <div class="cnt" id="flTitle" style="flex:1;text-align:right"></div>
+  </div></div>
+  <div id="flBody" style="margin-top:12px"></div>
+</main>
+<div class="dock" id="flDock" hidden><div class="in"><button class="btn" id="flGo" style="width:100%"></button></div></div>
+
 <main id="cards" class="wrap" hidden>
   <div class="qtop"><div class="qbar">
     <button class="iconbtn" id="cExit">✕ Salir</button>
@@ -566,7 +581,7 @@ const CID=CARDS.map(c=>hq(c[2]+"|"+c[3]));
 const CIDX=new Map(CID.map((h,i)=>[h,i]));
 const perTema={}; B.qs.forEach(q=>perTema[q[0]]=(perTema[q[0]]||0)+1);
 const temasConBanco=B.temas.filter(t=>perTema[t.n]);
-let sel,count,instant,favs,known,cfavs,cardCount,onlyUnk,cType;
+let sel,count,instant,favs,known,cfavs,cardCount,onlyUnk;
 let mode=LS.get("mode","tests");
 let quiz=null;           // test en curso
 let cards=null;          // sesión de tarjetas
@@ -689,7 +704,7 @@ function loadUser(keepPod){
   favs=new Set(U.get("favs",[]).filter(h=>IDX.has(h)));
   known=new Set(U.get("cknown",[]).filter(h=>CIDX.has(h)));
   cfavs=new Set(U.get("cfavs",[]).filter(h=>CIDX.has(h)));
-  cardCount=U.get("ccount",20); onlyUnk=false; cType=U.get("ctype","all");
+  cardCount=U.get("ccount",20); onlyUnk=false;
   const oi=document.getElementById("optInstant"); if(oi) oi.checked=instant;
   const ou=document.getElementById("optUnk"); if(ou) ou.checked=onlyUnk;
 }
@@ -717,7 +732,7 @@ $("#btnTheme").onclick=()=>{const cur=root.dataset.theme||(matchMedia("(prefers-
 function show(name){
   $("#home").hidden=name!=="home"; $("#homeDock").hidden=name!=="home";
   $("#quiz").hidden=name!=="quiz"; $("#quizDock").hidden=name!=="quiz";
-  $("#login").hidden=name!=="login";
+  $("#login").hidden=name!=="login"; $("#favlist").hidden=name!=="favlist"; $("#flDock").hidden=name!=="favlist";
   $("#cards").hidden=name!=="cards"; $("#cardsDock").hidden=name!=="cards"||!!(cards&&cards.end);
   $("#result").hidden=name!=="result"; $("#resDock").hidden=name!=="result";
   $("#podDock").hidden=name!=="home"||mode!=="pod"||!podN;
@@ -775,7 +790,7 @@ function renderChips(){
   else if(sel.size && mx<100){note.hidden=false;note.innerHTML=`<span>ℹ️</span><span>Con los temas elegidos hay <b>${poolSize()}</b> preguntas disponibles.</span>`}
   else note.hidden=true;
 }
-const cardTypeOk=c=>cType==="all"||c[1]===cType;
+const cardTypeOk=c=>true;
 function cardPool(){
   const out=[]; CARDS.forEach((c,i)=>{ if(sel.has(c[0]) && cardTypeOk(c) && !(onlyUnk&&known.has(CID[i]))) out.push(i) }); return out;
 }
@@ -783,7 +798,6 @@ function renderCardOpts(){
   const host=$("#cchips"); host.innerHTML=""; const n=cardPool().length;
   [10,20,30,50,0].forEach(v=>{const b=document.createElement("button");b.className="chip"+(v===cardCount?" on":"");b.textContent=v?v:"Todas";b.disabled=!n;
     b.onclick=()=>{cardCount=v;U.set("ccount",v);refresh()};host.appendChild(b)});
-  $$("#ctypes button").forEach(b=>b.classList.toggle("on",b.dataset.t===cType));
   let kn=0,tot=0; CARDS.forEach((c,i)=>{if(sel.has(c[0])&&cardTypeOk(c)){tot++;if(known.has(CID[i]))kn++}});
   $("#unkInfo").textContent=sel.size?`Ya sabes ${kn} de las ${tot} tarjetas de los temas elegidos.`:"Oculta las que ya marcaste como sabidas.";
 }
@@ -792,6 +806,7 @@ function refresh(){
   $$("#mainTabs button").forEach(b=>b.classList.toggle("on",b.dataset.m===mode));
   $("#bankInfo").textContent=mode==="cards"?`${CARDS.length} tarjetas · ${temasConBanco.length} temas`:`${B.qs.length} preguntas · ${temasConBanco.length} temas`;
   const isP=mode==="pod";
+  { const sv=U.get("quiz",null); $("#resumeBox").hidden=!(mode==="tests"&&sv&&sv.items&&!sv.done); renderCardsResume(); }
   $("#podView").hidden=!isP; $("#temaSec").hidden=isP; $("#favSec").hidden=isP; $("#homeDock").hidden=isP;
   $("#podDock").hidden=!isP||!podN; document.body.classList.toggle("podplay",isP&&!!podN);
   if(!isP&&podAudio&&!podAudio.paused) podAudio.pause();
@@ -824,7 +839,6 @@ $("#optInstant").checked=instant;
 $("#optInstant").onchange=e=>{instant=e.target.checked;U.set("instant",instant)};
 $("#optUnk").checked=onlyUnk;
 $("#optUnk").onchange=e=>{onlyUnk=e.target.checked;U.set("onlyUnk",onlyUnk);refresh()};
-$("#ctypes").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;cType=b.dataset.t;U.set("ctype",cType);refresh()});
 $("#mainTabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;mode=b.dataset.m;LS.set("mode",mode);refresh()});
 
 /* ---------- Crear test ---------- */
@@ -845,6 +859,36 @@ $("#btnStart").onclick=()=>{
   const n=Math.min(count,maxQ()); const idxs=pickIndexes(sel,n);
   start(idxs.map(makeItem),instant,sel.size);
 };
+$("#favBox").addEventListener("click",e=>{ if(e.target.closest("button"))return; openFavList() });
+function temaTag(t){return `Tema ${t}`}
+function temaName(t){const T=B.temas.find(x=>x.n===t);return T&&T.t?T.t:""}
+function openFavList(){
+  const isC=mode==="cards", body=$("#flBody"); body.innerHTML="";
+  const keys=isC?[...cfavs]:[...favs];
+  const rows=keys.map(h=>isC?CIDX.get(h):IDX.get(h)).filter(i=>i!==undefined);
+  rows.sort((a,b)=>(isC?CARDS[a][0]-CARDS[b][0]:B.qs[a][0]-B.qs[b][0])||a-b);
+  $("#flTitle").textContent=(isC?"Tarjetas favoritas · ":"Preguntas favoritas · ")+rows.length;
+  if(!rows.length) body.innerHTML='<p class="hint">Aún no tienes favoritas.</p>';
+  rows.forEach(i=>{
+    const d=document.createElement("div"); d.className="card rev";
+    let t,h,html;
+    if(isC){ const c=CARDS[i]; t=c[0]; h=CID[i]; let q=c[2],a=c[3];
+      if(c[1]==="c"){ const p=q.split(BLANK); html=`<div class="qtext">${esc(p[0])}<mark class="ans">${esc(a)}</mark>${esc(p.slice(1).join("______"))}</div>` }
+      else html=`<div class="qtext">${esc(q)}</div><div class="opt ok" style="cursor:default">${esc(a)}</div>`;
+    } else { const q=B.qs[i]; t=q[0]; h=HID[i];
+      html=`<div class="qtext">${esc(q[1])}</div>`+[0,1,2,3].map(k=>`<div class="opt${k===0?" ok":""}" style="cursor:default"><span class="l">${"ABCD"[k]}</span><span>${esc(q[2+k])}</span></div>`).join("")+(q[6]?`<p class="hint" style="margin:10px 0 0">${esc(q[6])}</p>`:"");
+    }
+    d.style.setProperty("--st",bcOf(t));
+    d.innerHTML=`<div class="tag">${esc(temaTag(t))}<button class="star on" aria-label="Quitar de favoritas">★</button></div><div class="hint" style="margin:-2px 0 10px;font-size:.8rem">${esc(temaName(t))}</div>`+html;
+    const st=d.querySelector(".star");
+    st.onclick=()=>{ const set=isC?cfavs:favs; if(set.has(h)){set.delete(h);setStar(st,false);d.style.opacity=".55"}else{set.add(h);setStar(st,true);d.style.opacity=""} isC?saveCFavs():saveFavs(); const n=set.size; $("#flTitle").textContent=(isC?"Tarjetas favoritas · ":"Preguntas favoritas · ")+n; $("#flGo").disabled=!n };
+    body.appendChild(d);
+  });
+  $("#flGo").textContent=isC?"Repasar estas tarjetas":"Hacer test con estas preguntas"; $("#flGo").disabled=!rows.length;
+  show("favlist");
+}
+$("#flBack").onclick=()=>{show("home");renderHome()};
+$("#flGo").onclick=()=>{ (mode==="cards"?$("#favCards"):$("#favTest")).click() };
 $("#favTest").onclick=()=>{
   const idxs=shuffle([...favs].map(h=>IDX.get(h)).filter(i=>i!==undefined)).slice(0,100); if(!idxs.length)return;
   start(idxs.map(makeItem),instant,0);
@@ -889,7 +933,7 @@ function renderQ(){
   window.scrollTo({top:0});
 }
 function setStar(b,on){b.classList.toggle("on",on);b.textContent=starTxt(on);b.setAttribute("aria-pressed",on)}
-$("#btnFav").onclick=e=>{e.stopPropagation();const it=quiz.items[quiz.idx];const on=toggleFav(hOf(it));setStar($("#btnFav"),on);toast(on?"Añadida a favoritas":"Quitada de favoritas")};
+$("#btnFav").onclick=e=>{e.stopPropagation();const it=quiz.items[quiz.idx];const on=toggleFav(hOf(it));setStar($("#btnFav"),on)};
 function answer(k){
   const it=quiz.items[quiz.idx];
   if(quiz.instant&&it.a!==null) return;
@@ -1018,8 +1062,24 @@ $("#btnDiscard").onclick=async()=>{if(await ask("¿Descartar el test?","Se perde
 /* ---------- Tarjetas de estudio ---------- */
 function startCards(idxs){
   cards={items:idxs.slice(),idx:0,flipped:false,know:0,again:[],end:false};
-  show("cards"); renderCard();
+  saveCards(); show("cards"); renderCard();
 }
+function saveCards(){
+  if(cards&&!cards.end) U.set("cardsess",{h:cards.items.map(i=>CID[i]),idx:cards.idx});
+  else U.del("cardsess");
+}
+function renderCardsResume(){
+  const sv=U.get("cardsess",null), box=$("#cardsResume");
+  const ok=mode==="cards"&&sv&&sv.h&&sv.h.length&&sv.idx<sv.h.length;
+  box.hidden=!ok; if(ok) $("#cardsResumeInfo").textContent=`${sv.h.length} tarjetas · vas por la ${sv.idx+1}`;
+}
+$("#btnCResume").onclick=()=>{
+  const sv=U.get("cardsess",null); if(!sv)return;
+  const items=sv.h.map(h=>CIDX.get(h)).filter(i=>i!==undefined); if(!items.length){U.del("cardsess");renderCardsResume();return}
+  cards={items,idx:Math.min(sv.idx,items.length-1),flipped:false,know:0,again:[],end:false};
+  show("cards"); renderCard();
+};
+$("#btnCDiscard").onclick=async()=>{ if(await ask("¿Descartar la sesión?","Perderás la posición en las tarjetas.","Descartar","Cancelar")){U.del("cardsess");renderCardsResume()} };
 const BLANK=/_{3,}/;
 function renderCard(){
   const c=cards, N=c.items.length;
@@ -1053,13 +1113,13 @@ function rateCard(ok){
   const c=cards; if(!c||c.end) return;
   if(ok){ if(!c.flipped){flipCard();return} c.idx++; if(c.idx>=c.items.length) c.end=true }
   else { if(c.idx===0) return; c.idx--; }
-  c.flipped=false;
+  c.flipped=false; saveCards();
   renderCard(); $("#cardsDock").hidden=c.end;
 }
 $("#fcard").addEventListener("click",e=>{ if(e.target.closest(".star")) return; if(cards&&cards.flipped) rateCard(true); else flipCard() });
 $("#cFlip").onclick=flipCard; $("#cAgain").onclick=()=>rateCard(false); $("#cKnow").onclick=()=>rateCard(true);
-$("#cFav").onclick=e=>{e.stopPropagation();const h=CID[cards.items[cards.idx]];if(cfavs.has(h))cfavs.delete(h);else cfavs.add(h);saveCFavs();const on=cfavs.has(h);setStar($("#cFav"),on);toast(on?"Añadida a favoritas":"Quitada de favoritas")};
-$("#cExit").onclick=()=>{cards=null;show("home");renderHome()};
+$("#cFav").onclick=e=>{e.stopPropagation();const h=CID[cards.items[cards.idx]];if(cfavs.has(h))cfavs.delete(h);else cfavs.add(h);saveCFavs();const on=cfavs.has(h);setStar($("#cFav"),on)};
+$("#cExit").onclick=()=>{saveCards();cards=null;show("home");renderHome()};
 $("#cEndHome").onclick=$("#cExit").onclick;
 $("#cEndRetry").onclick=()=>{ if(cards&&cards.again.length) startCards(shuffle(cards.again.slice())) };
 document.addEventListener("keydown",e=>{
