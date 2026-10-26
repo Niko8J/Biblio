@@ -810,14 +810,13 @@ $("#selAll").onclick=()=>{temasConBanco.forEach(t=>sel.add(t.n));refresh()};
 $("#selNone").onclick=()=>{sel.clear();refresh()};
 
 function poolSize(){const P=mode==="cards"?perTemaC:perTema;let s=0;sel.forEach(n=>s+=P[n]||0);return s}
-function maxQ(){ if(!sel.size) return 0; const cap=sel.size<=3?30:100; return Math.min(cap,poolSize()); }
+function maxQ(){ if(!sel.size) return 0; return Math.min(100,poolSize()); }
 function renderChips(){
   const mx=maxQ(); const host=$("#chips"); host.innerHTML="";
   for(let v=10;v<=100;v+=10){const b=document.createElement("button");b.className="chip"+(v===count?" on":"");b.textContent=v;b.disabled=v>mx;
     b.onclick=()=>{count=v;U.set("count",v);refresh()};host.appendChild(b)}
   const note=$("#capNote");
-  if(sel.size && sel.size<=3){note.hidden=false;note.innerHTML=`<span>ℹ️</span><span>Con ${sel.size===1?"un solo tema":sel.size+" temas"} el máximo es de <b>30 preguntas</b>${poolSize()<30?` (y solo hay ${poolSize()} disponibles)`:""}. Elige 4 o más temas para tests más largos.</span>`}
-  else if(sel.size && mx<100){note.hidden=false;note.innerHTML=`<span>ℹ️</span><span>Con los temas elegidos hay <b>${poolSize()}</b> preguntas disponibles.</span>`}
+  if(sel.size && mx<100){note.hidden=false;note.innerHTML=`<span>ℹ️</span><span>Con los temas elegidos hay <b>${poolSize()}</b> preguntas disponibles.</span>`}
   else note.hidden=true;
 }
 const cardTypeOk=c=>true;
