@@ -140,7 +140,7 @@ body.nomin{min-height:0}
 .hrow .d{flex:1;font-size:.85rem;color:var(--muted)}
 .hrow .d b{color:var(--ink)}
 .hrow.pass{border-left:5px solid var(--ok)!important}.hrow.fail{border-left:5px solid var(--bad)!important}
-#exList .temas{padding:8px;display:none}#exList .block.open .temas{display:grid;gap:8px}
+#exList .head{flex-wrap:wrap;row-gap:4px}#exList .xmeta{flex-basis:100%;order:9}#exList .temas{padding:8px;display:none}#exList .block.open .temas{display:grid;gap:8px}
 
 /* Test */
 .qtop{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);
@@ -842,8 +842,8 @@ function renderExams(){
     const hs=hist.filter(h=>h.id===e.id), best=hs.length?Math.max(...hs.map(h=>h.nota)):null, on=exSel.has(e.id);
     const rows=hs.map(h=>{const ok=h.nota>=5, sv=saved.has(h.d);
       return `<${sv?"button":"div"} class="card hrow ${ok?"pass":"fail"}${sv?" click":""}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div><div class="d"><b>${ok?"Aprobado":"Suspenso"}</b> · ${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""}<br>${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"})}</div></${sv?"button":"div"}>`}).join("");
-    return `<div class="card block${openIds.includes(e.id)?" open":""}" data-id="${esc(e.id)}" style="--bc:var(--c-leg)"><div class="head"><div class="info"><div class="name">${esc(e.name)}</div><div class="meta">${e.items.length} preguntas · ${hs.length} ${hs.length===1?"intento":"intentos"} · ${pe.length} ${pe.length===1?"pendiente":"pendientes"}${best!==null?" · mejor nota "+fmt(best):""}</div></div>
-      <button class="tog on" data-act="pick">Examinarse</button><button class="chev" data-act="open" aria-label="Ver intentos">▾</button></div>
+    return `<div class="card block${openIds.includes(e.id)?" open":""}" data-id="${esc(e.id)}" style="--bc:var(--c-leg)"><div class="head"><div class="info"><div class="name">${esc(e.name)}</div></div>
+      <button class="tog on" data-act="pick">Examinarse</button><button class="chev" data-act="open" aria-label="Ver intentos">▾</button><div class="meta xmeta">${e.items.length} preguntas · ${hs.length} ${hs.length===1?"intento":"intentos"} · ${pe.length} ${pe.length===1?"pendiente":"pendientes"}${best!==null?" · mejor nota "+fmt(best):""}</div></div>
       <div class="temas">${prow}${rows||(prow?"":'<p class="hint" style="margin:6px 8px">Aún no has resuelto este examen.</p>')}</div></div>`}).join("");
 }
 $("#exList").addEventListener("click",e=>{
