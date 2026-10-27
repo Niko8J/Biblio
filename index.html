@@ -55,10 +55,12 @@ h1,h2,h3{font-family:var(--serif);line-height:1.2;margin:0}
 #quiz.wrap,#cards.wrap,#result.wrap{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
 
 /* Cabecera */
-.top{display:flex;align-items:center;gap:12px;padding:calc(18px + env(safe-area-inset-top)) 0 10px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:calc(18px + env(safe-area-inset-top)) 0 10px}
 .top img{width:44px;height:44px;border-radius:12px;box-shadow:var(--shadow)}
 .top h1{font-size:1.35rem;letter-spacing:.2px;white-space:nowrap;line-height:1.15}
 .top p{margin:0;color:var(--muted);font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .binfo{flex-basis:100%;order:9;margin-top:-2px}
+@media(max-width:600px){.top .de{display:none}.top img{width:34px;height:34px;border-radius:9px}.top{gap:10px}}
 body.nomin{min-height:0}
 .top .sp{flex:1}
 .iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 12px;font-size:.85rem;font-weight:600;color:var(--ink)}
@@ -320,15 +322,14 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <header class="top">
     <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFjElEQVR4nO3cMU4cMRiG4X9RLpFj0FLRE4k+XCBSepQjROkj5QLQI4WeipZj5BikgCW7xDNjj+2x/X/v04dM8b3j2c2QnXXm7PL+ufU1oJ7Hu4td62s41PRiGDvM2kax+V/M6DFn6xg2+8sYPlJsFUL1v4ThI0ftEKr9cIaPkmqFUPyHMnzUVDqEk5I/jPGjttIbK1ITw0cLJU6D7BOA8aOVEtvLCoDxo7XcDa4OgPGjFzlbXBUA40dv1m4yOQDGj16t2WZSAIwfvUvdaHQAjB+jSNlqVACMH6OJ3exiAIwfo4rZbtFXIYDRzAbA3R+jW9rwZACMH17MbZlHIEgLBsDdH95MbZoTANL+C4C7P7wKbZsTANKOAuDuD+/eb5wTANLeAuDuDxWHW+cEgDQCgLQTMx5/oGe/eU4ASCMASCMASCMASNvxARjKOAEgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgbdgAHm5OW18CXv3++bH1Jaz2ofUF5AhFcH711OBKdIw89pChAwghinK8jT3EXQAhRLFMYewhEgGEKEehOvYQ2QBCvEbB4KcRwILRomDsaQhghV6iYOz5CKCQ2lEw9joIoKK1UTD27RDAxg6jOIyB0bcx7KsQQAkEAGkEAGkEAGkEAGkEAGkEgCjXTn8BiQCwaD9+jxEQAJJc35y6CoEAMGtq7F4iIABMWhq5h9PAdQC3v763vgT3fnT8uxEx3L8MFxvB5y/fKl/JWEa/s8dyHUDsqG9/fU86LYjlxeh3fzPnAcRKGXRKLKOGEnP39zB+MwJIlnKqjEjl0WfP9Yfglka9+8fwcvc3IwAcULv7mxEAXsWO39Pd34wAkMDb+M0IAKb56LNHAIji8e5vRgDylL7zDyEAB9Y+wig/+uwRwOBq/7KK57u/mfMARv3X2FjvR58Sgfqjz577VyG8vrcz94sqS8Pl0ecf1wF4fRs05hdVcu/eCnd/M+cBxBrpbdDYu/dUBNz9jxFAotZvg/64elodgerrDnNcfwhuqeZjUs2BKo3fjACGFTtUz/+nTwkEMLDUCEr9PE8IYHClRqs4fjMCcEF1vCUQAKQDIgAnlEecgwAcWROBejgE4EzKoNXHb+Y8AO9vg05h2PHcvwqxFEHrF9tqWXplgkheuA5gadxLL7aNHkcoAoZ/zHUAS2ICyfnzPWDw86QDWDI38JjXokcIRB0BrJR7eqAPrr8Faom7/xgIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANKGfR36PPCLHg/8/5eb+PT1T+tLKGbYAEKIojxPYw9xFUAIUcTzPvYQ9wGEEIXm2EMkAwjxHAVjn0YAM0aNgsHHI4BEvUXB2PMQQAFbRcHYyyOASnKjYOzb2J1d3j+3vgigFV6FgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgLSTx7uLXeuLAFp4vLvYcQJAGgFAGgFAGgFA2onZy4eB1hcCbGm/eU4ASCMASHsLgMcgqDjcOicApB0FwCkA795vnBMA0v4LgFMAXoW2zQkAacEAOAXgzdSmOQEgbTIATgF4Mbfl2ROACDC6pQ3zCARpiwFwCmBUMduNOgGIAKOJ3Wz0IxARYBQpW036DEAE6F3qRpM/BBMBerVmm6u+BSIC9GbtJld/DUoE6EXOFrP+HYAI0FruBrP/IYwI0EqJ7RUd79nl/XPJnweElLzpFn0VgtMAtZXeWLXBchqgpFo31+p3bEJAjtpPFZs9shACUmz1OL35MzshYM7WnyObfmglBpi1/fKku29tiMK33r4p/As8I9w3LxeJggAAAABJRU5ErkJggg==" alt="">
     <div>
-      <h1>Facultativo de<br>Bibliotecas</h1>
-      <p><span id="bankInfo"></span></p>
+      <h1>Facultativo<span class="de"> de</span><br>Bibliotecas</h1>
     </div>
     <span class="sp"></span>
     <button class="iconbtn" id="btnInstall" hidden>Instalar</button>
     <button class="av" id="btnUser" aria-label="Usuario"></button>
-    <button class="iconbtn" id="btnSearch" aria-label="Buscar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="display:block"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button>
     <button class="iconbtn" id="btnTheme" aria-label="Cambiar tema claro/oscuro">◐</button>
     <button class="iconbtn" id="btnAcct" hidden aria-label="Cuenta y sincronización">👤</button>
+    <p class="binfo"><span id="bankInfo"></span></p>
   </header>
 
   <nav class="seg" id="mainTabs"><button data-m="tests" class="on">Tests</button><button data-m="cards">Tarjetas</button><button data-m="exams">Exámenes</button><button data-m="pod">Pódcasts</button></nav>
@@ -979,7 +980,6 @@ function renderSearch(){
   L.slice(0,sShown).forEach(i=>body.appendChild(itemCard(isC,i)));
   if(L.length>sShown){ const m=document.createElement("button"); m.className="btn ghost"; m.style.cssText="width:100%;margin:4px 0 12px"; m.textContent=`Mostrar más (${L.length-sShown})`; m.onclick=()=>{sShown+=40;renderSearch()}; body.appendChild(m) }
 }
-$("#btnSearch").onclick=()=>{ sScroll=window.scrollY; show("search"); renderSearch(); $("#sInput").focus() };
 $("#sInput").addEventListener("input",()=>{clearTimeout(sTimer);sTimer=setTimeout(doSearch,200)});
 $("#sTabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;sKind=b.dataset.k;sShown=40;renderSearch();window.scrollTo(0,0)});
 $("#sBack").onclick=()=>{show("home");renderHome();window.scrollTo(0,sScroll);requestAnimationFrame(()=>window.scrollTo(0,sScroll))};
