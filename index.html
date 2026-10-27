@@ -57,7 +57,7 @@ h1,h2,h3{font-family:var(--serif);line-height:1.2;margin:0}
 /* Cabecera */
 .top{display:flex;align-items:center;gap:12px;padding:calc(18px + env(safe-area-inset-top)) 0 10px}
 .top img{width:44px;height:44px;border-radius:12px;box-shadow:var(--shadow)}
-.top h1{font-size:1.35rem;letter-spacing:.2px}
+.top h1{font-size:1.35rem;letter-spacing:.2px;white-space:nowrap;line-height:1.15}
 .top p{margin:0;color:var(--muted);font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body.nomin{min-height:0}
 .top .sp{flex:1}
@@ -305,7 +305,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 
 <!-- ============ ACCESO ============ -->
 <main id="login" class="wrap" hidden>
-  <header class="top"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFjElEQVR4nO3cMU4cMRiG4X9RLpFj0FLRE4k+XCBSepQjROkj5QLQI4WeipZj5BikgCW7xDNjj+2x/X/v04dM8b3j2c2QnXXm7PL+ufU1oJ7Hu4td62s41PRiGDvM2kax+V/M6DFn6xg2+8sYPlJsFUL1v4ThI0ftEKr9cIaPkmqFUPyHMnzUVDqEk5I/jPGjttIbK1ITw0cLJU6D7BOA8aOVEtvLCoDxo7XcDa4OgPGjFzlbXBUA40dv1m4yOQDGj16t2WZSAIwfvUvdaHQAjB+jSNlqVACMH6OJ3exiAIwfo4rZbtFXIYDRzAbA3R+jW9rwZACMH17MbZlHIEgLBsDdH95MbZoTANL+C4C7P7wKbZsTANKOAuDuD+/eb5wTANLeAuDuDxWHW+cEgDQCgLQTMx5/oGe/eU4ASCMASCMASCMASNvxARjKOAEgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgbdgAHm5OW18CXv3++bH1Jaz2ofUF5AhFcH711OBKdIw89pChAwghinK8jT3EXQAhRLFMYewhEgGEKEehOvYQ2QBCvEbB4KcRwILRomDsaQhghV6iYOz5CKCQ2lEw9joIoKK1UTD27RDAxg6jOIyB0bcx7KsQQAkEAGkEAGkEAGkEAGkEAGkEgCjXTn8BiQCwaD9+jxEQAJJc35y6CoEAMGtq7F4iIABMWhq5h9PAdQC3v763vgT3fnT8uxEx3L8MFxvB5y/fKl/JWEa/s8dyHUDsqG9/fU86LYjlxeh3fzPnAcRKGXRKLKOGEnP39zB+MwJIlnKqjEjl0WfP9Yfglka9+8fwcvc3IwAcULv7mxEAXsWO39Pd34wAkMDb+M0IAKb56LNHAIji8e5vRgDylL7zDyEAB9Y+wig/+uwRwOBq/7KK57u/mfMARv3X2FjvR58Sgfqjz577VyG8vrcz94sqS8Pl0ecf1wF4fRs05hdVcu/eCnd/M+cBxBrpbdDYu/dUBNz9jxFAotZvg/64elodgerrDnNcfwhuqeZjUs2BKo3fjACGFTtUz/+nTwkEMLDUCEr9PE8IYHClRqs4fjMCcEF1vCUQAKQDIgAnlEecgwAcWROBejgE4EzKoNXHb+Y8AO9vg05h2PHcvwqxFEHrF9tqWXplgkheuA5gadxLL7aNHkcoAoZ/zHUAS2ICyfnzPWDw86QDWDI38JjXokcIRB0BrJR7eqAPrr8Faom7/xgIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANKGfR36PPCLHg/8/5eb+PT1T+tLKGbYAEKIojxPYw9xFUAIUcTzPvYQ9wGEEIXm2EMkAwjxHAVjn0YAM0aNgsHHI4BEvUXB2PMQQAFbRcHYyyOASnKjYOzb2J1d3j+3vgigFV6FgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgLSTx7uLXeuLAFp4vLvYcQJAGgFAGgFAGgFA2onZy4eB1hcCbGm/eU4ASCMASHsLgMcgqDjcOicApB0FwCkA795vnBMA0v4LgFMAXoW2zQkAacEAOAXgzdSmOQEgbTIATgF4Mbfl2ROACDC6pQ3zCARpiwFwCmBUMduNOgGIAKOJ3Wz0IxARYBQpW036DEAE6F3qRpM/BBMBerVmm6u+BSIC9GbtJld/DUoE6EXOFrP+HYAI0FruBrP/IYwI0EqJ7RUd79nl/XPJnweElLzpFn0VgtMAtZXeWLXBchqgpFo31+p3bEJAjtpPFZs9shACUmz1OL35MzshYM7WnyObfmglBpi1/fKku29tiMK33r4p/As8I9w3LxeJggAAAABJRU5ErkJggg==" alt=""><div><h1>Facultativo de Bibliotecas</h1><p>Inicia sesión para empezar</p></div></header>
+  <header class="top"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFjElEQVR4nO3cMU4cMRiG4X9RLpFj0FLRE4k+XCBSepQjROkj5QLQI4WeipZj5BikgCW7xDNjj+2x/X/v04dM8b3j2c2QnXXm7PL+ufU1oJ7Hu4td62s41PRiGDvM2kax+V/M6DFn6xg2+8sYPlJsFUL1v4ThI0ftEKr9cIaPkmqFUPyHMnzUVDqEk5I/jPGjttIbK1ITw0cLJU6D7BOA8aOVEtvLCoDxo7XcDa4OgPGjFzlbXBUA40dv1m4yOQDGj16t2WZSAIwfvUvdaHQAjB+jSNlqVACMH6OJ3exiAIwfo4rZbtFXIYDRzAbA3R+jW9rwZACMH17MbZlHIEgLBsDdH95MbZoTANL+C4C7P7wKbZsTANKOAuDuD+/eb5wTANLeAuDuDxWHW+cEgDQCgLQTMx5/oGe/eU4ASCMASCMASCMASNvxARjKOAEgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgbdgAHm5OW18CXv3++bH1Jaz2ofUF5AhFcH711OBKdIw89pChAwghinK8jT3EXQAhRLFMYewhEgGEKEehOvYQ2QBCvEbB4KcRwILRomDsaQhghV6iYOz5CKCQ2lEw9joIoKK1UTD27RDAxg6jOIyB0bcx7KsQQAkEAGkEAGkEAGkEAGkEAGkEgCjXTn8BiQCwaD9+jxEQAJJc35y6CoEAMGtq7F4iIABMWhq5h9PAdQC3v763vgT3fnT8uxEx3L8MFxvB5y/fKl/JWEa/s8dyHUDsqG9/fU86LYjlxeh3fzPnAcRKGXRKLKOGEnP39zB+MwJIlnKqjEjl0WfP9Yfglka9+8fwcvc3IwAcULv7mxEAXsWO39Pd34wAkMDb+M0IAKb56LNHAIji8e5vRgDylL7zDyEAB9Y+wig/+uwRwOBq/7KK57u/mfMARv3X2FjvR58Sgfqjz577VyG8vrcz94sqS8Pl0ecf1wF4fRs05hdVcu/eCnd/M+cBxBrpbdDYu/dUBNz9jxFAotZvg/64elodgerrDnNcfwhuqeZjUs2BKo3fjACGFTtUz/+nTwkEMLDUCEr9PE8IYHClRqs4fjMCcEF1vCUQAKQDIgAnlEecgwAcWROBejgE4EzKoNXHb+Y8AO9vg05h2PHcvwqxFEHrF9tqWXplgkheuA5gadxLL7aNHkcoAoZ/zHUAS2ICyfnzPWDw86QDWDI38JjXokcIRB0BrJR7eqAPrr8Faom7/xgIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANKGfR36PPCLHg/8/5eb+PT1T+tLKGbYAEKIojxPYw9xFUAIUcTzPvYQ9wGEEIXm2EMkAwjxHAVjn0YAM0aNgsHHI4BEvUXB2PMQQAFbRcHYyyOASnKjYOzb2J1d3j+3vgigFV6FgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgLSTx7uLXeuLAFp4vLvYcQJAGgFAGgFAGgFA2onZy4eB1hcCbGm/eU4ASCMASHsLgMcgqDjcOicApB0FwCkA795vnBMA0v4LgFMAXoW2zQkAacEAOAXgzdSmOQEgbTIATgF4Mbfl2ROACDC6pQ3zCARpiwFwCmBUMduNOgGIAKOJ3Wz0IxARYBQpW036DEAE6F3qRpM/BBMBerVmm6u+BSIC9GbtJld/DUoE6EXOFrP+HYAI0FruBrP/IYwI0EqJ7RUd79nl/XPJnweElLzpFn0VgtMAtZXeWLXBchqgpFo31+p3bEJAjtpPFZs9shACUmz1OL35MzshYM7WnyObfmglBpi1/fKku29tiMK33r4p/As8I9w3LxeJggAAAABJRU5ErkJggg==" alt=""><div><h1>Facultativo de<br>Bibliotecas</h1><p>Inicia sesión para empezar</p></div></header>
   <section class="sec">
     <h2 id="lgTitle">¿Quién eres?</h2>
     <div class="hist" id="lgList"></div>
@@ -320,7 +320,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <header class="top">
     <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFjElEQVR4nO3cMU4cMRiG4X9RLpFj0FLRE4k+XCBSepQjROkj5QLQI4WeipZj5BikgCW7xDNjj+2x/X/v04dM8b3j2c2QnXXm7PL+ufU1oJ7Hu4td62s41PRiGDvM2kax+V/M6DFn6xg2+8sYPlJsFUL1v4ThI0ftEKr9cIaPkmqFUPyHMnzUVDqEk5I/jPGjttIbK1ITw0cLJU6D7BOA8aOVEtvLCoDxo7XcDa4OgPGjFzlbXBUA40dv1m4yOQDGj16t2WZSAIwfvUvdaHQAjB+jSNlqVACMH6OJ3exiAIwfo4rZbtFXIYDRzAbA3R+jW9rwZACMH17MbZlHIEgLBsDdH95MbZoTANL+C4C7P7wKbZsTANKOAuDuD+/eb5wTANLeAuDuDxWHW+cEgDQCgLQTMx5/oGe/eU4ASCMASCMASCMASNvxARjKOAEgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgjQAgbdgAHm5OW18CXv3++bH1Jaz2ofUF5AhFcH711OBKdIw89pChAwghinK8jT3EXQAhRLFMYewhEgGEKEehOvYQ2QBCvEbB4KcRwILRomDsaQhghV6iYOz5CKCQ2lEw9joIoKK1UTD27RDAxg6jOIyB0bcx7KsQQAkEAGkEAGkEAGkEAGkEAGkEgCjXTn8BiQCwaD9+jxEQAJJc35y6CoEAMGtq7F4iIABMWhq5h9PAdQC3v763vgT3fnT8uxEx3L8MFxvB5y/fKl/JWEa/s8dyHUDsqG9/fU86LYjlxeh3fzPnAcRKGXRKLKOGEnP39zB+MwJIlnKqjEjl0WfP9Yfglka9+8fwcvc3IwAcULv7mxEAXsWO39Pd34wAkMDb+M0IAKb56LNHAIji8e5vRgDylL7zDyEAB9Y+wig/+uwRwOBq/7KK57u/mfMARv3X2FjvR58Sgfqjz577VyG8vrcz94sqS8Pl0ecf1wF4fRs05hdVcu/eCnd/M+cBxBrpbdDYu/dUBNz9jxFAotZvg/64elodgerrDnNcfwhuqeZjUs2BKo3fjACGFTtUz/+nTwkEMLDUCEr9PE8IYHClRqs4fjMCcEF1vCUQAKQDIgAnlEecgwAcWROBejgE4EzKoNXHb+Y8AO9vg05h2PHcvwqxFEHrF9tqWXplgkheuA5gadxLL7aNHkcoAoZ/zHUAS2ICyfnzPWDw86QDWDI38JjXokcIRB0BrJR7eqAPrr8Faom7/xgIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANIIANKGfR36PPCLHg/8/5eb+PT1T+tLKGbYAEKIojxPYw9xFUAIUcTzPvYQ9wGEEIXm2EMkAwjxHAVjn0YAM0aNgsHHI4BEvUXB2PMQQAFbRcHYyyOASnKjYOzb2J1d3j+3vgigFV6FgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgDQCgLSTx7uLXeuLAFp4vLvYcQJAGgFAGgFAGgFA2onZy4eB1hcCbGm/eU4ASCMASHsLgMcgqDjcOicApB0FwCkA795vnBMA0v4LgFMAXoW2zQkAacEAOAXgzdSmOQEgbTIATgF4Mbfl2ROACDC6pQ3zCARpiwFwCmBUMduNOgGIAKOJ3Wz0IxARYBQpW036DEAE6F3qRpM/BBMBerVmm6u+BSIC9GbtJld/DUoE6EXOFrP+HYAI0FruBrP/IYwI0EqJ7RUd79nl/XPJnweElLzpFn0VgtMAtZXeWLXBchqgpFo31+p3bEJAjtpPFZs9shACUmz1OL35MzshYM7WnyObfmglBpi1/fKku29tiMK33r4p/As8I9w3LxeJggAAAABJRU5ErkJggg==" alt="">
     <div>
-      <h1>Facultativo de Bibliotecas</h1>
+      <h1>Facultativo de<br>Bibliotecas</h1>
       <p><span id="bankInfo"></span></p>
     </div>
     <span class="sp"></span>
@@ -341,7 +341,6 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 
   <section class="sec" id="examSec" hidden>
     <h2><span class="n">1</span>Elige el examen</h2>
-    <div id="exPending"></div>
     <div id="exList"></div>
     <p class="hint" id="exInfo"></p>
   </section>
@@ -835,16 +834,19 @@ $("#blocks").addEventListener("click",e=>{
 });
 function renderExams(){
   const host=$("#exList"), openIds=$$("#exList .block.open").map(b=>b.dataset.id);
-  const hist=U.get("exhist",[]), saved=new Set(U.get("extests",[]).map(t=>t.d));
-  host.innerHTML=EXAMS.map(e=>{
+  const hist=U.get("exhist",[]), saved=new Set(U.get("extests",[]).map(t=>t.d)), pd=pend().filter(sv=>sv.ex);
+  host.innerHTML=EXAMS.map((e,ei)=>{
+    const pe=pd.filter(sv=>sv.exid?sv.exid===e.id:ei===0);
+    const prow=pe.map(sv=>{const a=sv.items.filter(x=>x.a!==null).length;return resRow(dShort(sv.id)+" · Pendiente",`${a} contestadas de ${sv.items.length} · vas por la ${sv.idx+1}`,sv.id)}).join("");
     const hs=hist.filter(h=>h.id===e.id), best=hs.length?Math.max(...hs.map(h=>h.nota)):null, on=exSel.has(e.id);
     const rows=hs.map(h=>{const ok=h.nota>=5, sv=saved.has(h.d);
       return `<${sv?"button":"div"} class="card hrow ${ok?"pass":"fail"}${sv?" click":""}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div><div class="d"><b>${ok?"Aprobado":"Suspenso"}</b> · ${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""}<br>${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"})}</div></${sv?"button":"div"}>`}).join("");
-    return `<div class="card block${openIds.includes(e.id)?" open":""}" data-id="${esc(e.id)}" style="--bc:var(--c-leg)"><div class="head"><div class="info"><div class="name">${esc(e.name)}</div><div class="meta">${e.items.length} preguntas · ${hs.length} ${hs.length===1?"intento":"intentos"}${best!==null?" · mejor nota "+fmt(best):""}</div></div>
+    return `<div class="card block${openIds.includes(e.id)?" open":""}" data-id="${esc(e.id)}" style="--bc:var(--c-leg)"><div class="head"><div class="info"><div class="name">${esc(e.name)}</div><div class="meta">${e.items.length} preguntas · ${hs.length} ${hs.length===1?"intento":"intentos"} · ${pe.length} ${pe.length===1?"pendiente":"pendientes"}${best!==null?" · mejor nota "+fmt(best):""}</div></div>
       <button class="tog on" data-act="pick">Examinarse</button><button class="chev" data-act="open" aria-label="Ver intentos">▾</button></div>
-      <div class="temas">${rows||'<p class="hint" style="margin:6px 8px">Aún no has resuelto este examen.</p>'}</div></div>`}).join("");
+      <div class="temas">${prow}${rows||(prow?"":'<p class="hint" style="margin:6px 8px">Aún no has resuelto este examen.</p>')}</div></div>`}).join("");
 }
 $("#exList").addEventListener("click",e=>{
+  if(e.target.closest(".resume")){resumeClick(e);return}
   const h=e.target.closest(".hrow.click");
   if(h){ const t=U.get("extests",[]).find(t=>String(t.d)===h.dataset.d); if(!t)return;
     const items=expand(t); quiz={items,k:t.k,idx:0,instant:t.instant,el:t.el,done:true,d:t.d,ex:true}; showResult(score(items)); return }
@@ -1196,17 +1198,18 @@ $("#hist").addEventListener("click",e=>{
 function resRow(title,info,id){return `<div class="card resume" data-id="${id}"><span class="ric" aria-hidden="true">⏸</span><div class="t"><b>${title}</b><div class="hint" style="margin:0">${info}</div></div><button class="btn" data-act="go" style="padding:9px 12px">Continuar</button><button class="btn ghost" data-act="x" style="padding:9px 12px" aria-label="Descartar">✕</button></div>`}
 const dShort=id=>{const t=+String(id).replace(/\D/g,"");return t?new Date(t).toLocaleDateString("es-ES",{day:"numeric",month:"short"}):""};
 function renderQResume(){
-  const E=mode==="exams", box=$(E?"#exPending":"#resumeBox"); $("#resumeBox").innerHTML=""; $("#exPending").innerHTML="";
-  if(mode!=="tests"&&!E)return;
-  box.innerHTML=pend().filter(sv=>!!sv.ex===E).map(sv=>{const a=sv.items.filter(x=>x.a!==null).length;
-    return resRow(dShort(sv.id)+(E?" · Examen pendiente":" · Test"),`${sv.items.length} preguntas · ${a} contestadas · vas por la ${sv.idx+1}`,sv.id)}).join("");
+  const E=mode==="exams", box=$("#resumeBox"); box.innerHTML="";
+  if(E){renderExams();return}
+  if(mode!=="tests")return;
+  box.innerHTML=pend().filter(sv=>!sv.ex).map(sv=>{const a=sv.items.filter(x=>x.a!==null).length;
+    return resRow(dShort(sv.id)+" · Test",`${sv.items.length} preguntas · ${a} contestadas · vas por la ${sv.idx+1}`,sv.id)}).join("");
 }
 async function resumeClick(e){
   const row=e.target.closest("[data-id]"); if(!row)return; const id=row.dataset.id, x=e.target.closest('button[data-act="x"]');
   if(!x){ const q=pend().find(x=>x.id===id); if(q){quiz=q;quiz.items.forEach(hOf);show("quiz");renderQ()} }
   else if(await ask("¿Descartar el test?","Se perderán las respuestas dadas.","Descartar","Cancelar")){ U.set("qpend",pend().filter(x=>x.id!==id)); renderQResume() }
 }
-$("#resumeBox").addEventListener("click",resumeClick); $("#exPending").addEventListener("click",resumeClick);
+$("#resumeBox").addEventListener("click",resumeClick);
 
 /* ---------- Tarjetas de estudio ---------- */
 function startCards(idxs){
