@@ -839,11 +839,11 @@ function renderExams(){
   host.innerHTML=EXAMS.map((e,ei)=>{
     const pe=pd.filter(sv=>sv.exid?sv.exid===e.id:ei===0);
     const prow=pe.map(sv=>{const a=sv.items.filter(x=>x.a!==null).length;return resRow(dShort(sv.id)+" · Pendiente",`${a} contestadas de ${sv.items.length} · vas por la ${sv.idx+1}`,sv.id)}).join("");
-    const hs=hist.filter(h=>h.id===e.id), best=hs.length?Math.max(...hs.map(h=>h.nota)):null, on=exSel.has(e.id);
+    const hs=hist.filter(h=>h.id===e.id), hf=hs.filter(h=>!h.rev), best=hf.length?Math.max(...hf.map(h=>h.nota)):null, on=exSel.has(e.id);
     const rows=hs.map(h=>{const ok=h.nota>=5, sv=saved.has(h.d);
-      return `<${sv?"button":"div"} class="card hrow ${ok?"pass":"fail"}${sv?" click":""}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div><div class="d"><b>${ok?"Aprobado":"Suspenso"}</b> · ${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""}<br>${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"})}</div></${sv?"button":"div"}>`}).join("");
+      return `<${sv?"button":"div"} class="card hrow ${ok?"pass":"fail"}${sv?" click":""}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div><div class="d"><b>${h.rev?"Repaso de falladas · "+h.n+" preguntas":ok?"Aprobado":"Suspenso"}</b> · ${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""}<br>${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"})}</div></${sv?"button":"div"}>`}).join("");
     return `<div class="card block${openIds.includes(e.id)?" open":""}" data-id="${esc(e.id)}" style="--bc:var(--c-leg)"><div class="head"><div class="info"><div class="name">${esc(e.name)}</div></div>
-      <button class="tog on" data-act="pick">Examinarse</button><button class="chev" data-act="open" aria-label="Ver intentos">▾</button><div class="meta xmeta">${e.items.length} preguntas · ${hs.length} ${hs.length===1?"intento":"intentos"} · ${pe.length} ${pe.length===1?"pendiente":"pendientes"}${best!==null?" · mejor nota "+fmt(best):""}</div></div>
+      <button class="tog on" data-act="pick">Examinarse</button><button class="chev" data-act="open" aria-label="Ver intentos">▾</button><div class="meta xmeta">${e.items.length} preguntas · ${hf.length} ${hf.length===1?"intento":"intentos"} · ${pe.length} ${pe.length===1?"pendiente":"pendientes"}${best!==null?" · mejor nota "+fmt(best):""}</div></div>
       <div class="temas">${prow}${rows||(prow?"":'<p class="hint" style="margin:6px 8px">Aún no has resuelto este examen.</p>')}</div></div>`}).join("");
 }
 $("#exList").addEventListener("click",e=>{
@@ -1142,7 +1142,7 @@ function finish(){
   const s=score(quiz.items);
   const d=Date.now(); quiz.d=d;
   if(quiz.ex){
-    const hist=U.get("exhist",[]); hist.unshift({d,id:quiz.exid,n:s.total,h:s.h,w:s.w,b:s.b,nota:s.nota,el:quiz.el||0});
+    const hist=U.get("exhist",[]); hist.unshift({d,id:quiz.exid,rev:!!quiz.rev,n:s.total,h:s.h,w:s.w,b:s.b,nota:s.nota,el:quiz.el||0});
     U.set("exhist",hist.slice(0,60));
     const tests=U.get("extests",[]); tests.unshift({d,k:1,el:quiz.el||0,instant:!!quiz.instant,items:compact(quiz.items)});
     U.set("extests",tests.slice(0,30));
@@ -1184,7 +1184,7 @@ $("#btnRetry").onclick=()=>{
   const ex=!!quiz.ex, exid=quiz.exid, inst=quiz.instant;
   const bad=ex?quiz.items.filter(x=>x.a!==x.c).map(x=>({...x,a:null})):quiz.items.filter(x=>x.a!==x.c).map(x=>IDX.get(hOf(x))).filter(i=>i!==undefined).map(makeItem); if(!bad.length)return;
   const kt=new Set(bad.map(x=>x.t)).size||1;
-  start(shuffle(bad),inst,kt); if(ex){quiz.ex=true;quiz.exid=exid}else quiz.rk=kt; saveQuiz();
+  start(shuffle(bad),inst,kt); if(ex){quiz.ex=true;quiz.exid=exid;quiz.rev=true}else quiz.rk=kt; saveQuiz();
 };
 
 /* ---------- Volver a inicio / continuar ---------- */
