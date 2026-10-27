@@ -261,7 +261,8 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #btnAcct{position:relative}
 #btnAcct.on::after{content:"";position:absolute;right:3px;bottom:3px;width:11px;height:11px;border-radius:50%;background:#2fb457;border:2px solid var(--surface)}
 /* Pódcasts */
-#mainTabs{grid-template-columns:repeat(4,1fr)}
+#mainTabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:2px}#mainTabs button{font-size:.82rem;padding:10px 0;min-width:0;white-space:nowrap}
+html,body{overflow-x:hidden;max-width:100%}.top>div{min-width:0}@media(max-width:430px){.top h1{font-size:1.15rem}.top{gap:8px}}
 .prow{display:flex;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer}
 .prow:hover{background:color-mix(in srgb,var(--bc) 10%,transparent)}
 @media(hover:none),(pointer:coarse){#podList .temas{max-height:none;overflow:visible}}
@@ -840,7 +841,7 @@ function renderExams(){
     const rows=hs.map(h=>{const ok=h.nota>=5, sv=saved.has(h.d);
       return `<${sv?"button":"div"} class="card hrow ${ok?"pass":"fail"}${sv?" click":""}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div><div class="d"><b>${ok?"Aprobado":"Suspenso"}</b> · ${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""}<br>${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"})}</div></${sv?"button":"div"}>`}).join("");
     return `<div class="card block${openIds.includes(e.id)?" open":""}" data-id="${esc(e.id)}" style="--bc:var(--c-leg)"><div class="head"><div class="info"><div class="name">${esc(e.name)}</div><div class="meta">${e.items.length} preguntas · ${hs.length} ${hs.length===1?"intento":"intentos"}${best!==null?" · mejor nota "+fmt(best):""}</div></div>
-      <button class="tog ${on?"on":""}" data-act="pick">${on?"Elegido":"Elegir"}</button><button class="chev" data-act="open" aria-label="Ver intentos">▾</button></div>
+      <button class="tog on" data-act="pick">Examinarse</button><button class="chev" data-act="open" aria-label="Ver intentos">▾</button></div>
       <div class="temas">${rows||'<p class="hint" style="margin:6px 8px">Aún no has resuelto este examen.</p>'}</div></div>`}).join("");
 }
 $("#exList").addEventListener("click",e=>{
@@ -848,7 +849,7 @@ $("#exList").addEventListener("click",e=>{
   if(h){ const t=U.get("extests",[]).find(t=>String(t.d)===h.dataset.d); if(!t)return;
     const items=expand(t); quiz={items,k:t.k,idx:0,instant:t.instant,el:t.el,done:true,d:t.d,ex:true}; showResult(score(items)); return }
   const bl=e.target.closest(".block"); if(!bl)return; const act=e.target.closest("[data-act]")?.dataset.act;
-  if(act==="pick"){exSel=new Set([bl.dataset.id]);U.set("exsel",[...exSel]);refresh()}
+  if(act==="pick"){exSel=new Set([bl.dataset.id]);U.set("exsel",[...exSel]);$("#btnStart").click()}
   else bl.classList.toggle("open");
 });
 $("#selAll").onclick=()=>{temasConBanco.forEach(t=>sel.add(t.n));refresh()};
