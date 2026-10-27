@@ -140,6 +140,7 @@ body.nomin{min-height:0}
 .hrow .d{flex:1;font-size:.85rem;color:var(--muted)}
 .hrow .d b{color:var(--ink)}
 .hrow.pass{border-left:5px solid var(--ok)!important}.hrow.fail{border-left:5px solid var(--bad)!important}
+#flBody .block .temas{max-height:none;overflow:visible;padding:8px}#flBody .block.open .temas{display:grid;gap:10px}
 #exList .head{flex-wrap:wrap;row-gap:4px}#exList .xmeta{flex-basis:100%;order:9}#exList .temas{padding:8px;display:none}#exList .block.open .temas{display:grid;gap:8px}
 
 /* Test */
@@ -996,6 +997,13 @@ function openFavList(){
   rows.sort((a,b)=>(isC?CARDS[a][0]-CARDS[b][0]:B.qs[a][0]-B.qs[b][0])||a-b);
   $("#flTitle").textContent=(isC?"Tarjetas favoritas · ":"Preguntas favoritas · ")+rows.length;
   if(!rows.length) body.innerHTML='<p class="hint">Aún no tienes favoritas.</p>';
+  const cnt={}; rows.forEach(i=>{const t=isC?CARDS[i][0]:B.qs[i][0]; cnt[t]=(cnt[t]||0)+1});
+  const groups=new Map();
+  const grp=t=>{ if(groups.has(t))return groups.get(t);
+    const g=document.createElement("div"); g.className="card block"; g.style.setProperty("--bc",bcOf(t)); g.style.marginBottom="10px";
+    g.innerHTML=`<div class="head" style="cursor:pointer"><div class="info"><div class="name">${esc(temaTag(t))}</div><div class="meta">${esc(temaName(t))} · ${cnt[t]} ${cnt[t]===1?"favorita":"favoritas"}</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas"></div>`;
+    g.querySelector(".head").onclick=()=>g.classList.toggle("open");
+    body.appendChild(g); groups.set(t,g); return g };
   rows.forEach(i=>{
     const d=document.createElement("div"); d.className="card rev";
     let t,h,html;
@@ -1009,7 +1017,7 @@ function openFavList(){
     d.innerHTML=`<div class="tag">${esc(temaTag(t))}<button class="star on" aria-label="Quitar de favoritas">★</button></div><div class="hint" style="margin:-2px 0 10px;font-size:.8rem">${esc(temaName(t))}</div>`+html;
     const st=d.querySelector(".star");
     st.onclick=()=>{ const set=isC?cfavs:curFavs(); if(set.has(h)){set.delete(h);setStar(st,false);d.style.opacity=".55"}else{set.add(h);setStar(st,true);d.style.opacity=""} isC?saveCFavs():saveFavs(); const n=set.size; $("#flTitle").textContent=(isC?"Tarjetas favoritas · ":"Preguntas favoritas · ")+n; $("#flGo").disabled=!n };
-    body.appendChild(d);
+    grp(t).querySelector(".temas").appendChild(d);
   });
   $("#flGo").textContent=isC?"Repasar estas tarjetas":"Hacer test con estas preguntas"; $("#flGo").disabled=!rows.length; $("#flGo").hidden=mode==="exams";
   show("favlist");
@@ -1187,7 +1195,7 @@ function renderHome(){
   else{ $("#btnUser").innerHTML=cu.photo?`<img src="${cu.photo}" alt="">`:esc(cu.name.trim().charAt(0).toUpperCase()||"?");
   $("#btnUser").style.background=cu.photo?"":`hsl(${parseInt(hq(cu.id),36)%360} 45% 42%)`; $("#btnUser").title=cu.name; }
   const hist=U.get("hist",[]), saved=new Set(U.get("tests",[]).map(t=>t.d));
-  $("#hist").innerHTML=hist.slice(0,8).map(h=>`<${saved.has(h.d)?'button':'div'} class="card hrow${saved.has(h.d)?' click':''}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div>
+  $("#hist").innerHTML=hist.slice(0,8).map(h=>`<${saved.has(h.d)?'button':'div'} class="card hrow ${h.nota>=5?'pass':'fail'}${saved.has(h.d)?' click':''}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div>
     <div class="d"><b>${h.n} preguntas</b> · ${h.k} ${h.ex?(h.k===1?"examen":"exámenes"):(h.k===1?"tema":"temas")}<br>${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""} · ${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short"})}</div></${saved.has(h.d)?'button':'div'}>`).join("");
   refresh();
 }
