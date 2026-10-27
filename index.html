@@ -18,7 +18,7 @@
   --bg:#f5f1e8; --surface:#fffdf8; --surface2:#f0eadb; --ink:#1b2437; --muted:#667085; --line:#e2dac6;
   --accent:#3a4fb5; --accent-ink:#fff; --accent-soft:#e6e9f7; --gold:#b8893b;
   --ok:#2c7a4b; --ok-bg:#e3f2e9; --bad:#b3372f; --bad-bg:#fbe6e3; --blank:#8a8f9c;
-  --c-leg:#37599a; --c-bib:#a1307f; --c-bd:#2a7a67; --c-tic:#6a47a0; --c-his:#a8741a;
+  --c-leg:#37599a; --c-bib:#a1307f; --c-bd:#1e86a6; --c-tic:#6a47a0; --c-his:#a8741a;
   --shadow:0 1px 2px rgba(27,36,55,.06),0 8px 24px rgba(27,36,55,.07);
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -29,7 +29,7 @@
     --bg:#121520; --surface:#1a1f2e; --surface2:#222839; --ink:#ece7da; --muted:#9aa2b6; --line:#2d344a;
     --accent:#8d9cff; --accent-ink:#0e1230; --accent-soft:#232b4d; --gold:#d9ac5b;
     --ok:#6cc596; --ok-bg:#16301f; --bad:#ef8176; --bad-bg:#3a1c1a; --blank:#7e869a;
-    --c-leg:#7d9be0; --c-bib:#e58bc8; --c-bd:#5cc0a8; --c-tic:#a98ae0; --c-his:#e0b05a;
+    --c-leg:#7d9be0; --c-bib:#e58bc8; --c-bd:#5ec3dc; --c-tic:#a98ae0; --c-his:#e0b05a;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
   }
 }
@@ -37,7 +37,7 @@
   --bg:#121520; --surface:#1a1f2e; --surface2:#222839; --ink:#ece7da; --muted:#9aa2b6; --line:#2d344a;
   --accent:#8d9cff; --accent-ink:#0e1230; --accent-soft:#232b4d; --gold:#d9ac5b;
   --ok:#6cc596; --ok-bg:#16301f; --bad:#ef8176; --bad-bg:#3a1c1a; --blank:#7e869a;
-  --c-leg:#7d9be0; --c-bib:#e58bc8; --c-bd:#5cc0a8; --c-tic:#a98ae0; --c-his:#e0b05a;
+  --c-leg:#7d9be0; --c-bib:#e58bc8; --c-bd:#5ec3dc; --c-tic:#a98ae0; --c-his:#e0b05a;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -377,7 +377,6 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <section class="sec">
     <h2><span class="n">2</span>Número de tarjetas</h2>
     <div class="chips" id="cchips"></div>
-    <p class="hint">Preguntas directas con respuesta corta y frases incompletas para completar.</p>
   </section>
 
   </div>
@@ -390,16 +389,16 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     </div>
   </section>
 
-  <section class="sec" id="histSec" hidden>
-    <h2><span class="n">5</span>Tests terminados</h2>
-    <div class="hist" id="hist"></div>
-    <p class="hint" id="histEmpty" hidden>Aún no has terminado ningún test.</p>
-  </section>
-
   <section class="sec" id="pendSec">
     <h2><span class="n" id="pendN">5</span><span id="pendTitle">Tests pendientes</span></h2>
     <div id="resumeBox"></div><div id="cardsResume"></div>
     <p class="hint" id="pendEmpty" hidden></p>
+  </section>
+
+  <section class="sec" id="histSec" hidden>
+    <h2><span class="n">6</span>Tests terminados</h2>
+    <div class="hist" id="hist"></div>
+    <p class="hint" id="histEmpty" hidden>Aún no has terminado ningún test.</p>
   </section>
 
   <p class="foot">Tres respuestas equivocadas quitan una bien<br>Las preguntas en blanco ni puntúan ni penalizan</p>
@@ -884,7 +883,7 @@ function refresh(){
   $("#bankInfo").textContent=mode==="cards"?`${CARDS.length} tarjetas · ${temasConBanco.length} temas`:`${B.qs.length} preguntas · ${temasConBanco.length} temas`;
   const isP=mode==="pod";
   $("#pendSec").hidden=mode==="pod"||mode==="exams"; renderQResume(); renderCardsResume();
-  { const isC=mode==="cards"; $("#pendN").textContent=isC?4:6; $("#pendTitle").textContent=isC?"Tarjetas pendientes":"Tests pendientes";
+  { const isC=mode==="cards"; $("#pendN").textContent=isC?4:5; $("#pendTitle").textContent=isC?"Tarjetas pendientes":"Tests pendientes";
     const n=(isC?cpend():pend()).length; const e=$("#pendEmpty"); e.hidden=!!n||mode==="pod"||mode==="exams"; e.textContent=isC?"No tienes ninguna tarjeta pendiente.":"No tienes ningún test pendiente."; }
   const isE=mode==="exams";
   $("#podView").hidden=!isP; $("#temaSec").hidden=isP||isE; $("#examSec").hidden=!isE; $("#favSec").hidden=isP; $("#homeDock").hidden=isP||isE;
@@ -1148,9 +1147,9 @@ function finish(){
     const tests=U.get("extests",[]); tests.unshift({d,k:1,el:quiz.el||0,instant:!!quiz.instant,items:compact(quiz.items)});
     U.set("extests",tests.slice(0,30));
   } else {
-  const hist=U.get("hist",[]); hist.unshift({d,n:s.total,h:s.h,w:s.w,b:s.b,nota:s.nota,el:quiz.el||0,k:nTemas()});
+  const hist=U.get("hist",[]); hist.unshift({d,n:s.total,h:s.h,w:s.w,b:s.b,nota:s.nota,el:quiz.el||0,k:quiz.rk||nTemas()});
   U.set("hist",hist.slice(0,30));
-  const tests=U.get("tests",[]); tests.unshift({d,k:nTemas(),el:quiz.el||0,instant:!!quiz.instant,items:compact(quiz.items)});
+  const tests=U.get("tests",[]); tests.unshift({d,k:quiz.rk||nTemas(),el:quiz.el||0,instant:!!quiz.instant,items:compact(quiz.items)});
   U.set("tests",tests.slice(0,30));
   }
   showResult(s);
@@ -1182,7 +1181,10 @@ $("#rList").addEventListener("click",e=>{const b=e.target.closest(".star");if(!b
 $("#rTabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;revFilter=b.dataset.f;$$("#rTabs .tab").forEach(t=>t.classList.toggle("on",t===b));renderReview();window.scrollTo({top:$("#rTabs").offsetTop-10,behavior:"smooth"})});
 $("#btnNew").onclick=goHome;
 $("#btnRetry").onclick=()=>{
-  const bad=quiz.items.filter(x=>x.a!==x.c).map(x=>IDX.get(hOf(x))).filter(i=>i!==undefined).map(makeItem); if(!bad.length)return; start(shuffle(bad),quiz.instant,0);
+  const ex=!!quiz.ex, exid=quiz.exid, inst=quiz.instant;
+  const bad=ex?quiz.items.filter(x=>x.a!==x.c).map(x=>({...x,a:null})):quiz.items.filter(x=>x.a!==x.c).map(x=>IDX.get(hOf(x))).filter(i=>i!==undefined).map(makeItem); if(!bad.length)return;
+  const kt=new Set(bad.map(x=>x.t)).size||1;
+  start(shuffle(bad),inst,kt); if(ex){quiz.ex=true;quiz.exid=exid}else quiz.rk=kt; saveQuiz();
 };
 
 /* ---------- Volver a inicio / continuar ---------- */
