@@ -264,7 +264,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #btnAcct.on::after{content:"";position:absolute;right:3px;bottom:3px;width:11px;height:11px;border-radius:50%;background:#2fb457;border:2px solid var(--surface)}
 /* Pódcasts */
 #mainTabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:2px}#mainTabs button{font-size:.82rem;padding:10px 0;min-width:0;white-space:nowrap}
-html,body{overflow-x:hidden;max-width:100%}.top>div{min-width:0}@media(max-width:430px){.top h1{font-size:1.15rem}.top{gap:8px}}
+html,body{max-width:100%}.top>div{min-width:0}@media(max-width:430px){.top h1{font-size:1.15rem}.top{gap:8px}}
 .prow{display:flex;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer}
 .prow:hover{background:color-mix(in srgb,var(--bc) 10%,transparent)}
 @media(hover:none),(pointer:coarse){#podList .temas{max-height:none;overflow:visible}}
@@ -341,7 +341,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   </section>
 
   <section class="sec" id="examSec" hidden>
-    <h2><span class="n">1</span>Elige el examen</h2>
+    <h2><span class="n" id="exN">1</span>Elige el examen</h2>
     <div id="exList"></div>
     <p class="hint" id="exInfo"></p>
   </section>
@@ -367,7 +367,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <h2><span class="n" id="modeN">3</span>Modo</h2>
     <label class="card switch">
       <input type="checkbox" id="optInstant">
-      <div><b>Corrección inmediata</b><span>Ver si has acertado y la explicación nada más responder. Desactivado = simulacro de examen (todo se corrige al resolver).</span></div>
+      <div><b>Corrección inmediata</b><span id="instTxt">Ver si has acertado y la explicación nada más responder.</span></div>
     </label>
   </section>
   </div>
@@ -886,12 +886,14 @@ function refresh(){
   { const isC=mode==="cards"; $("#pendN").textContent=isC?4:6; $("#pendTitle").textContent=isC?"Tarjetas pendientes":"Tests pendientes";
     const n=(isC?cpend():pend()).length; const e=$("#pendEmpty"); e.hidden=!!n||mode==="pod"||mode==="exams"; e.textContent=isC?"No tienes ninguna tarjeta pendiente.":"No tienes ningún test pendiente."; }
   const isE=mode==="exams";
-  $("#podView").hidden=!isP; $("#temaSec").hidden=isP||isE; $("#examSec").hidden=!isE; $("#favSec").hidden=isP; $("#homeDock").hidden=isP;
+  $("#podView").hidden=!isP; $("#temaSec").hidden=isP||isE; $("#examSec").hidden=!isE; $("#favSec").hidden=isP; $("#homeDock").hidden=isP||isE;
   $("#podDock").hidden=!isP||!podN; document.body.classList.toggle("podplay",isP&&!!podN);
   if(!isP&&podAudio&&!podAudio.paused) podAudio.pause();
   if(isP){ renderPod(); $("#testOpts").hidden=true; $("#cardOpts").hidden=true; $("#histSec").hidden=true; const f0=document.querySelector(".foot"); if(f0)f0.hidden=true; $("#bankInfo").textContent="100 pódcasts · uno por tema"; return }
   const ft=document.querySelector(".foot"); if(ft) ft.hidden=mode==="cards";
-  $("#testOpts").hidden=mode==="cards"; $("#cardOpts").hidden=mode!=="cards"; $("#histSec").hidden=mode!=="tests"; $("#cntSec").hidden=isE; $("#modeN").textContent=isE?2:3; $("#histEmpty").hidden=!!U.get("hist",[]).length;
+  $("#testOpts").hidden=mode==="cards"; $("#cardOpts").hidden=mode!=="cards"; $("#histSec").hidden=mode!=="tests"; $("#cntSec").hidden=isE; $("#modeN").textContent=isE?1:3; $("#exN").textContent=3;
+  
+  if(isE){ if($("#favSec").nextElementSibling!==$("#examSec")) $("#favSec").after($("#examSec")) } else if($("#examSec").nextElementSibling!==$("#temaSec")) $("#temaSec").before($("#examSec")); $("#histEmpty").hidden=!!U.get("hist",[]).length;
   if(isE) renderExams(); else renderBlocks();
   const k=isE?exSel.size:sel.size; if(isE) $("#bankInfo").textContent=`${EXAMS.length} ${EXAMS.length===1?"examen oficial":"exámenes oficiales"}`;
   if(isE) $("#exInfo").textContent="Examen completo, con las preguntas en orden aleatorio y las opciones en su orden oficial.";
@@ -909,9 +911,9 @@ function refresh(){
     b.textContent=!k?"Empezar tarjetas":pool?`Empezar tarjetas · ${n}`:"No quedan tarjetas pendientes";
   }
   const isC=mode==="cards", nf=isC?cfavs.size:curFavs().size;
-  $("#favTitle").textContent=isC?"Tarjetas favoritas":"Preguntas favoritas"; $("#favN").textContent=isC?3:isE?3:4;
+  $("#favTitle").textContent=isC?"Tarjetas favoritas":"Preguntas favoritas"; $("#favN").textContent=isC?3:isE?2:4;
   $("#favCount").textContent=nf===1?"1 favorita":`${nf} favoritas`;
-  $("#favHint").textContent=isC?"Márcalas con ☆ mientras estudias las tarjetas.":"Márcalas con ☆ durante un test o al revisar un resultado.";
+  $("#favHint").textContent=isC?"Márcalas con ☆ mientras estudias las tarjetas.":(isE?"Márcalas con ☆ durante un examen o al revisar un resultado.":"Márcalas con ☆ durante un test o al revisar un resultado.");
   $("#favView").disabled=!nf;
 }
 $("#optInstant").checked=instant;
