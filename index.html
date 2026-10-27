@@ -259,7 +259,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #btnAcct{position:relative}
 #btnAcct.on::after{content:"";position:absolute;right:3px;bottom:3px;width:11px;height:11px;border-radius:50%;background:#2fb457;border:2px solid var(--surface)}
 /* Pódcasts */
-#mainTabs{grid-template-columns:repeat(3,1fr)}
+#mainTabs{grid-template-columns:repeat(4,1fr)}
 .prow{display:flex;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer}
 .prow:hover{background:color-mix(in srgb,var(--bc) 10%,transparent)}
 @media(hover:none),(pointer:coarse){#podList .temas{max-height:none;overflow:visible}}
@@ -328,12 +328,22 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <button class="iconbtn" id="btnAcct" hidden aria-label="Cuenta y sincronización">👤</button>
   </header>
 
-  <nav class="seg" id="mainTabs"><button data-m="tests" class="on">Tests</button><button data-m="cards">Tarjetas</button><button data-m="pod">Pódcasts</button></nav>
+  <nav class="seg" id="mainTabs"><button data-m="tests" class="on">Tests</button><button data-m="cards">Tarjetas</button><button data-m="exams">Exámenes</button><button data-m="pod">Pódcasts</button></nav>
 
 
   <section class="sec" id="podView" hidden>
     <h2>Pódcasts por tema</h2>
     <div id="podList"></div>
+  </section>
+
+  <section class="sec" id="examSec" hidden>
+    <h2><span class="n">1</span>Elige los exámenes</h2>
+    <div class="quick">
+      <button class="pill" id="exAll">Todos</button>
+      <button class="pill" id="exNone">Ninguno</button>
+    </div>
+    <div id="exList"></div>
+    <p class="hint" id="exInfo"></p>
   </section>
 
   <section class="sec" id="temaSec">
@@ -560,6 +570,7 @@ window.addEventListener("error",function(e){try{var d=document.getElementById("e
 </script>
 <script src="bank.js"></script>
 <script src="cards.js"></script>
+<script src="exams.js"></script>
 <script src="firebase-config.js"></script>
 <script>
 (()=>{
@@ -603,6 +614,18 @@ const perTema={}; B.qs.forEach(q=>perTema[q[0]]=(perTema[q[0]]||0)+1);
 const perTemaC={}; CARDS.forEach(c=>perTemaC[c[0]]=(perTemaC[c[0]]||0)+1);
 const temasConBanco=B.temas.filter(t=>perTema[t.n]);
 let sel,count,instant,favs,known,cfavs,cardCount,onlyUnk;
+/* ---------- Exámenes oficiales (preguntas del banco, en el orden oficial) ---------- */
+const EXAMS=(window.EXAMS||[]).map(e=>{
+  const items=[]; e.qs.forEach(q=>{
+    const i=IDX.get(hq(q.q+"|"+q.o[q.a])); if(i===undefined) return;
+    items.push({i,k:items.length,q:q.q,o:q.o,c:q.a});
+  });
+  items.forEach(x=>x.eid=e.id); return {id:e.id,name:e.name,items};
+}).filter(e=>e.items.length);
+let exSel=new Set();
+const exPool=()=>{const o=[];EXAMS.forEach(e=>{if(exSel.has(e.id))e.items.forEach(x=>o.push(x))});return o};
+function makeExItem(x){const q=B.qs[x.i];return {i:x.i,h:HID[x.i],p:"0123".split("").map(Number),t:q[0],q:x.q,o:x.o.slice(),c:x.c,e:q[6],a:null,xe:x.eid,xk:x.k}}
+
 let mode=LS.get("mode","tests");
 let quiz=null;           // test en curso
 let cards=null;          // sesión de tarjetas
@@ -721,6 +744,7 @@ let lastTouchEnd=0; document.addEventListener("touchend",e=>{const n=Date.now();
 function loadUser(keepPod){
   if(!keepPod&&typeof podRate!=="undefined"){podSetRate(U.get("podrate",1),true);if(podAudio){podAudio.pause();podN=0}}
   sel=new Set(U.get("sel",[]).filter(n=>perTema[n]));
+  exSel=new Set(U.get("exsel",[]).filter(id=>EXAMS.some(e=>e.id===id)));
   count=U.get("count",20); instant=U.get("instant",false);
   favs=new Set(U.get("favs",[]).filter(h=>IDX.has(h)));
   known=new Set(U.get("cknown",[]).filter(h=>CIDX.has(h)));
@@ -806,17 +830,24 @@ $("#blocks").addEventListener("click",e=>{
     ts.forEach(t=>all?sel.delete(t.n):sel.add(t.n)); refresh(); return}
   if(e.target.matches("input[data-n]")){const n=+e.target.dataset.n; e.target.checked?sel.add(n):sel.delete(n); refresh()}
 });
+function renderExams(){
+  const host=$("#exList"); host.innerHTML=EXAMS.map(e=>`<label class="card trow" style="margin:0 0 8px;padding:12px 14px"><input type="checkbox" data-id="${esc(e.id)}" ${exSel.has(e.id)?"checked":""}>
+    <span class="tt" style="flex:1;font-weight:600">${esc(e.name)}</span><span class="tq">${e.items.length}</span></label>`).join("");
+}
+$("#exList").addEventListener("change",e=>{const c=e.target.closest("input[data-id]");if(!c)return;c.checked?exSel.add(c.dataset.id):exSel.delete(c.dataset.id);U.set("exsel",[...exSel]);refresh()});
+$("#exAll").onclick=()=>{EXAMS.forEach(e=>exSel.add(e.id));U.set("exsel",[...exSel]);refresh()};
+$("#exNone").onclick=()=>{exSel.clear();U.set("exsel",[]);refresh()};
 $("#selAll").onclick=()=>{temasConBanco.forEach(t=>sel.add(t.n));refresh()};
 $("#selNone").onclick=()=>{sel.clear();refresh()};
 
-function poolSize(){const P=mode==="cards"?perTemaC:perTema;let s=0;sel.forEach(n=>s+=P[n]||0);return s}
-function maxQ(){ if(!sel.size) return 0; return Math.min(100,poolSize()); }
+function poolSize(){if(mode==="exams")return exPool().length;const P=mode==="cards"?perTemaC:perTema;let s=0;sel.forEach(n=>s+=P[n]||0);return s}
+function maxQ(){ if(!(mode==="exams"?exSel.size:sel.size)) return 0; return Math.min(100,poolSize()); }
 function renderChips(){
   const mx=maxQ(); const host=$("#chips"); host.innerHTML="";
   for(let v=10;v<=100;v+=10){const b=document.createElement("button");b.className="chip"+(v===count?" on":"");b.textContent=v;b.disabled=v>mx;
     b.onclick=()=>{count=v;U.set("count",v);refresh()};host.appendChild(b)}
-  const note=$("#capNote");
-  if(sel.size && mx<100){note.hidden=false;note.innerHTML=`<span>ℹ️</span><span>Con los temas elegidos hay <b>${poolSize()}</b> preguntas disponibles.</span>`}
+  const note=$("#capNote"), isE=mode==="exams";
+  if((isE?exSel.size:sel.size) && mx<100){note.hidden=false;note.innerHTML=`<span>ℹ️</span><span>Con ${isE?"los exámenes elegidos":"los temas elegidos"} hay <b>${poolSize()}</b> preguntas disponibles.</span>`}
   else note.hidden=true;
 }
 const cardTypeOk=c=>true;
@@ -836,21 +867,24 @@ function refresh(){
   $("#pendSec").hidden=mode==="pod"; renderQResume(); renderCardsResume();
   { const isC=mode==="cards"; $("#pendN").textContent=isC?4:6; $("#pendTitle").textContent=isC?"Tarjetas pendientes":"Tests pendientes";
     const n=(isC?cpend():pend()).length; const e=$("#pendEmpty"); e.hidden=!!n||mode==="pod"; e.textContent=isC?"No tienes ninguna tarjeta pendiente.":"No tienes ningún test pendiente."; }
-  $("#podView").hidden=!isP; $("#temaSec").hidden=isP; $("#favSec").hidden=isP; $("#homeDock").hidden=isP;
+  const isE=mode==="exams";
+  $("#podView").hidden=!isP; $("#temaSec").hidden=isP||isE; $("#examSec").hidden=!isE; $("#favSec").hidden=isP; $("#homeDock").hidden=isP;
   $("#podDock").hidden=!isP||!podN; document.body.classList.toggle("podplay",isP&&!!podN);
   if(!isP&&podAudio&&!podAudio.paused) podAudio.pause();
   if(isP){ renderPod(); $("#testOpts").hidden=true; $("#cardOpts").hidden=true; $("#histSec").hidden=true; const f0=document.querySelector(".foot"); if(f0)f0.hidden=true; $("#bankInfo").textContent="100 pódcasts · uno por tema"; return }
   const ft=document.querySelector(".foot"); if(ft) ft.hidden=mode==="cards";
-  $("#testOpts").hidden=mode!=="tests"; $("#cardOpts").hidden=mode!=="cards"; $("#histSec").hidden=mode!=="tests"; $("#histEmpty").hidden=!!U.get("hist",[]).length;
-  renderBlocks();
-  const k=sel.size; $("#selInfo").textContent=k?`${k} ${k===1?"tema elegido":"temas elegidos"} · ${poolSize()} ${mode==="cards"?"tarjetas":"preguntas"} disponibles`:"Elige al menos un tema para empezar.";
+  $("#testOpts").hidden=mode==="cards"; $("#cardOpts").hidden=mode!=="cards"; $("#histSec").hidden=mode==="cards"; $("#histEmpty").hidden=!!U.get("hist",[]).length;
+  if(isE) renderExams(); else renderBlocks();
+  const k=isE?exSel.size:sel.size; if(isE) $("#bankInfo").textContent=`${EXAMS.length} ${EXAMS.length===1?"examen oficial":"exámenes oficiales"}`;
+  if(isE) $("#exInfo").textContent=k?`${k} ${k===1?"examen elegido":"exámenes elegidos"} · ${poolSize()} preguntas disponibles`:"Elige al menos un examen para empezar.";
+  $("#selInfo").textContent=k?`${k} ${k===1?"tema elegido":"temas elegidos"} · ${poolSize()} ${mode==="cards"?"tarjetas":"preguntas"} disponibles`:"Elige al menos un tema para empezar.";
   const b=$("#btnStart");
-  if(mode==="tests"){
+  if(mode!=="cards"){
     const mx=maxQ(); if(mx && count>mx){count=Math.max(10,Math.floor(mx/10)*10);} if(mx>=10 && count<10)count=10;
     renderChips();
     const n=mx?Math.min(count,mx):0;
     b.disabled=!k||mx<10;
-    b.textContent=k?(mx<10?`Solo hay ${poolSize()} preguntas`:`Empezar test · ${n} preguntas`):"Empezar test";
+    b.textContent=k?(mx<10?`Solo hay ${poolSize()} preguntas`:`${isE?"Empezar examen":"Empezar test"} · ${n} preguntas`):(isE?"Empezar examen":"Empezar test");
   } else {
     renderCardOpts();
     const pool=cardPool().length, n=cardCount?Math.min(cardCount,pool):pool;
@@ -882,6 +916,12 @@ function start(items,inst,k){
 }
 $("#btnStart").onclick=()=>{
   if(mode==="cards"){ const pool=shuffle(cardPool()); startCards(cardCount?pool.slice(0,cardCount):pool); return }
+  if(mode==="exams"){
+    const pool=exPool(), n=Math.min(count,pool.length);
+    let pick=n>=pool.length?pool.slice():shuffle(pool.slice()).slice(0,n);
+    if(exSel.size>1) shuffle(pick); else pick.sort((a,b)=>pool.indexOf(a)-pool.indexOf(b));
+    start(pick.map(makeExItem),instant,exSel.size); quiz.ex=true; saveQuiz(); return;
+  }
   const n=Math.min(count,maxQ()); const idxs=pickIndexes(sel,n);
   start(idxs.map(makeItem),instant,sel.size);
 };
@@ -967,7 +1007,7 @@ $("#favTest").onclick=()=>{
 $("#favCards").onclick=()=>{
   const idxs=shuffle([...cfavs].map(h=>CIDX.get(h)).filter(i=>i!==undefined)); if(!idxs.length)return; startCards(idxs);
 };
-const nTemas=()=>quiz.k||new Set(quiz.items.map(x=>x.t)).size;
+const nTemas=()=>quiz.ex?quiz.k||1:quiz.k||new Set(quiz.items.map(x=>x.t)).size;
 const newId=()=>String(Date.now());
 function pend(){
   let L=U.get("qpend",[]); if(!Array.isArray(L))L=[];
@@ -1064,12 +1104,13 @@ function compact(items){
   const out=[]; items.forEach(x=>{
     const h=hOf(x), i=IDX.get(h); if(i===undefined) return; const row=B.qs[i];
     let p=x.p; if(!p){p=x.o.map(t=>[2,3,4,5].map(j=>row[j]).indexOf(t)); if(p.includes(-1)) return}
-    out.push([h,p.join(""),x.a===null?-1:x.a]);
+    out.push(x.xe?[h,p.join(""),x.a===null?-1:x.a,x.xe,x.xk]:[h,p.join(""),x.a===null?-1:x.a]);
   }); return out;
 }
 function expand(t){
-  const items=[]; t.items.forEach(([h,ps,a])=>{
+  const items=[]; t.items.forEach(([h,ps,a,xe,xk])=>{
     const i=IDX.get(h); if(i===undefined) return; const row=B.qs[i], p=ps.split("").map(Number);
+    if(xe){const E=EXAMS.find(e=>e.id===xe), x=E&&E.items[xk]; if(x){const it=makeExItem(x); it.a=a<0?null:a; items.push(it); return}}
     items.push({i,h,p,t:row[0],q:row[1],o:p.map(k=>row[2+k]),c:p.indexOf(0),e:row[6],a:a<0?null:a});
   }); return items;
 }
@@ -1077,7 +1118,7 @@ function finish(){
   quiz.done=true; saveQuiz();
   const s=score(quiz.items);
   const d=Date.now(); quiz.d=d;
-  const hist=U.get("hist",[]); hist.unshift({d,n:s.total,h:s.h,w:s.w,b:s.b,nota:s.nota,el:quiz.el||0,k:nTemas()});
+  const hist=U.get("hist",[]); hist.unshift({d,n:s.total,h:s.h,w:s.w,b:s.b,nota:s.nota,el:quiz.el||0,k:nTemas(),ex:!!quiz.ex});
   U.set("hist",hist.slice(0,30));
   const tests=U.get("tests",[]); tests.unshift({d,k:nTemas(),el:quiz.el||0,instant:!!quiz.instant,items:compact(quiz.items)});
   U.set("tests",tests.slice(0,30));
@@ -1085,7 +1126,7 @@ function finish(){
 }
 function showResult(s){
   show("result"); revFilter="all"; $$("#rTabs .tab").forEach(t=>t.classList.toggle("on",t.dataset.f==="all"));
-  $("#rInfo").textContent=`${s.total} preguntas · ${nTemas()} ${nTemas()===1?"tema":"temas"} · ⏱ ${fmtT(quiz.el||0)}`;
+  $("#rInfo").textContent=`${s.total} preguntas · ${nTemas()} ${quiz.ex?(nTemas()===1?"examen":"exámenes"):(nTemas()===1?"tema":"temas")} · ⏱ ${fmtT(quiz.el||0)}`;
   $("#rOk").textContent=s.h; $("#rBad").textContent=s.w; $("#rBlank").textContent=s.b;
   $("#rNota").textContent=fmt(s.nota);
   $("#rFormula").innerHTML=`Puntuación neta: ${s.h} − ${s.w}/3 = <b>${fmt(s.net)}</b> de ${s.total} puntos posibles`;
@@ -1124,7 +1165,7 @@ function renderHome(){
   $("#btnUser").style.background=cu.photo?"":`hsl(${parseInt(hq(cu.id),36)%360} 45% 42%)`; $("#btnUser").title=cu.name; }
   const hist=U.get("hist",[]), saved=new Set(U.get("tests",[]).map(t=>t.d));
   $("#hist").innerHTML=hist.slice(0,8).map(h=>`<${saved.has(h.d)?'button':'div'} class="card hrow${saved.has(h.d)?' click':''}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div>
-    <div class="d"><b>${h.n} preguntas</b> · ${h.k} ${h.k===1?"tema":"temas"}<br>${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""} · ${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short"})}</div></${saved.has(h.d)?'button':'div'}>`).join("");
+    <div class="d"><b>${h.n} preguntas</b> · ${h.k} ${h.ex?(h.k===1?"examen":"exámenes"):(h.k===1?"tema":"temas")}<br>${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""} · ${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short"})}</div></${saved.has(h.d)?'button':'div'}>`).join("");
   refresh();
 }
 $("#hist").addEventListener("click",e=>{
