@@ -95,8 +95,8 @@ body.nomin{min-height:0}
 .trow input:checked{background:var(--bc);border-color:var(--bc)}
 .trow input:checked::after{content:"";width:5px;height:10px;border:solid var(--surface);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
 .trow .tn{font-weight:700;color:var(--bc);flex:none;width:58px;font-size:.85rem;margin-top:1px}
-.trow .tt{font-size:.88rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.trow .tq{flex:none;color:var(--muted);font-size:.72rem;margin-top:3px}
+.trow .tt{flex:1;min-width:0;font-size:.88rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.trow .tq{flex:none;margin-left:10px;min-width:22px;text-align:right;color:var(--muted);font-size:.72rem;margin-top:3px}
 
 /* Número de preguntas */
 .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
@@ -865,8 +865,7 @@ function renderChips(){
   for(let v=10;v<=100;v+=10){const b=document.createElement("button");b.className="chip"+(v===count?" on":"");b.textContent=v;b.disabled=v>mx;
     b.onclick=()=>{count=v;U.set("count",v);refresh()};host.appendChild(b)}
   const note=$("#capNote"), isE=mode==="exams";
-  if((isE?exSel.size:sel.size) && mx<100){note.hidden=false;note.innerHTML=`<span>ℹ️</span><span>Con ${isE?"los exámenes elegidos":"los temas elegidos"} hay <b>${poolSize()}</b> preguntas disponibles.</span>`}
-  else note.hidden=true;
+  note.hidden=true;
 }
 const cardTypeOk=c=>true;
 function cardPool(){
@@ -884,7 +883,7 @@ function refresh(){
   const isP=mode==="pod";
   $("#pendSec").hidden=mode==="pod"||mode==="exams"; renderQResume(); renderCardsResume();
   { const isC=mode==="cards"; $("#pendN").textContent=isC?4:5; $("#pendTitle").textContent=isC?"Tarjetas pendientes":"Tests pendientes";
-    const n=(isC?cpend():pend()).length; const e=$("#pendEmpty"); e.hidden=!!n||mode==="pod"||mode==="exams"; e.textContent=isC?"No tienes ninguna tarjeta pendiente.":"No tienes ningún test pendiente."; }
+    const n=(isC?cpend():pend().filter(x=>!x.ex)).length; const e=$("#pendEmpty"); e.hidden=!!n||mode==="pod"||mode==="exams"; e.textContent=isC?"No tienes ninguna tarjeta pendiente.":"No tienes ningún test pendiente."; }
   const isE=mode==="exams";
   $("#podView").hidden=!isP; $("#temaSec").hidden=isP||isE; $("#examSec").hidden=!isE; $("#favSec").hidden=isP; $("#homeDock").hidden=isP||isE;
   $("#podDock").hidden=!isP||!podN; document.body.classList.toggle("podplay",isP&&!!podN);
