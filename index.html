@@ -242,6 +242,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 .hrow.click{cursor:pointer;width:100%;text-align:left;border:1px solid var(--line)}
 @media(hover:hover){.hrow.click:hover{border-color:var(--accent)}}
 .foot{text-align:center;margin:32px 8px 0;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;line-height:1.7}
+.qrule{text-align:center;color:var(--muted);font-size:.74rem;margin-top:6px}
 .foot{text-align:center;margin-top:30px;color:var(--muted);font-size:.85rem;line-height:1.7}
 .fcard{padding:26px 20px 20px;margin-top:10px;min-height:36vh;position:relative;overflow:hidden;cursor:pointer;display:flex;flex-direction:column}
 .fcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--bc,var(--accent))}
@@ -401,7 +402,6 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <p class="hint" id="histEmpty" hidden>Aún no has terminado ningún test.</p>
   </section>
 
-  <p class="foot">Tres respuestas equivocadas quitan una bien<br>Las preguntas en blanco ni puntúan ni penalizan</p>
 </main>
 <div class="dock" id="homeDock"><div class="in"><button class="btn grow" id="btnStart" disabled>Empezar test</button></div></div>
 
@@ -422,6 +422,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
       <div class="timer" id="qTimer" aria-label="Tiempo transcurrido">00:00</div>
       <button class="iconbtn" id="btnMap" aria-label="Mapa de preguntas"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></button>
     </div>
+    <div class="qrule">3 respuestas mal quitan 1 bien · En blanco no puntúa ni penaliza</div>
   </div>
   <article class="card qcard" id="qcard">
     <button class="star" id="btnFav" aria-label="Favorita">☆</button>
