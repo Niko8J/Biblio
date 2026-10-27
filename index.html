@@ -632,7 +632,7 @@ let cards=null;          // sesión de tarjetas
 let revFilter="all";
 /* ---------- Pódcasts ---------- */
 let podN=0, podRate=1, podAudio=null, podAvail={}, podProbed=false, podSaveAt=0, podDurs=LS.get("podDurs",{});
-let podClosed=new Set(LS.get("podClosed",[]));
+let podOpen=new Set();
 const POD_FIXED=[0.5,1,1.5,2,2.5,3];
 function podURL(n){return `audio/Tema_${n}.m4a`}
 function podFmt(t){t=Math.max(0,Math.floor(t||0));const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0")}
@@ -651,7 +651,7 @@ function renderPod(){
   host.innerHTML="";
   B.blocks.forEach((bl,i)=>{
     const ts=B.temas.filter(t=>t.b===i);
-    const el=document.createElement("div"); el.className="card block"+(podClosed.has(i)?"":" open"); el.dataset.i=i; el.style.setProperty("--bc",`var(${BLOCKCOL[i]})`);
+    const el=document.createElement("div"); el.className="card block"+(podOpen.has(i)?" open":""); el.dataset.i=i; el.style.setProperty("--bc",`var(${BLOCKCOL[i]})`);
     el.innerHTML=`<div class="head"><div class="info"><div class="name">${bl.name}</div><div class="meta">Temas ${bl.from}–${bl.to} · ${ts.filter(t=>heard.has(t.n)).length}/${ts.length} escuchados</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div>
       <div class="temas">${ts.map(t=>{
         const na=podAvail[t.n]===false, now=podN===t.n, hd=heard.has(t.n);
@@ -731,7 +731,7 @@ $("#podRateVal").onclick=e=>{ e.stopPropagation(); if(!podMenu.hidden){podMenuCl
   podMenu.innerHTML=POD_FIXED.map(r=>`<button data-r="${r}" class="${Math.abs(r-podRate)<0.001?"on":""}">${r}×</button>`).join(""); podMenu.hidden=false };
 podMenu.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;e.stopPropagation();podSetRate(+b.dataset.r);podMenuClose()});
 document.addEventListener("click",podMenuClose);
-$("#podList").addEventListener("click",e=>{const hd=e.target.closest(".block>.head");if(hd){const bl=hd.parentElement,i=+bl.dataset.i;bl.classList.toggle("open");bl.classList.contains("open")?podClosed.delete(i):podClosed.add(i);LS.set("podClosed",[...podClosed]);return}
+$("#podList").addEventListener("click",e=>{const hd=e.target.closest(".block>.head");if(hd){const bl=hd.parentElement,i=+bl.dataset.i;bl.classList.toggle("open");bl.classList.contains("open")?podOpen.add(i):podOpen.delete(i);return}
   const f=e.target.closest(".pf");if(f){e.stopPropagation();const n=+f.dataset.fav,a=new Set(U.get("podfavs",[]));a.has(n)?a.delete(n):a.add(n);U.set("podfavs",[...a]);f.classList.toggle("on",a.has(n));f.textContent=a.has(n)?"★":"☆";return}
   const r=e.target.closest(".prow");if(!r||r.classList.contains("na"))return;podPlay(+r.dataset.n)});
 $("#podPlay").onclick=()=>{if(podAudio&&podN)podAudio.paused?podAudio.play():podAudio.pause()};
