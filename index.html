@@ -137,6 +137,8 @@ body.nomin{min-height:0}
 .hrow .sc{font:700 1.25rem var(--serif);width:62px}
 .hrow .d{flex:1;font-size:.85rem;color:var(--muted)}
 .hrow .d b{color:var(--ink)}
+.hrow.pass{border-left:5px solid var(--ok)!important}.hrow.fail{border-left:5px solid var(--bad)!important}
+#exList .temas{padding:8px;display:none}#exList .block.open .temas{display:grid;gap:8px}
 
 /* Test */
 .qtop{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);
@@ -337,11 +339,8 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   </section>
 
   <section class="sec" id="examSec" hidden>
-    <h2><span class="n">1</span>Elige los exámenes</h2>
-    <div class="quick">
-      <button class="pill" id="exAll">Todos</button>
-      <button class="pill" id="exNone">Ninguno</button>
-    </div>
+    <h2><span class="n">1</span>Elige el examen</h2>
+    <div id="exPending"></div>
     <div id="exList"></div>
     <p class="hint" id="exInfo"></p>
   </section>
@@ -357,14 +356,14 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   </section>
 
   <div id="testOpts">
-  <section class="sec">
+  <section class="sec" id="cntSec">
     <h2><span class="n">2</span>Número de preguntas</h2>
     <div class="chips" id="chips"></div>
     <div class="note" id="capNote" hidden></div>
   </section>
 
   <section class="sec">
-    <h2><span class="n">3</span>Modo</h2>
+    <h2><span class="n" id="modeN">3</span>Modo</h2>
     <label class="card switch">
       <input type="checkbox" id="optInstant">
       <div><b>Corrección inmediata</b><span>Ver si has acertado y la explicación nada más responder. Desactivado = simulacro de examen (todo se corrige al resolver).</span></div>
@@ -622,7 +621,7 @@ const EXAMS=(window.EXAMS||[]).map(e=>{
   });
   items.forEach(x=>x.eid=e.id); return {id:e.id,name:e.name,items};
 }).filter(e=>e.items.length);
-let exSel=new Set();
+let exSel=new Set(), exfavs=new Set();
 const exPool=()=>{const o=[];EXAMS.forEach(e=>{if(exSel.has(e.id))e.items.forEach(x=>o.push(x))});return o};
 function makeExItem(x){const q=B.qs[x.i];return {i:x.i,h:HID[x.i],p:"0123".split("").map(Number),t:q[0],q:x.q,o:x.o.slice(),c:x.c,e:q[6],a:null,xe:x.eid,xk:x.k}}
 
@@ -744,7 +743,8 @@ let lastTouchEnd=0; document.addEventListener("touchend",e=>{const n=Date.now();
 function loadUser(keepPod){
   if(!keepPod&&typeof podRate!=="undefined"){podSetRate(U.get("podrate",1),true);if(podAudio){podAudio.pause();podN=0}}
   sel=new Set(U.get("sel",[]).filter(n=>perTema[n]));
-  exSel=new Set(U.get("exsel",[]).filter(id=>EXAMS.some(e=>e.id===id)));
+  exSel=new Set(U.get("exsel",[]).filter(id=>EXAMS.some(e=>e.id===id)).slice(0,1)); if(!exSel.size&&EXAMS.length)exSel.add(EXAMS[0].id);
+  exfavs=new Set(U.get("exfavs",[]).filter(h=>IDX.has(h)));
   count=U.get("count",20); instant=U.get("instant",false);
   favs=new Set(U.get("favs",[]).filter(h=>IDX.has(h)));
   known=new Set(U.get("cknown",[]).filter(h=>CIDX.has(h)));
@@ -754,10 +754,12 @@ function loadUser(keepPod){
   const ou=document.getElementById("optUnk"); if(ou) ou.checked=onlyUnk;
 }
 loadUser();
-const saveFavs=()=>U.set("favs",[...favs]);
+const exMode=()=>quiz?!!quiz.ex:mode==="exams";
+const curFavs=()=>exMode()?exfavs:favs;
+const saveFavs=()=>exMode()?U.set("exfavs",[...exfavs]):U.set("favs",[...favs]);
 const saveKnown=()=>U.set("cknown",[...known]);
 const saveCFavs=()=>U.set("cfavs",[...cfavs]);
-function toggleFav(h){ if(favs.has(h)){favs.delete(h)}else{favs.add(h)} saveFavs(); return favs.has(h) }
+function toggleFav(h){ const F=curFavs(); if(F.has(h)){F.delete(h)}else{F.add(h)} saveFavs(); return F.has(h) }
 const starTxt=on=>on?"★":"☆";
 function avHTML(u,cls){
   const bg=`hsl(${parseInt(hq(u.id),36)%360} 45% 42%)`;
@@ -831,12 +833,24 @@ $("#blocks").addEventListener("click",e=>{
   if(e.target.matches("input[data-n]")){const n=+e.target.dataset.n; e.target.checked?sel.add(n):sel.delete(n); refresh()}
 });
 function renderExams(){
-  const host=$("#exList"); host.innerHTML=EXAMS.map(e=>`<label class="card trow" style="margin:0 0 8px;padding:12px 14px"><input type="checkbox" data-id="${esc(e.id)}" ${exSel.has(e.id)?"checked":""}>
-    <span class="tt" style="flex:1;font-weight:600">${esc(e.name)}</span><span class="tq">${e.items.length}</span></label>`).join("");
+  const host=$("#exList"), openIds=$$("#exList .block.open").map(b=>b.dataset.id);
+  const hist=U.get("exhist",[]), saved=new Set(U.get("extests",[]).map(t=>t.d));
+  host.innerHTML=EXAMS.map(e=>{
+    const hs=hist.filter(h=>h.id===e.id), best=hs.length?Math.max(...hs.map(h=>h.nota)):null, on=exSel.has(e.id);
+    const rows=hs.map(h=>{const ok=h.nota>=5, sv=saved.has(h.d);
+      return `<${sv?"button":"div"} class="card hrow ${ok?"pass":"fail"}${sv?" click":""}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div><div class="d"><b>${ok?"Aprobado":"Suspenso"}</b> · ${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""}<br>${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"})}</div></${sv?"button":"div"}>`}).join("");
+    return `<div class="card block${openIds.includes(e.id)?" open":""}" data-id="${esc(e.id)}" style="--bc:var(--c-leg)"><div class="head"><div class="info"><div class="name">${esc(e.name)}</div><div class="meta">${e.items.length} preguntas · ${hs.length} ${hs.length===1?"intento":"intentos"}${best!==null?" · mejor nota "+fmt(best):""}</div></div>
+      <button class="tog ${on?"on":""}" data-act="pick">${on?"Elegido":"Elegir"}</button><button class="chev" data-act="open" aria-label="Ver intentos">▾</button></div>
+      <div class="temas">${rows||'<p class="hint" style="margin:6px 8px">Aún no has resuelto este examen.</p>'}</div></div>`}).join("");
 }
-$("#exList").addEventListener("change",e=>{const c=e.target.closest("input[data-id]");if(!c)return;c.checked?exSel.add(c.dataset.id):exSel.delete(c.dataset.id);U.set("exsel",[...exSel]);refresh()});
-$("#exAll").onclick=()=>{EXAMS.forEach(e=>exSel.add(e.id));U.set("exsel",[...exSel]);refresh()};
-$("#exNone").onclick=()=>{exSel.clear();U.set("exsel",[]);refresh()};
+$("#exList").addEventListener("click",e=>{
+  const h=e.target.closest(".hrow.click");
+  if(h){ const t=U.get("extests",[]).find(t=>String(t.d)===h.dataset.d); if(!t)return;
+    const items=expand(t); quiz={items,k:t.k,idx:0,instant:t.instant,el:t.el,done:true,d:t.d,ex:true}; showResult(score(items)); return }
+  const bl=e.target.closest(".block"); if(!bl)return; const act=e.target.closest("[data-act]")?.dataset.act;
+  if(act==="pick"){exSel=new Set([bl.dataset.id]);U.set("exsel",[...exSel]);refresh()}
+  else bl.classList.toggle("open");
+});
 $("#selAll").onclick=()=>{temasConBanco.forEach(t=>sel.add(t.n));refresh()};
 $("#selNone").onclick=()=>{sel.clear();refresh()};
 
@@ -864,25 +878,24 @@ function refresh(){
   $$("#mainTabs button").forEach(b=>b.classList.toggle("on",b.dataset.m===mode));
   $("#bankInfo").textContent=mode==="cards"?`${CARDS.length} tarjetas · ${temasConBanco.length} temas`:`${B.qs.length} preguntas · ${temasConBanco.length} temas`;
   const isP=mode==="pod";
-  $("#pendSec").hidden=mode==="pod"; renderQResume(); renderCardsResume();
+  $("#pendSec").hidden=mode==="pod"||mode==="exams"; renderQResume(); renderCardsResume();
   { const isC=mode==="cards"; $("#pendN").textContent=isC?4:6; $("#pendTitle").textContent=isC?"Tarjetas pendientes":"Tests pendientes";
-    const n=(isC?cpend():pend()).length; const e=$("#pendEmpty"); e.hidden=!!n||mode==="pod"; e.textContent=isC?"No tienes ninguna tarjeta pendiente.":"No tienes ningún test pendiente."; }
+    const n=(isC?cpend():pend()).length; const e=$("#pendEmpty"); e.hidden=!!n||mode==="pod"||mode==="exams"; e.textContent=isC?"No tienes ninguna tarjeta pendiente.":"No tienes ningún test pendiente."; }
   const isE=mode==="exams";
   $("#podView").hidden=!isP; $("#temaSec").hidden=isP||isE; $("#examSec").hidden=!isE; $("#favSec").hidden=isP; $("#homeDock").hidden=isP;
   $("#podDock").hidden=!isP||!podN; document.body.classList.toggle("podplay",isP&&!!podN);
   if(!isP&&podAudio&&!podAudio.paused) podAudio.pause();
   if(isP){ renderPod(); $("#testOpts").hidden=true; $("#cardOpts").hidden=true; $("#histSec").hidden=true; const f0=document.querySelector(".foot"); if(f0)f0.hidden=true; $("#bankInfo").textContent="100 pódcasts · uno por tema"; return }
   const ft=document.querySelector(".foot"); if(ft) ft.hidden=mode==="cards";
-  $("#testOpts").hidden=mode==="cards"; $("#cardOpts").hidden=mode!=="cards"; $("#histSec").hidden=mode==="cards"; $("#histEmpty").hidden=!!U.get("hist",[]).length;
+  $("#testOpts").hidden=mode==="cards"; $("#cardOpts").hidden=mode!=="cards"; $("#histSec").hidden=mode!=="tests"; $("#cntSec").hidden=isE; $("#modeN").textContent=isE?2:3; $("#histEmpty").hidden=!!U.get("hist",[]).length;
   if(isE) renderExams(); else renderBlocks();
   const k=isE?exSel.size:sel.size; if(isE) $("#bankInfo").textContent=`${EXAMS.length} ${EXAMS.length===1?"examen oficial":"exámenes oficiales"}`;
-  if(isE) $("#exInfo").textContent=k?`${k} ${k===1?"examen elegido":"exámenes elegidos"} · ${poolSize()} preguntas disponibles`:"Elige al menos un examen para empezar.";
+  if(isE) $("#exInfo").textContent="Examen completo, con las preguntas en orden aleatorio y las opciones en su orden oficial.";
   $("#selInfo").textContent=k?`${k} ${k===1?"tema elegido":"temas elegidos"} · ${poolSize()} ${mode==="cards"?"tarjetas":"preguntas"} disponibles`:"Elige al menos un tema para empezar.";
   const b=$("#btnStart");
   if(mode!=="cards"){
-    const mx=maxQ(); if(mx && count>mx){count=Math.max(10,Math.floor(mx/10)*10);} if(mx>=10 && count<10)count=10;
-    renderChips();
-    const n=mx?Math.min(count,mx):0;
+    const mx=maxQ(); if(!isE){ if(mx && count>mx){count=Math.max(10,Math.floor(mx/10)*10);} if(mx>=10 && count<10)count=10; renderChips() }
+    const n=isE?mx:(mx?Math.min(count,mx):0);
     b.disabled=!k||mx<10;
     b.textContent=k?(mx<10?`Solo hay ${poolSize()} preguntas`:`${isE?"Empezar examen":"Empezar test"} · ${n} preguntas`):(isE?"Empezar examen":"Empezar test");
   } else {
@@ -891,8 +904,8 @@ function refresh(){
     b.disabled=!pool;
     b.textContent=!k?"Empezar tarjetas":pool?`Empezar tarjetas · ${n}`:"No quedan tarjetas pendientes";
   }
-  const isC=mode==="cards", nf=isC?cfavs.size:favs.size;
-  $("#favTitle").textContent=isC?"Tarjetas favoritas":"Preguntas favoritas"; $("#favN").textContent=isC?3:4;
+  const isC=mode==="cards", nf=isC?cfavs.size:curFavs().size;
+  $("#favTitle").textContent=isC?"Tarjetas favoritas":"Preguntas favoritas"; $("#favN").textContent=isC?3:isE?3:4;
   $("#favCount").textContent=nf===1?"1 favorita":`${nf} favoritas`;
   $("#favHint").textContent=isC?"Márcalas con ☆ mientras estudias las tarjetas.":"Márcalas con ☆ durante un test o al revisar un resultado.";
   $("#favView").disabled=!nf;
@@ -917,10 +930,8 @@ function start(items,inst,k){
 $("#btnStart").onclick=()=>{
   if(mode==="cards"){ const pool=shuffle(cardPool()); startCards(cardCount?pool.slice(0,cardCount):pool); return }
   if(mode==="exams"){
-    const pool=exPool(), n=Math.min(count,pool.length);
-    let pick=n>=pool.length?pool.slice():shuffle(pool.slice()).slice(0,n);
-    if(exSel.size>1) shuffle(pick); else pick.sort((a,b)=>pool.indexOf(a)-pool.indexOf(b));
-    start(pick.map(makeExItem),instant,exSel.size); quiz.ex=true; saveQuiz(); return;
+    const pool=exPool(); if(!pool.length)return;
+    start(shuffle(pool.slice()).map(makeExItem),instant,1); quiz.ex=true; quiz.exid=[...exSel][0]; saveQuiz(); return;
   }
   const n=Math.min(count,maxQ()); const idxs=pickIndexes(sel,n);
   start(idxs.map(makeItem),instant,sel.size);
@@ -975,7 +986,7 @@ function temaName(t){const T=B.temas.find(x=>x.n===t);return T&&T.t?shortT(T):""
 function openFavList(){
   favScroll=window.scrollY;
   const isC=mode==="cards", body=$("#flBody"); body.innerHTML="";
-  const keys=isC?[...cfavs]:[...favs];
+  const keys=isC?[...cfavs]:[...curFavs()];
   const rows=keys.map(h=>isC?CIDX.get(h):IDX.get(h)).filter(i=>i!==undefined);
   rows.sort((a,b)=>(isC?CARDS[a][0]-CARDS[b][0]:B.qs[a][0]-B.qs[b][0])||a-b);
   $("#flTitle").textContent=(isC?"Tarjetas favoritas · ":"Preguntas favoritas · ")+rows.length;
@@ -992,10 +1003,10 @@ function openFavList(){
     d.style.setProperty("--st",bcOf(t));
     d.innerHTML=`<div class="tag">${esc(temaTag(t))}<button class="star on" aria-label="Quitar de favoritas">★</button></div><div class="hint" style="margin:-2px 0 10px;font-size:.8rem">${esc(temaName(t))}</div>`+html;
     const st=d.querySelector(".star");
-    st.onclick=()=>{ const set=isC?cfavs:favs; if(set.has(h)){set.delete(h);setStar(st,false);d.style.opacity=".55"}else{set.add(h);setStar(st,true);d.style.opacity=""} isC?saveCFavs():saveFavs(); const n=set.size; $("#flTitle").textContent=(isC?"Tarjetas favoritas · ":"Preguntas favoritas · ")+n; $("#flGo").disabled=!n };
+    st.onclick=()=>{ const set=isC?cfavs:curFavs(); if(set.has(h)){set.delete(h);setStar(st,false);d.style.opacity=".55"}else{set.add(h);setStar(st,true);d.style.opacity=""} isC?saveCFavs():saveFavs(); const n=set.size; $("#flTitle").textContent=(isC?"Tarjetas favoritas · ":"Preguntas favoritas · ")+n; $("#flGo").disabled=!n };
     body.appendChild(d);
   });
-  $("#flGo").textContent=isC?"Repasar estas tarjetas":"Hacer test con estas preguntas"; $("#flGo").disabled=!rows.length;
+  $("#flGo").textContent=isC?"Repasar estas tarjetas":"Hacer test con estas preguntas"; $("#flGo").disabled=!rows.length; $("#flGo").hidden=mode==="exams";
   show("favlist");
 }
 $("#flBack").onclick=()=>{show("home");renderHome();window.scrollTo(0,favScroll);requestAnimationFrame(()=>window.scrollTo(0,favScroll))};
@@ -1046,7 +1057,7 @@ function renderQ(){
     return `<button class="${cls}" data-k="${k}" ${locked?"disabled":""} aria-pressed="${it.a===k}"><span class="l">${L[k]}</span><span class="x">${esc(txt)}</span></button>`}).join("");
   $("#qExpl").innerHTML=locked?`<div class="expl"><b>${it.a===it.c?"✔ Correcto.":"✘ Incorrecto."}</b> ${esc(it.e)}</div>`:"";
   $("#btnClear").hidden=!(it.a!==null&&!locked);
-  setStar($("#btnFav"),favs.has(hOf(it)));
+  setStar($("#btnFav"),curFavs().has(hOf(it)));
   $("#btnPrev").disabled=quiz.idx===0;
   const last=quiz.idx===N-1;
   $("#btnNext").textContent=last?"Resolver ✓":"Siguiente →";
@@ -1118,10 +1129,17 @@ function finish(){
   quiz.done=true; saveQuiz();
   const s=score(quiz.items);
   const d=Date.now(); quiz.d=d;
-  const hist=U.get("hist",[]); hist.unshift({d,n:s.total,h:s.h,w:s.w,b:s.b,nota:s.nota,el:quiz.el||0,k:nTemas(),ex:!!quiz.ex});
+  if(quiz.ex){
+    const hist=U.get("exhist",[]); hist.unshift({d,id:quiz.exid,n:s.total,h:s.h,w:s.w,b:s.b,nota:s.nota,el:quiz.el||0});
+    U.set("exhist",hist.slice(0,60));
+    const tests=U.get("extests",[]); tests.unshift({d,k:1,el:quiz.el||0,instant:!!quiz.instant,items:compact(quiz.items)});
+    U.set("extests",tests.slice(0,30));
+  } else {
+  const hist=U.get("hist",[]); hist.unshift({d,n:s.total,h:s.h,w:s.w,b:s.b,nota:s.nota,el:quiz.el||0,k:nTemas()});
   U.set("hist",hist.slice(0,30));
   const tests=U.get("tests",[]); tests.unshift({d,k:nTemas(),el:quiz.el||0,instant:!!quiz.instant,items:compact(quiz.items)});
   U.set("tests",tests.slice(0,30));
+  }
   showResult(s);
 }
 function showResult(s){
@@ -1143,7 +1161,7 @@ function renderReview(){
   if(!f.length){host.innerHTML=`<p class="empty">No hay preguntas en esta categoría.</p>`;return}
   const lab={ok:"Acertada",bad:"Fallada",blank:"En blanco"}, col={ok:"var(--ok)",bad:"var(--bad)",blank:"var(--blank)"};
   host.innerHTML=f.map(({x,i})=>{const s=st(x);
-    return `<article class="card rev" style="--st:${col[s]}"><div class="tag">${lab[s]} <span>· Pregunta ${i+1} · Tema ${x.t}</span><button class="star ${favs.has(hOf(x))?"on":""}" data-h="${hOf(x)}" aria-label="Favorita">${starTxt(favs.has(hOf(x)))}</button></div>
+    return `<article class="card rev" style="--st:${col[s]}"><div class="tag">${lab[s]} <span>· Pregunta ${i+1} · Tema ${x.t}</span><button class="star ${curFavs().has(hOf(x))?"on":""}" data-h="${hOf(x)}" aria-label="Favorita">${starTxt(curFavs().has(hOf(x)))}</button></div>
     <p class="qtext">${esc(x.q)}</p><div class="opts">${x.o.map((t,k)=>`<div class="opt ${k===x.c?"ok":k===x.a?"bad":""}"><span class="l">${L[k]}</span><span class="x">${esc(t)}${k===x.a&&k!==x.c?" <small>(tu respuesta)</small>":""}</span></div>`).join("")}</div>
     <div class="expl"><b>Explicación.</b> ${esc(x.e)}</div></article>`}).join("");
 }
@@ -1177,15 +1195,17 @@ $("#hist").addEventListener("click",e=>{
 function resRow(title,info,id){return `<div class="card resume" data-id="${id}"><span class="ric" aria-hidden="true">⏸</span><div class="t"><b>${title}</b><div class="hint" style="margin:0">${info}</div></div><button class="btn" data-act="go" style="padding:9px 12px">Continuar</button><button class="btn ghost" data-act="x" style="padding:9px 12px" aria-label="Descartar">✕</button></div>`}
 const dShort=id=>{const t=+String(id).replace(/\D/g,"");return t?new Date(t).toLocaleDateString("es-ES",{day:"numeric",month:"short"}):""};
 function renderQResume(){
-  const box=$("#resumeBox"); if(mode!=="tests"){box.innerHTML="";return}
-  box.innerHTML=pend().map(sv=>{const a=sv.items.filter(x=>x.a!==null).length;
-    return resRow(dShort(sv.id)+" · Test",`${sv.items.length} preguntas · ${a} contestadas · vas por la ${sv.idx+1}`,sv.id)}).join("");
+  const E=mode==="exams", box=$(E?"#exPending":"#resumeBox"); $("#resumeBox").innerHTML=""; $("#exPending").innerHTML="";
+  if(mode!=="tests"&&!E)return;
+  box.innerHTML=pend().filter(sv=>!!sv.ex===E).map(sv=>{const a=sv.items.filter(x=>x.a!==null).length;
+    return resRow(dShort(sv.id)+(E?" · Examen pendiente":" · Test"),`${sv.items.length} preguntas · ${a} contestadas · vas por la ${sv.idx+1}`,sv.id)}).join("");
 }
-$("#resumeBox").addEventListener("click",async e=>{
+async function resumeClick(e){
   const row=e.target.closest("[data-id]"); if(!row)return; const id=row.dataset.id, x=e.target.closest('button[data-act="x"]');
   if(!x){ const q=pend().find(x=>x.id===id); if(q){quiz=q;quiz.items.forEach(hOf);show("quiz");renderQ()} }
   else if(await ask("¿Descartar el test?","Se perderán las respuestas dadas.","Descartar","Cancelar")){ U.set("qpend",pend().filter(x=>x.id!==id)); renderQResume() }
-});
+}
+$("#resumeBox").addEventListener("click",resumeClick); $("#exPending").addEventListener("click",resumeClick);
 
 /* ---------- Tarjetas de estudio ---------- */
 function startCards(idxs){
@@ -1342,7 +1362,7 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){
 /* ---------- Cuenta y sincronización (Firebase) ---------- */
 const FBV="10.14.1", FBCFG=window.FIREBASE_CONFIG||{};
 const fbOK=!!(window.__SYNC_ADAPTER||(FBCFG.apiKey&&!/REEMPLAZA/i.test(FBCFG.apiKey)));
-const SET_KEYS=new Set(["favs","cfavs","cknown","podheard","podfavs"]), LIST_KEYS=new Set(["hist","tests"]);
+const SET_KEYS=new Set(["exfavs","favs","cfavs","cknown","podheard","podfavs"]), LIST_KEYS=new Set(["hist","tests","exhist","extests"]);
 function onFb(){return typeof cur==="string"&&cur.startsWith("fb:")}
 function tKey(k){return `t:${cur}:${k}`}
 function dKey(){return `dirty:${cur}`}
