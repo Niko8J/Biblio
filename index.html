@@ -650,16 +650,20 @@ function podSave(force){
 function renderPod(){
   const host=$("#podList"), pos=podPos(), heard=podHeard(), pf=new Set(U.get("podfavs",[]));
   host.innerHTML="";
-  B.blocks.forEach((bl,i)=>{
-    const ts=B.temas.filter(t=>t.b===i);
-    const el=document.createElement("div"); el.className="card block"+(podOpen.has(i)?" open":""); el.dataset.i=i; el.style.setProperty("--bc",`var(${BLOCKCOL[i]})`);
-    el.innerHTML=`<div class="head"><div class="info"><div class="name">${bl.name}</div><div class="meta">Temas ${bl.from}–${bl.to} · ${ts.filter(t=>heard.has(t.n)).length}/${ts.length} escuchados</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div>
-      <div class="temas">${ts.map(t=>{
-        const na=podAvail[t.n]===false, now=podN===t.n, hd=heard.has(t.n);
-        const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"✓ Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
-        return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(shortT(t))}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`}).join("")}</div>`;
-    host.appendChild(el);
-  });
+  const row=t=>{
+    const na=podAvail[t.n]===false, now=podN===t.n, hd=heard.has(t.n);
+    const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"✓ Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
+    return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(shortT(t))}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`};
+  const mk=(i,name,meta,ts,col)=>{
+    const el=document.createElement("div"); el.className="card block"+(podOpen.has(i)?" open":""); el.dataset.i=i; el.style.setProperty("--bc",col);
+    el.innerHTML=`<div class="head"><div class="info"><div class="name">${name}</div><div class="meta">${meta}</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas">${ts.length?ts.map(row).join(""):'<p class="hint" style="margin:8px 4px">Aún no tienes pódcasts favoritos. Marca la estrella de un tema para verlo aquí.</p>'}</div>`;
+    host.appendChild(el)};
+  const h1=document.createElement("h2");h1.innerHTML='<span class="n">1</span>Por bloques';host.appendChild(h1);
+  B.blocks.forEach((bl,i)=>{const ts=B.temas.filter(t=>t.b===i);
+    mk(i,bl.name,`Temas ${bl.from}–${bl.to} · ${ts.filter(t=>heard.has(t.n)).length}/${ts.length} escuchados`,ts,`var(${BLOCKCOL[i]})`)});
+  const h2=document.createElement("h2");h2.style.marginTop="18px";h2.innerHTML='<span class="n">2</span>Favoritos';host.appendChild(h2);
+  const fv=B.temas.filter(t=>pf.has(t.n));
+  mk(99,"★ Mis favoritos",`${fv.length} ${fv.length===1?"tema":"temas"} · ${fv.filter(t=>heard.has(t.n)).length}/${fv.length} escuchados`,fv,"var(--gold,#e0b64a)");
   probePods();
 }
 function probePods(){
@@ -733,7 +737,7 @@ $("#podRateVal").onclick=e=>{ e.stopPropagation(); if(!podMenu.hidden){podMenuCl
 podMenu.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;e.stopPropagation();podSetRate(+b.dataset.r);podMenuClose()});
 document.addEventListener("click",podMenuClose);
 $("#podList").addEventListener("click",e=>{const hd=e.target.closest(".block>.head");if(hd){const bl=hd.parentElement,i=+bl.dataset.i;bl.classList.toggle("open");bl.classList.contains("open")?podOpen.add(i):podOpen.delete(i);return}
-  const f=e.target.closest(".pf");if(f){e.stopPropagation();const n=+f.dataset.fav,a=new Set(U.get("podfavs",[]));a.has(n)?a.delete(n):a.add(n);U.set("podfavs",[...a]);f.classList.toggle("on",a.has(n));f.textContent=a.has(n)?"★":"☆";return}
+  const f=e.target.closest(".pf");if(f){e.stopPropagation();const n=+f.dataset.fav,a=new Set(U.get("podfavs",[]));a.has(n)?a.delete(n):a.add(n);U.set("podfavs",[...a]);f.classList.toggle("on",a.has(n));f.textContent=a.has(n)?"★":"☆";renderPod();return}
   const r=e.target.closest(".prow");if(!r||r.classList.contains("na"))return;podPlay(+r.dataset.n)});
 $("#podPlay").onclick=()=>{if(podAudio&&podN)podAudio.paused?podAudio.play():podAudio.pause()};
 $("#podBack").onclick=()=>podSkip(-10); $("#podFwd").onclick=()=>podSkip(10);
@@ -1002,6 +1006,12 @@ function openFavList(){
     const g=document.createElement("div"); g.className="card block"; g.style.setProperty("--bc",bcOf(t)); g.style.marginBottom="10px";
     g.innerHTML=`<div class="head" style="cursor:pointer"><div class="info"><div class="name">${esc(temaTag(t))}</div><div class="meta">${esc(temaName(t))} · ${cnt[t]} ${cnt[t]===1?"favorita":"favoritas"}</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas"></div>`;
     g.querySelector(".head").onclick=()=>g.classList.toggle("open");
+    if(mode!=="exams"){ const bar=document.createElement("div"); bar.style.cssText="display:flex;gap:8px;margin:2px 0 10px";
+      const bt=document.createElement("button"); bt.className="btn"; bt.style.cssText="flex:1;padding:10px 12px"; bt.textContent=isC?"Repasar":"Hacer test";
+      bt.onclick=e=>{ e.stopPropagation();
+        if(isC){ const ix=shuffle([...cfavs].map(h=>CIDX.get(h)).filter(i=>i!==undefined&&CARDS[i][0]===t)); if(ix.length)startCards(ix) }
+        else { const ix=shuffle([...favs].map(h=>IDX.get(h)).filter(i=>i!==undefined&&B.qs[i][0]===t)).slice(0,100); if(ix.length)start(ix.map(makeItem),instant,0) } };
+      bar.appendChild(bt); g.querySelector(".temas").appendChild(bar); }
     body.appendChild(g); groups.set(t,g); return g };
   rows.forEach(i=>{
     const d=document.createElement("div"); d.className="card rev";
@@ -1219,7 +1229,7 @@ function renderQResume(){
 async function resumeClick(e){
   const row=e.target.closest("[data-id]"); if(!row)return; const id=row.dataset.id, x=e.target.closest('button[data-act="x"]');
   if(!x){ const q=pend().find(x=>x.id===id); if(q){quiz=q;quiz.items.forEach(hOf);show("quiz");renderQ()} }
-  else if(await ask("¿Descartar el test?","Se perderán las respuestas dadas.","Descartar","Cancelar")){ U.set("qpend",pend().filter(x=>x.id!==id)); renderQResume() }
+  else if(await ask("¿Descartar el test?","Se perderán las respuestas dadas.","Descartar","Cancelar")){ U.set("qpend",pend().filter(x=>x.id!==id)); refresh() }
 }
 $("#resumeBox").addEventListener("click",resumeClick);
 
@@ -1248,10 +1258,10 @@ $("#cardsResume").addEventListener("click",async e=>{
   const row=e.target.closest("[data-id]"); if(!row)return; const id=row.dataset.id, xb=e.target.closest('button[data-act="x"]');
   const sv=cpend().find(x=>x.id===id); if(!sv)return;
   if(!xb){
-    const items=sv.h.map(h=>CIDX.get(h)).filter(i=>i!==undefined); if(!items.length){U.set("cpend",cpend().filter(x=>x.id!==id));renderCardsResume();return}
+    const items=sv.h.map(h=>CIDX.get(h)).filter(i=>i!==undefined); if(!items.length){U.set("cpend",cpend().filter(x=>x.id!==id));refresh();return}
     cards={id,items,idx:Math.min(sv.idx,items.length-1),flipped:false,know:0,again:[],end:false};
     show("cards"); renderCard();
-  } else if(await ask("¿Descartar la sesión?","Perderás la posición en las tarjetas.","Descartar","Cancelar")){ U.set("cpend",cpend().filter(x=>x.id!==id)); renderCardsResume() }
+  } else if(await ask("¿Descartar la sesión?","Perderás la posición en las tarjetas.","Descartar","Cancelar")){ U.set("cpend",cpend().filter(x=>x.id!==id)); refresh() }
 });
 const BLANK=/_{3,}/;
 function renderCard(){
