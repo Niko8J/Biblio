@@ -1031,11 +1031,12 @@ function openFavList(){
     st.onclick=()=>{ const set=isC?cfavs:curFavs(); if(set.has(h)){set.delete(h);setStar(st,false);d.style.opacity=".55"}else{set.add(h);setStar(st,true);d.style.opacity=""} isC?saveCFavs():saveFavs(); const n=set.size; $("#flTitle").textContent=(isC?"Tarjetas favoritas · ":"Preguntas favoritas · ")+n; $("#flGo").disabled=!n };
     grp(t).querySelector(".temas").appendChild(d);
   });
-  $("#flGo").textContent=isC?"Repasar todas las tarjetas":"Hacer test con todas las preguntas"; $("#flGo").disabled=!rows.length; $("#flGo").hidden=mode==="exams";
+  $("#flGo").textContent=isC?"Repasar todas las tarjetas":mode==="exams"?"Hacer examen con todas las preguntas":"Hacer test con todas las preguntas"; $("#flGo").disabled=!rows.length; $("#flGo").hidden=false;
   show("favlist");
 }
 $("#flBack").onclick=()=>{show("home");renderHome();window.scrollTo(0,favScroll);requestAnimationFrame(()=>window.scrollTo(0,favScroll))};
-$("#flGo").onclick=()=>{ (mode==="cards"?$("#favCards").onclick:$("#favTest").onclick)() };
+$("#flGo").onclick=()=>{ if(mode==="exams"){ const o=[]; EXAMS.forEach(e=>e.items.forEach(x=>{ if(exfavs.has(HID[x.i]))o.push([e.id,x]) })); if(!o.length)return; const L=shuffle(o).slice(0,100); start(L.map(y=>makeExItem(y[1])),instant,1); quiz.ex=true; quiz.exid=L[0][0]; saveQuiz(); return }
+  (mode==="cards"?$("#favCards").onclick:$("#favTest").onclick)() };
 $("#favTest").onclick=()=>{
   const idxs=shuffle([...favs].map(h=>IDX.get(h)).filter(i=>i!==undefined)).slice(0,100); if(!idxs.length)return;
   start(idxs.map(makeItem),instant,0);
