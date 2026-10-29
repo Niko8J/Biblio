@@ -1009,7 +1009,7 @@ function openFavList(){
     const g=document.createElement("div"); g.className="card block"; g.style.setProperty("--bc",bcOf(t)); g.style.marginBottom="10px";
     g.innerHTML=`<div class="head" style="cursor:pointer"><div class="info"><div class="name">${esc(temaTag(t))}</div><div class="meta">${esc(temaName(t))} · ${cnt[t]} ${cnt[t]===1?"favorita":"favoritas"}</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas"></div>`;
     g.querySelector(".head").onclick=()=>g.classList.toggle("open");
-    { const bt=document.createElement("button"); bt.className="btn"; bt.style.cssText="padding:7px 10px;font-size:.78rem;white-space:normal;line-height:1.15;max-width:128px;margin-left:auto;flex:none"; bt.textContent=isC?"Repasar el tema":mode==="exams"?"Hacer examen del tema":"Hacer test del tema";
+    { const bt=document.createElement("button"); bt.className="btn"; bt.style.cssText="padding:7px 10px;font-size:.78rem;white-space:nowrap;line-height:1.15;margin-left:auto;flex:none"; bt.innerHTML=isC?"Repasar<br>el tema":mode==="exams"?"Hacer examen<br>del tema":"Hacer test<br>del tema";
       bt.onclick=e=>{ e.stopPropagation();
         if(isC){ const ix=shuffle([...cfavs].map(h=>CIDX.get(h)).filter(i=>i!==undefined&&CARDS[i][0]===t)); if(ix.length)startCards(ix) }
         else if(mode==="exams"){ const o=[]; EXAMS.forEach(e=>e.items.forEach(x=>{ if(exfavs.has(HID[x.i])&&B.qs[x.i][0]===t)o.push([e.id,x]) })); if(!o.length)return; const L=shuffle(o); start(L.map(y=>makeExItem(y[1])),instant,1); quiz.ex=true; quiz.exid=L[0][0]; saveQuiz() }
