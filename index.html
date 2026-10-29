@@ -102,6 +102,7 @@ body.nomin{min-height:0}
 .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .chip{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 0;font-weight:700;font-size:1rem}
 @media(hover:hover){.chip:hover:not(:disabled){border-color:var(--accent)}}
+#chips .chip.all{grid-column:span 2}
 .chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .chip:disabled{opacity:.35;cursor:not-allowed}
 .note{display:flex;gap:8px;align-items:flex-start;background:var(--accent-soft);border-radius:12px;padding:10px 12px;font-size:.85rem;margin-top:10px}
@@ -862,8 +863,8 @@ function poolSize(){if(mode==="exams")return exPool().length;const P=mode==="car
 function maxQ(){ if(!(mode==="exams"?exSel.size:sel.size)) return 0; return Math.min(100,poolSize()); }
 function renderChips(){
   const mx=maxQ(); const host=$("#chips"); host.innerHTML="";
-  for(let v=10;v<=100;v+=10){const b=document.createElement("button");b.className="chip"+(v===count?" on":"");b.textContent=v;b.disabled=v>mx;
-    b.onclick=()=>{count=v;U.set("count",v);refresh()};host.appendChild(b)}
+  [10,30,50,60,70,80,90,100,0].forEach(v=>{const b=document.createElement("button");b.className="chip"+(v===count?" on":"")+(v?"":" all");b.textContent=v?v:"Todas";b.disabled=v?v>mx:mx<10;
+    b.onclick=()=>{count=v;U.set("count",v);refresh()};host.appendChild(b)});
   const note=$("#capNote"), isE=mode==="exams";
   note.hidden=true;
 }
@@ -899,8 +900,8 @@ function refresh(){
   $("#selInfo").textContent=k?`${k} ${k===1?"tema elegido":"temas elegidos"} · ${poolSize()} ${mode==="cards"?"tarjetas":"preguntas"} disponibles`:"Elige al menos un tema para empezar.";
   const b=$("#btnStart");
   if(mode!=="cards"){
-    const mx=maxQ(); if(!isE){ if(mx && count>mx){count=Math.max(10,Math.floor(mx/10)*10);} if(mx>=10 && count<10)count=10; renderChips() }
-    const n=isE?mx:(mx?Math.min(count,mx):0);
+    const mx=maxQ(); if(!isE){ if(mx && count>mx){count=Math.max(10,Math.floor(mx/10)*10);} if(mx>=10 && count>0 && count<10)count=10; renderChips() }
+    const n=isE?mx:(mx?(count===0?poolSize():Math.min(count,mx)):0);
     b.disabled=!k||mx<10;
     b.textContent=k?(mx<10?`Solo hay ${poolSize()} preguntas`:`${isE?"Empezar examen":"Empezar test"} · ${n} preguntas`):(isE?"Empezar examen":"Empezar test");
   } else {
@@ -938,7 +939,7 @@ $("#btnStart").onclick=()=>{
     const pool=exPool(); if(!pool.length)return;
     start(shuffle(pool.slice()).map(makeExItem),instant,1); quiz.ex=true; quiz.exid=[...exSel][0]; saveQuiz(); return;
   }
-  const n=Math.min(count,maxQ()); const idxs=pickIndexes(sel,n);
+  const n=count===0?poolSize():Math.min(count,maxQ()); const idxs=pickIndexes(sel,n);
   start(idxs.map(makeItem),instant,sel.size);
 };
 let favScroll=0;
