@@ -77,6 +77,7 @@ body.nomin{min-height:0}
 .quick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .pill{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:.85rem;font-weight:600}
 @media(hover:hover){.pill:hover{border-color:var(--accent)}}
+#flBody .head .info{min-width:0;flex:1}.fln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .block{margin-bottom:10px;overflow:hidden;border-left:5px solid var(--bc)}
 .block .head{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px}
 .block .info{flex:1;min-width:0}
@@ -1007,7 +1008,7 @@ function openFavList(){
   const groups=new Map();
   const grp=t=>{ if(groups.has(t))return groups.get(t);
     const g=document.createElement("div"); g.className="card block"; g.style.setProperty("--bc",bcOf(t)); g.style.marginBottom="10px";
-    g.innerHTML=`<div class="head" style="cursor:pointer"><div class="info"><div class="name">${esc(temaTag(t))}</div><div class="meta">${esc(temaName(t))} · ${cnt[t]} ${cnt[t]===1?"favorita":"favoritas"}</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas"></div>`;
+    g.innerHTML=`<div class="head" style="cursor:pointer"><div class="info"><div class="name">${esc(temaTag(t))}</div><div class="meta fln">${esc(temaName(t))}</div><div class="meta">${cnt[t]} ${cnt[t]===1?"favorita":"favoritas"}</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas"></div>`;
     g.querySelector(".head").onclick=()=>g.classList.toggle("open");
     { const bt=document.createElement("button"); bt.className="btn"; bt.style.cssText="padding:7px 10px;font-size:.78rem;white-space:nowrap;line-height:1.15;margin-left:auto;flex:none"; bt.innerHTML=isC?"Repasar<br>el tema":mode==="exams"?"Hacer examen<br>del tema":"Hacer test<br>del tema";
       bt.onclick=e=>{ e.stopPropagation();
