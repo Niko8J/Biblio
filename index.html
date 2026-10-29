@@ -659,13 +659,13 @@ function renderPod(){
     const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"✓ Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
     return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(shortT(t))}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`};
   const mk=(i,name,meta,ts,col,H)=>{
-    const el=document.createElement("div"); el.className="card block"+(podOpen.has(i)?" open":""); el.dataset.i=i; el.style.setProperty("--bc",col);
+    const el=document.createElement("div"); el.className="card block"+(podOpen.has(i)?" open":""); el.dataset.i=i; el.style.setProperty("--bc",col); if(H)el.style.borderLeft="0";
     el.innerHTML=`<div class="head"><div class="info"><div class="name">${name}</div><div class="meta">${meta}</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas">${ts.length?ts.map(row).join(""):'<p class="hint" style="margin:8px 4px">Aún no tienes pódcasts favoritos. Marca la estrella de un tema para verlo aquí.</p>'}</div>`;
     (H||host).appendChild(el)};
   B.blocks.forEach((bl,i)=>{const ts=B.temas.filter(t=>t.b===i);
     mk(i,bl.name,`Temas ${bl.from}–${bl.to} · ${ts.filter(t=>heard.has(t.n)).length}/${ts.length} escuchados`,ts,`var(${BLOCKCOL[i]})`)});
   const fv=B.temas.filter(t=>pf.has(t.n));
-  mk(99,"★ Favoritos",`${fv.length} ${fv.length===1?"tema":"temas"} · ${fv.filter(t=>heard.has(t.n)).length}/${fv.length} escuchados`,fv,"var(--gold)",host2);
+  mk(99,"★ Favoritos",`${fv.length} ${fv.length===1?"tema":"temas"} · ${fv.filter(t=>heard.has(t.n)).length}/${fv.length} escuchados`,fv,"var(--muted)",host2);
   probePods();
 }
 function probePods(){
@@ -1009,9 +1009,10 @@ function openFavList(){
     const g=document.createElement("div"); g.className="card block"; g.style.setProperty("--bc",bcOf(t)); g.style.marginBottom="10px";
     g.innerHTML=`<div class="head" style="cursor:pointer"><div class="info"><div class="name">${esc(temaTag(t))}</div><div class="meta">${esc(temaName(t))} · ${cnt[t]} ${cnt[t]===1?"favorita":"favoritas"}</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas"></div>`;
     g.querySelector(".head").onclick=()=>g.classList.toggle("open");
-    if(mode!=="exams"){ const bt=document.createElement("button"); bt.className="btn"; bt.style.cssText="padding:7px 10px;font-size:.78rem;white-space:normal;line-height:1.15;max-width:92px;margin-left:auto;flex:none"; bt.textContent=isC?"Repasar este tema":"Hacer test con este tema";
+    { const bt=document.createElement("button"); bt.className="btn"; bt.style.cssText="padding:7px 10px;font-size:.78rem;white-space:normal;line-height:1.15;max-width:128px;margin-left:auto;flex:none"; bt.textContent=isC?"Repasar el tema":mode==="exams"?"Hacer examen del tema":"Hacer test del tema";
       bt.onclick=e=>{ e.stopPropagation();
         if(isC){ const ix=shuffle([...cfavs].map(h=>CIDX.get(h)).filter(i=>i!==undefined&&CARDS[i][0]===t)); if(ix.length)startCards(ix) }
+        else if(mode==="exams"){ const o=[]; EXAMS.forEach(e=>e.items.forEach(x=>{ if(exfavs.has(HID[x.i])&&B.qs[x.i][0]===t)o.push([e.id,x]) })); if(!o.length)return; const L=shuffle(o); start(L.map(y=>makeExItem(y[1])),instant,1); quiz.ex=true; quiz.exid=L[0][0]; saveQuiz() }
         else { const ix=shuffle([...favs].map(h=>IDX.get(h)).filter(i=>i!==undefined&&B.qs[i][0]===t)).slice(0,100); if(ix.length)start(ix.map(makeItem),instant,0) } };
       {const ch=g.querySelector(".chev"); ch.style.cssText+=";flex:none;min-width:26px"; g.querySelector(".head").insertBefore(bt,ch);} }
     body.appendChild(g); groups.set(t,g); return g };
@@ -1030,7 +1031,7 @@ function openFavList(){
     st.onclick=()=>{ const set=isC?cfavs:curFavs(); if(set.has(h)){set.delete(h);setStar(st,false);d.style.opacity=".55"}else{set.add(h);setStar(st,true);d.style.opacity=""} isC?saveCFavs():saveFavs(); const n=set.size; $("#flTitle").textContent=(isC?"Tarjetas favoritas · ":"Preguntas favoritas · ")+n; $("#flGo").disabled=!n };
     grp(t).querySelector(".temas").appendChild(d);
   });
-  $("#flGo").textContent=isC?"Repasar estas tarjetas":"Hacer test con estas preguntas"; $("#flGo").disabled=!rows.length; $("#flGo").hidden=mode==="exams";
+  $("#flGo").textContent=isC?"Repasar todas las tarjetas":"Hacer test con todas las preguntas"; $("#flGo").disabled=!rows.length; $("#flGo").hidden=mode==="exams";
   show("favlist");
 }
 $("#flBack").onclick=()=>{show("home");renderHome();window.scrollTo(0,favScroll);requestAnimationFrame(()=>window.scrollTo(0,favScroll))};
