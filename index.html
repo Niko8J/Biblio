@@ -608,10 +608,10 @@ const U={get(k,d){return cur?LS.get(`u:${cur}:${k}`,d):d},set(k,v){if(cur){LS.se
 
 /* ---------- Datos ---------- */
 const TSHORT={12:"La Ley 39/2015 del Procedimiento Administrativo Común",16:"Estructura y competencias en bibliotecas de las Administraciones Públicas",24:"La Ley 19/2013 de Transparencia y Buen Gobierno",71:"OPAC, herramientas de descubrimiento y portales bibliotecarios",61:"Fuentes de información de publicaciones periódicas y oficiales"};
-const EPT=["Ley 10/2007, de la lectura, del libro y de las bibliotecas","Los órganos: Comisión General, Consejo de Cooperación y Real Patronato","La Biblioteca Nacional de España","Depósito legal y conservación digital","Propiedad intelectual, préstamo y remuneración","Patrimonio, secretos oficiales, datos personales y fiscalidad"];
+const EPT=["Ley 10/2007, de la lectura, del libro y de las bibliotecas","Comisión General, Consejo de Cooperación y Real Patronato","La Biblioteca Nacional de España","Depósito legal y conservación digital","Propiedad intelectual, préstamo y remuneración","Patrimonio, secretos oficiales, datos personales y fiscalidad"];
 const PODT=(()=>{const o=[];B.temas.filter(t=>t.n<=100).forEach(t=>{o.push(t.n===28?{...t,lbl:"28.1"}:t);
   if(t.n===28)o.push({n:28.2,t:"Episodio extra",b:t.b,lbl:"28.2",f:"Tema_28.2"});
-  if(t.n===26)for(let k=1;k<=6;k++)o.push({n:1000+k,t:EPT[k-1],b:t.b,lbl:"E"+k,f:"Extra_"+k})});
+  if(t.n===26)for(let k=1;k<=6;k++)o.push({n:1000+k,t:EPT[k-1],b:t.b,lbl:"Ext"+k,f:"Extra_"+k})});
   return o})();
 const PODM=new Map(PODT.map(t=>[t.n,t]));
 const shortT=t=>TSHORT[t.n]||t.t.split(/\.\s|:/)[0].trim().replace(/\.$/,"");
@@ -734,7 +734,7 @@ function podPlay(n,fromStart){
   podAudio.play().catch(()=>{});
   $("#podTitle").textContent=`${t.n>1000?"Código de Legislación Bibliotecaria":"Tema "+(t.lbl||n)} · ${shortT(t)}`; $("#podSeek").value=0; $("#podCur").textContent=podFmt(start); $("#podDur").textContent="-0:00";
   $("#podDock").hidden=false; document.body.classList.add("podplay");
-  if("mediaSession" in navigator) navigator.mediaSession.metadata=new MediaMetadata({title:t.n>1000?"Extra "+t.lbl.slice(1):`Tema ${t.lbl||n}`,artist:"Facultativo de Bibliotecas",album:t.t.slice(0,120)});
+  if("mediaSession" in navigator) navigator.mediaSession.metadata=new MediaMetadata({title:t.n>1000?"Extra "+t.lbl.slice(3):`Tema ${t.lbl||n}`,artist:"Facultativo de Bibliotecas",album:t.t.slice(0,120)});
   podUI();
 }
 function podSkip(d){ if(!podAudio||!podN)return; podAudio.currentTime=Math.max(0,Math.min((podAudio.duration||1e9)-1,podAudio.currentTime+d)) }
