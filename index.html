@@ -608,7 +608,12 @@ const U={get(k,d){return cur?LS.get(`u:${cur}:${k}`,d):d},set(k,v){if(cur){LS.se
 
 /* ---------- Datos ---------- */
 const TSHORT={12:"La Ley 39/2015 del Procedimiento Administrativo Común",16:"Estructura y competencias en bibliotecas de las Administraciones Públicas",24:"La Ley 19/2013 de Transparencia y Buen Gobierno",71:"OPAC, herramientas de descubrimiento y portales bibliotecarios",61:"Fuentes de información de publicaciones periódicas y oficiales"};
-const PODT=B.temas.filter(t=>t.n<=100);
+const EPT=["Ley 10/2007, de la lectura, del libro y de las bibliotecas","Los órganos: Comisión General, Consejo de Cooperación y Real Patronato","La Biblioteca Nacional de España","Depósito legal y conservación digital","Propiedad intelectual, préstamo y remuneración","Patrimonio, secretos oficiales, datos personales y fiscalidad"];
+const PODT=(()=>{const o=[];B.temas.filter(t=>t.n<=100).forEach(t=>{o.push(t.n===28?{...t,lbl:"28.1"}:t);
+  if(t.n===28)o.push({n:28.2,t:"Episodio extra",b:t.b,lbl:"28.2",f:"Tema_28.2"});
+  if(t.n===26)for(let k=1;k<=6;k++)o.push({n:1000+k,t:EPT[k-1],b:t.b,lbl:"E"+k,f:"Extra_"+k})});
+  return o})();
+const PODM=new Map(PODT.map(t=>[t.n,t]));
 const shortT=t=>TSHORT[t.n]||t.t.split(/\.\s|:/)[0].trim().replace(/\.$/,"");
 const hq=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)};
 const HID=B.qs.map(r=>hq(r[1]+"|"+r[2]));
@@ -641,7 +646,8 @@ let revFilter="all";
 let podN=0, podRate=1, podAudio=null, podAvail={}, podProbed=false, podSaveAt=0, podDurs=LS.get("podDurs",{});
 let podOpen=new Set();
 const POD_FIXED=[0.5,1,1.5,2,2.5,3];
-function podURL(n){return `audio/Tema_${n}.m4a`}
+function podFile(n){const t=PODM.get(n);return (t&&t.f)||"Tema_"+n}
+function podURL(n){return `audio/${podFile(n)}.m4a`}
 function podFmt(t){t=Math.max(0,Math.floor(t||0));const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0")}
 function podPos(){return U.get("podpos",{})}
 function podHeard(){return new Set(U.get("podheard",[]))}
@@ -659,7 +665,7 @@ function renderPod(){
   const row=t=>{
     const na=podAvail[t.n]===false, now=podN===t.n, hd=heard.has(t.n);
     const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"✓ Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
-    return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(shortT(t))}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`};
+    return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.lbl||t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(shortT(t))}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`};
   const mk=(i,name,meta,ts,col,H)=>{
     const el=document.createElement("div"); el.className="card block"+(podOpen.has(i)?" open":""); el.dataset.i=i; el.style.setProperty("--bc",col); if(H)el.style.borderLeft="0";
     el.innerHTML=`<div class="head"><div class="info"><div class="name">${name}</div><div class="meta">${meta}</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas">${ts.length?ts.map(row).join(""):'<p class="hint" style="margin:8px 4px">Aún no tienes pódcasts favoritos. Marca la estrella de un tema para verlo aquí.</p>'}</div>`;
@@ -700,11 +706,11 @@ function podEnsure(){
   podAudio.addEventListener("play",podUI); podAudio.addEventListener("pause",()=>{podSave(true);podUI()});
   podAudio.addEventListener("ended",()=>{
     const h=podHeard();h.add(podN);U.set("podheard",[...h]); const p=podPos();delete p[podN];U.set("podpos",p);
-    const nx=PODT.map(t=>t.n).filter(n=>n>podN&&podAvail[n]!==false)[0];
+    const ids=PODT.map(t=>t.n), nx=ids.slice(ids.indexOf(podN)+1).filter(n=>podAvail[n]!==false)[0];
     if(nx)podPlay(nx,true); else podUI();
   });
   podAudio.addEventListener("error",()=>{
-    if(podN){podAvail[podN]=false; toast(`No se encuentra Tema_${podN}.m4a en la carpeta audio`); $("#podDock").hidden=true; document.body.classList.remove("podplay"); podN=0; if(mode==="pod")renderPod()}
+    if(podN){podAvail[podN]=false; toast(`No se encuentra ${podFile(podN)}.m4a en la carpeta audio`); $("#podDock").hidden=true; document.body.classList.remove("podplay"); podN=0; if(mode==="pod")renderPod()}
   });
   if("mediaSession" in navigator){
     const ms=navigator.mediaSession;
@@ -721,14 +727,14 @@ function podPlay(n,fromStart){
   podEnsure();
   if(podN===n&&!fromStart){ podAudio.paused?podAudio.play():podAudio.pause(); return }
   if(podN) podSave(true);
-  podN=n; const t=B.temas[n-1];
+  podN=n; const t=PODM.get(n);
   podAudio.src=podURL(n); podAudio.playbackRate=podRate;
   const start=fromStart?0:(podPos()[n]||0);
   podAudio.addEventListener("loadedmetadata",function f(){podAudio.removeEventListener("loadedmetadata",f); if(start&&start<podAudio.duration-5)podAudio.currentTime=start; podAudio.playbackRate=podRate},{once:true});
   podAudio.play().catch(()=>{});
-  $("#podTitle").textContent=`Tema ${n} · ${shortT(t)}`; $("#podSeek").value=0; $("#podCur").textContent=podFmt(start); $("#podDur").textContent="-0:00";
+  $("#podTitle").textContent=`${t.n>1000?"Código de Legislación Bibliotecaria":"Tema "+(t.lbl||n)} · ${shortT(t)}`; $("#podSeek").value=0; $("#podCur").textContent=podFmt(start); $("#podDur").textContent="-0:00";
   $("#podDock").hidden=false; document.body.classList.add("podplay");
-  if("mediaSession" in navigator) navigator.mediaSession.metadata=new MediaMetadata({title:`Tema ${n}`,artist:"Facultativo de Bibliotecas",album:t.t.slice(0,120)});
+  if("mediaSession" in navigator) navigator.mediaSession.metadata=new MediaMetadata({title:t.n>1000?"Extra "+t.lbl.slice(1):`Tema ${t.lbl||n}`,artist:"Facultativo de Bibliotecas",album:t.t.slice(0,120)});
   podUI();
 }
 function podSkip(d){ if(!podAudio||!podN)return; podAudio.currentTime=Math.max(0,Math.min((podAudio.duration||1e9)-1,podAudio.currentTime+d)) }
