@@ -608,6 +608,7 @@ const U={get(k,d){return cur?LS.get(`u:${cur}:${k}`,d):d},set(k,v){if(cur){LS.se
 
 /* ---------- Datos ---------- */
 const TSHORT={12:"La Ley 39/2015 del Procedimiento Administrativo Común",16:"Estructura y competencias en bibliotecas de las Administraciones Públicas",24:"La Ley 19/2013 de Transparencia y Buen Gobierno",71:"OPAC, herramientas de descubrimiento y portales bibliotecarios",61:"Fuentes de información de publicaciones periódicas y oficiales"};
+const PODT=B.temas.filter(t=>t.n<=100);
 const shortT=t=>TSHORT[t.n]||t.t.split(/\.\s|:/)[0].trim().replace(/\.$/,"");
 const hq=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)};
 const HID=B.qs.map(r=>hq(r[1]+"|"+r[2]));
@@ -663,15 +664,15 @@ function renderPod(){
     const el=document.createElement("div"); el.className="card block"+(podOpen.has(i)?" open":""); el.dataset.i=i; el.style.setProperty("--bc",col); if(H)el.style.borderLeft="0";
     el.innerHTML=`<div class="head"><div class="info"><div class="name">${name}</div><div class="meta">${meta}</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas">${ts.length?ts.map(row).join(""):'<p class="hint" style="margin:8px 4px">Aún no tienes pódcasts favoritos. Marca la estrella de un tema para verlo aquí.</p>'}</div>`;
     (H||host).appendChild(el)};
-  B.blocks.forEach((bl,i)=>{const ts=B.temas.filter(t=>t.b===i);
+  B.blocks.forEach((bl,i)=>{const ts=PODT.filter(t=>t.b===i);
     mk(i,bl.name,`Temas ${bl.from}–${bl.to} · ${ts.filter(t=>heard.has(t.n)).length}/${ts.length} escuchados`,ts,`var(${BLOCKCOL[i]})`)});
-  const fv=B.temas.filter(t=>pf.has(t.n));
+  const fv=PODT.filter(t=>pf.has(t.n));
   mk(99,"★ Favoritos",`${fv.length} ${fv.length===1?"tema":"temas"} · ${fv.filter(t=>heard.has(t.n)).length}/${fv.length} escuchados`,fv,"var(--muted)",host2);
   probePods();
 }
 function probePods(){
   if(podProbed)return; podProbed=true;
-  const q=B.temas.map(t=>t.n).filter(n=>!podDurs[n]); let active=0, since=0;
+  const q=PODT.map(t=>t.n).filter(n=>!podDurs[n]); let active=0, since=0;
   const next=()=>{
     while(active<4&&q.length){
       const n=q.shift(); active++;
@@ -699,7 +700,7 @@ function podEnsure(){
   podAudio.addEventListener("play",podUI); podAudio.addEventListener("pause",()=>{podSave(true);podUI()});
   podAudio.addEventListener("ended",()=>{
     const h=podHeard();h.add(podN);U.set("podheard",[...h]); const p=podPos();delete p[podN];U.set("podpos",p);
-    const nx=B.temas.map(t=>t.n).filter(n=>n>podN&&podAvail[n]!==false)[0];
+    const nx=PODT.map(t=>t.n).filter(n=>n>podN&&podAvail[n]!==false)[0];
     if(nx)podPlay(nx,true); else podUI();
   });
   podAudio.addEventListener("error",()=>{
@@ -731,7 +732,7 @@ function podPlay(n,fromStart){
   podUI();
 }
 function podSkip(d){ if(!podAudio||!podN)return; podAudio.currentTime=Math.max(0,Math.min((podAudio.duration||1e9)-1,podAudio.currentTime+d)) }
-function podStep(d){ const ns=B.temas.map(t=>t.n).filter(n=>podAvail[n]!==false); const i=ns.indexOf(podN); const n=ns[i+d]; if(n)podPlay(n,true) }
+function podStep(d){ const ns=PODT.map(t=>t.n).filter(n=>podAvail[n]!==false); const i=ns.indexOf(podN); const n=ns[i+d]; if(n)podPlay(n,true) }
 function podSetRate(r,nosave){ r=Math.round(Math.min(3,Math.max(0.5,r))*10)/10; podRate=r; if(!nosave)U.set("podrate",r); if(podAudio)podAudio.playbackRate=r; $("#podRateVal").textContent=r.toFixed(1)+"×"; $("#podSlower").disabled=r<=0.5; $("#podFaster").disabled=r>=3 }
 $("#podSlower").onclick=()=>podSetRate(podRate-0.1); $("#podFaster").onclick=()=>podSetRate(podRate+0.1); const podMenu=$("#podMenu");
 function podMenuClose(){podMenu.hidden=true}
@@ -829,7 +830,7 @@ function renderBlocks(){
       <button class="tog ${nsel===ts.length?"on":nsel?"part":""}" data-act="blk">${nsel===ts.length?"Quitar":"Todos"}</button>
       <button class="chev" data-act="open" aria-label="Ver temas">▾</button></div>
       <div class="temas">${ts.map(t=>`<label class="trow"><input type="checkbox" data-n="${t.n}" ${sel.has(t.n)?"checked":""}>
-        <span class="tn">Tema ${t.n}</span><span class="tt">${esc(t.t)}</span><span class="tq">${PT[t.n]||0}</span></label>`).join("")}</div>`;
+        <span class="tn">${t.n>100?"Extra":"Tema "+t.n}</span><span class="tt">${esc(t.t)}</span><span class="tq">${PT[t.n]||0}</span></label>`).join("")}</div>`;
     host.appendChild(el);
   });
 }
@@ -837,7 +838,7 @@ function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;
 $("#blocks").addEventListener("click",e=>{
   const blockEl=e.target.closest(".block"); if(!blockEl) return;
   const i=+blockEl.dataset.i; const act=e.target.closest("[data-act]")?.dataset.act;
-  if(act==="open"){blockEl.classList.toggle("open");return}
+  if(act==="open"||(!act&&e.target.closest(".head"))){blockEl.classList.toggle("open");return}
   if(act==="blk"){const ts=temasConBanco.filter(t=>t.b===i);const all=ts.every(t=>sel.has(t.n));
     ts.forEach(t=>all?sel.delete(t.n):sel.add(t.n)); refresh(); return}
   if(e.target.matches("input[data-n]")){const n=+e.target.dataset.n; e.target.checked?sel.add(n):sel.delete(n); refresh()}
@@ -994,7 +995,7 @@ $("#sInput").addEventListener("input",()=>{clearTimeout(sTimer);sTimer=setTimeou
 $("#sTabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;sKind=b.dataset.k;sShown=40;renderSearch();window.scrollTo(0,0)});
 $("#sBack").onclick=()=>{show("home");renderHome();window.scrollTo(0,sScroll);requestAnimationFrame(()=>window.scrollTo(0,sScroll))};
 $("#favBox").addEventListener("click",()=>{ if($("#favView").disabled)return; openFavList() });
-function temaTag(t){return `Tema ${t}`}
+function temaTag(t){return t>100?"Extra":`Tema ${t}`}
 function temaName(t){const T=B.temas.find(x=>x.n===t);return T&&T.t?shortT(T):""}
 function openFavList(){
   favScroll=window.scrollY;
@@ -1188,7 +1189,7 @@ function renderReview(){
   if(!f.length){host.innerHTML=`<p class="empty">No hay preguntas en esta categoría.</p>`;return}
   const lab={ok:"Acertada",bad:"Fallada",blank:"En blanco"}, col={ok:"var(--ok)",bad:"var(--bad)",blank:"var(--blank)"};
   host.innerHTML=f.map(({x,i})=>{const s=st(x);
-    return `<article class="card rev" style="--st:${col[s]}"><div class="tag">${lab[s]} <span>· Pregunta ${i+1} · Tema ${x.t}</span><button class="star ${curFavs().has(hOf(x))?"on":""}" data-h="${hOf(x)}" aria-label="Favorita">${starTxt(curFavs().has(hOf(x)))}</button></div>
+    return `<article class="card rev" style="--st:${col[s]}"><div class="tag">${lab[s]} <span>· Pregunta ${i+1} · ${x.t>100?"Extra":"Tema "+x.t}</span><button class="star ${curFavs().has(hOf(x))?"on":""}" data-h="${hOf(x)}" aria-label="Favorita">${starTxt(curFavs().has(hOf(x)))}</button></div>
     <p class="qtext">${esc(x.q)}</p><div class="opts">${x.o.map((t,k)=>`<div class="opt ${k===x.c?"ok":k===x.a?"bad":""}"><span class="l">${L[k]}</span><span class="x">${esc(t)}${k===x.a&&k!==x.c?" <small>(tu respuesta)</small>":""}</span></div>`).join("")}</div>
     <div class="expl"><b>Explicación.</b> ${esc(x.e)}</div></article>`}).join("");
 }
