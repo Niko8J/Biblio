@@ -315,7 +315,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 .obtns{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.obtns .btn{padding:11px 14px;font-size:.9rem}.btn.sec2{background:var(--accent-soft);color:var(--accent);box-shadow:none}
 .ocard{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;margin:8px 0}
 .ocard h4{margin:0 0 4px;font-size:.95rem;display:flex;justify-content:space-between;gap:8px}.ocard h4 span{color:var(--accent);white-space:nowrap}
-.ocard ul{margin:6px 0 0;padding-left:18px;font-size:.88rem;line-height:1.45}.ocard.hid ul{visibility:hidden}.owide{width:12.5rem;text-align:center}
+.ocard ul{margin:6px 0 0;padding-left:18px;font-size:.88rem;line-height:1.45}.ocard.hid ul,.ocard.hid .otx{visibility:hidden}.otx{margin:6px 0 0;font-size:.9rem;line-height:1.55;text-align:left}.owide{width:12.5rem;text-align:center}
 .obar{display:flex;height:10px;border-radius:6px;overflow:hidden;gap:2px;margin:8px 0}.obar i{display:block;background:var(--accent-soft)}.obar i.d{background:var(--accent)}.obar i.c{background:color-mix(in srgb,var(--accent) 55%,var(--accent-soft))}
 .otimer{font-size:3.6rem;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;margin:6px 0 0;letter-spacing:1px}.otimer.warn{color:#d9541e}
 .ocur{text-align:center;font-weight:700;color:var(--accent);margin:2px 0 6px}
@@ -922,12 +922,12 @@ const oDup=(()=>{const c={};OT.forEach(t=>{const k=shortT(t);c[k]=(c[k]||0)+1});
 const oName=t=>{ if(oDup[shortT(t)]>1){ const r=t.t.split(/:\s*/).slice(1).join(": ").trim(); if(r) return r[0].toUpperCase()+r.slice(1) } return shortT(t) };
 const oEsc=x=>String(x).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const oSt=()=>U.get("oralSt",{}), oHist=()=>U.get("oralHist",[]);
-const ST_L=["Sin estudiar","Por dominar","Dominado"];
-let oS={v:"list",n:0,f:"all",hide:false,notes:false,prep:false};
+const ST_L=["","Por dominar","Dominado"], oSv=(m,n)=>(m[n]||0)===2?2:1;
+let oS={v:"list",n:0,f:"all",hide:false,notes:"",prep:false,tab:"esq"};
 let oT={id:0,t0:0,acc:0,run:false,phase:-1,done:false,secs:0};
 const fm=s=>{s=Math.max(0,Math.ceil(s));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")};
 function oPhases(n){const E=(window.ORAL||{})[n]; if(!E) return [{t:"Exposición libre",min:15,pts:[]}];
-  return [{t:"Introducción",min:1,pts:[E.intro]},...E.secs,{t:"Cierre",min:1,pts:[E.cierre]}]}
+  const A=[{t:"Introducción",min:1,pts:[E.intro]},...E.secs,{t:"Cierre",min:1,pts:[E.cierre]}]; (E.tx||[]).forEach((x,i)=>A[i].tx=x); return A}
 function oStop(){clearInterval(oT.id);oT.id=0;oT.run=false;try{if(oT.wl){oT.wl.release();oT.wl=null}}catch(e){}}
 function oBeep(n){}
 function oElapsed(){return oT.acc+(oT.run?(Date.now()-oT.t0)/1000:0)}
@@ -950,24 +950,26 @@ function oPause(){ if(!oT.run) return; oT.acc=oElapsed(); oStop(); renderOral() 
 function oReset(){ oStop(); oT.acc=0; oT.phase=-1; oT.done=false; renderOral() }
 function oSetSt(n,v){const m=oSt(); m[n]=v; U.set("oralSt",m)}
 function oList(){const st=oSt(); let L=OT.slice();
-  if(oS.f==="pend") L=L.filter(t=>(st[t.n]||0)===1); if(oS.f==="new") L=L.filter(t=>!(st[t.n]||0)); return L}
+  if(oS.f==="pend") L=L.filter(t=>oSv(st,t.n)===1); return L}
 function renderOral(){
   const box=$("#oralBox"), st=oSt(), O=window.ORAL||{}; let h="";
   const t=OT.find(x=>x.n===oS.n);
   if(oS.v==="list"){
-    const dom=OT.filter(x=>(st[x.n]||0)===2).length, pd=OT.filter(x=>(st[x.n]||0)===1).length;
-    h+=`<h2>Exposición oral</h2><p class="ohint">${dom} dominados · ${pd} por dominar</p>
+    const dom=OT.filter(x=>oSv(st,x.n)===2).length, pd=OT.length-dom;
+    h+=`<h2>Exposición oral</h2><p class="ohint">${dom} ${dom===1?"dominado":"dominados"} · ${pd} por dominar</p>
     <div class="obtns"><button class="btn" data-a="rand">🎲 Tema al azar</button></div>
-    <div class="ochips">${[["all","Todos"],["new","Sin estudiar"],["pend","Por dominar"]].map(([k,l])=>`<button data-a="f" data-k="${k}" class="${oS.f===k?"on":""}">${l}</button>`).join("")}</div>`;
-    const L=oList(); h+=L.length?L.map(x=>{const s=st[x.n]||0;return `<div class="orow" data-a="open" data-n="${x.n}"><span class="on_">T${x.n}</span><span class="ot">${oEsc(oName(x))}</span><button class="ost s${s}" data-a="st" data-n="${x.n}">${ST_L[s]}</button></div>`}).join(""):'<p class="ohint">No hay temas con este filtro.</p>';
+    <div class="ochips">${[["all","Todos"],["pend","Por dominar"]].map(([k,l])=>`<button data-a="f" data-k="${k}" class="${oS.f===k?"on":""}">${l}</button>`).join("")}</div>`;
+    const L=oList(); h+=L.length?L.map(x=>{const s=oSv(st,x.n);return `<div class="orow" data-a="open" data-n="${x.n}"><span class="on_">T${x.n}</span><span class="ot">${oEsc(oName(x))}</span><button class="ost s${s}" data-a="st" data-n="${x.n}">${ST_L[s]}</button></div>`}).join(""):'<p class="ohint">No hay temas con este filtro.</p>';
   } else if(oS.v==="tema"){
-    const P=oPhases(oS.n), s=st[oS.n]||0, E=O[oS.n], hs=oHist().filter(x=>x.n===oS.n).slice(-3).reverse();
+    const P=oPhases(oS.n), E=O[oS.n], hs=oHist().filter(x=>x.n===oS.n).slice(-3).reverse();
     h+=`<div class="obtns"><button class="btn sec2" data-a="back">← Temas</button></div>
     <h2 style="font-size:1.05rem;line-height:1.3">Tema ${oS.n} · ${oEsc(t.t)}</h2>`;
     if(E){ h+=`<div class="ocard"><b>Clave para recordarlo:</b> ${oEsc(E.clave)}</div>
       <div class="obar">${P.map(x=>`<i style="flex:${x.min}"></i>`).join("")}</div>
-      <div class="obtns"><button class="btn sec2 owide" data-a="hide">${oS.hide?"Mostrar esquema":"Ocultar esquema"}</button><button class="btn owide" data-a="go">⏱ Practicar 15 min</button></div>`;
-      h+=P.map((x,i)=>`<div class="ocard ${oS.hide?"hid":""}" data-a="peek"><h4>${i+1}. ${oEsc(x.t)}<span>${x.min} min</span></h4><ul>${x.pts.map(p=>`<li>${oEsc(p)}</li>`).join("")}</ul></div>`).join("");
+      <div class="ochips"><button data-a="tab" data-k="esq" class="${oS.tab!=="apu"?"on":""}">Esquema</button><button data-a="tab" data-k="apu" class="${oS.tab==="apu"?"on":""}">Apuntes</button></div>
+      <div class="obtns"><button class="btn sec2 owide" data-a="hide">${oS.hide?"Mostrar":"Ocultar"} ${oS.tab==="apu"?"apuntes":"esquema"}</button><button class="btn owide" data-a="go">⏱ Practicar 15 min</button></div>`;
+      h+=oS.tab==="apu"?P.map((x,i)=>`<div class="ocard ${oS.hide?"hid":""}" data-a="peek"><h4>${i+1}. ${oEsc(x.t)}<span>${x.min} min</span></h4><p class="otx">${oEsc(x.tx||"")}</p></div>`).join("")
+      :P.map((x,i)=>`<div class="ocard ${oS.hide?"hid":""}" data-a="peek"><h4>${i+1}. ${oEsc(x.t)}<span>${x.min} min</span></h4><ul>${x.pts.map(p=>`<li>${oEsc(p)}</li>`).join("")}</ul></div>`).join("");
     } else h+=`<div class="ocard">Este tema aún no tiene esquema preparado. Puedes practicar con el cronómetro de 15 minutos igualmente.</div><div class="obtns"><button class="btn" data-a="go">⏱ Practicar 15 min</button></div>`;
     if(hs.length) h+=`<h3 style="margin:16px 0 4px;font-size:.95rem">Últimas prácticas</h3>`+hs.map(x=>`<div class="ohint">${new Date(x.d).toLocaleDateString("es-ES")} · ${fm(x.secs)} · ${x.cov.filter(Boolean).length}/${x.cov.length} apartados</div>`).join("");
   } else if(oS.v==="run"){
@@ -980,25 +982,26 @@ function renderOral(){
       h+=`<div class="otimer ${rem<=60?"warn":""}" id="oTm">${fm(rem)}</div><div class="ocur" id="oCur">${oEsc(cur)}</div>
       ${oS.prep?"":`<div class="obar" id="oBar">${P.map(x=>`<i style="flex:${x.min}"></i>`).join("")}</div>`}
       <div class="obtns" style="justify-content:center">${oT.run?'<button class="btn" data-a="pause">⏸ Pausa</button>':`<button class="btn" data-a="start">▶ ${oT.acc?"Seguir":"Empezar"}</button>`}${oS.prep?'<button class="btn sec2" data-a="skip">Saltar preparación</button>':'<button class="btn sec2" data-a="finish">Terminar ya</button>'}<button class="btn sec2" data-a="reset">↺</button></div>`;
-      if(!oS.prep) h+=`<div class="obtns" style="justify-content:center"><button class="btn sec2" data-a="notes">${oS.notes?"Ocultar apuntes":"Ver apuntes"}</button></div>`+(oS.notes?`<div class="ocard"><ul>${P[ph].pts.map(p=>`<li>${oEsc(p)}</li>`).join("")}</ul></div>`:"");
+      if(!oS.prep) h+=`<div class="obtns" style="justify-content:center"><button class="btn sec2" data-a="notes" data-k="esq">${oS.notes==="esq"?"Ocultar esquema":"Ver esquema"}</button><button class="btn sec2" data-a="notes" data-k="apu">${oS.notes==="apu"?"Ocultar apuntes":"Ver apuntes"}</button></div>`+(oS.notes==="esq"?`<div class="ocard"><ul>${P[ph].pts.map(p=>`<li>${oEsc(p)}</li>`).join("")}</ul></div>`:oS.notes==="apu"?`<div class="ocard"><p class="otx">${oEsc(P[ph].tx||"Este tema aún no tiene apuntes.")}</p></div>`:"");
     }
   }
   box.innerHTML=h; if(oS.v==="run"&&!oT.done&&oT.run){const e=oElapsed(),P=oPhases(oS.n);paintTimer((oS.prep?120:900)-e,oS.prep?"Preparación: ordena tus ideas":P[Math.max(0,oT.phase)].t,P,oS.prep?null:e)}
 }
 $("#oralBox").addEventListener("click",e=>{
   const b=e.target.closest("[data-a]"); if(!b) return; const a=b.dataset.a, n=+b.dataset.n; e.stopPropagation();
-  if(a==="st"){const m=oSt(); oSetSt(n,((m[n]||0)+1)%3); renderOral(); return}
+  if(a==="st"){const m=oSt(); oSetSt(n,oSv(m,n)===2?1:2); renderOral(); return}
   if(a==="f"){oS.f=b.dataset.k; renderOral(); return}
   if(a==="open"){oS.n=n; oS.v="tema"; oS.hide=false; renderOral(); window.scrollTo(0,0); return}
   if(a==="back"){oS.v="list"; renderOral(); return}
   if(a==="hide"){oS.hide=!oS.hide; renderOral(); return}
+  if(a==="tab"){oS.tab=b.dataset.k; oS.hide=false; renderOral(); return}
   if(a==="peek"){ if(oS.hide) b.classList.toggle("hid"); return }
-  if(a==="rand"){const L=oList(); if(!L.length){toast("No hay temas con este filtro");return} oS.n=L[Math.floor(Math.random()*L.length)].n; oS.v="run"; oS.prep=true; oS.notes=false; oReset(); window.scrollTo(0,0); toast("Te ha tocado el tema "+oS.n); return}
-  if(a==="go"){oS.v="run"; oS.prep=false; oS.notes=false; oReset(); window.scrollTo(0,0); return}
+  if(a==="rand"){const L=oList(); if(!L.length){toast("No hay temas con este filtro");return} oS.n=L[Math.floor(Math.random()*L.length)].n; oS.v="run"; oS.prep=true; oS.notes=""; oReset(); window.scrollTo(0,0); toast("Te ha tocado el tema "+oS.n); return}
+  if(a==="go"){oS.v="run"; oS.prep=false; oS.notes=""; oReset(); window.scrollTo(0,0); return}
   if(a==="exit"){oStop(); oS.v=OT.some(x=>x.n===oS.n)&&oS.prep===false?"tema":"list"; oS.prep=false; oT.done=false; renderOral(); return}
   if(a==="start") oStart(); if(a==="pause") oPause(); if(a==="reset") oReset();
   if(a==="skip"){oS.prep=false; oStop(); oT.acc=0; oT.phase=-1; oStart(); return}
-  if(a==="notes"){oS.notes=!oS.notes; renderOral(); return}
+  if(a==="notes"){oS.notes=oS.notes===b.dataset.k?"":b.dataset.k; renderOral(); return}
   if(a==="finish"){oT.secs=Math.round(oElapsed()); oStop(); oT.done=true; renderOral(); return}
   if(a==="fin"){const cov=$$("#oralBox input[type=checkbox]").map(x=>x.checked); const H=oHist(); H.push({n:oS.n,d:Date.now(),secs:oT.secs,cov}); U.set("oralHist",H.slice(-200)); const v=+b.dataset.v; if(v) oSetSt(oS.n,v); oT.done=false; oT.acc=0; oT.phase=-1; oS.v="tema"; renderOral(); toast("Práctica guardada"); return}
 });
