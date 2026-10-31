@@ -307,7 +307,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 .orow{display:flex;gap:10px;align-items:center;padding:10px 6px;border-bottom:1px solid var(--line);cursor:pointer}
-.orow .on_{flex:none;width:34px;text-align:center;font-weight:800;color:var(--accent)}
+.orow .on_{flex:none;width:40px;text-align:center;font-weight:800;color:var(--accent)}
 .orow .ot{flex:1;min-width:0;font-size:.9rem;line-height:1.3}.orow .ot small{display:block;color:var(--muted);font-size:.72rem}
 .ost{flex:none;border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 9px;font-size:.74rem;font-weight:700;color:var(--muted);min-width:82px}
 .ost.s1{border-color:#e08a1e;color:#b5690a;background:color-mix(in srgb,#e08a1e 12%,transparent)}.ost.s2{border-color:#2fb457;color:#1f8a40;background:color-mix(in srgb,#2fb457 12%,transparent)}
@@ -315,7 +315,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 .obtns{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.obtns .btn{padding:11px 14px;font-size:.9rem}.btn.sec2{background:var(--accent-soft);color:var(--accent);box-shadow:none}
 .ocard{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;margin:8px 0}
 .ocard h4{margin:0 0 4px;font-size:.95rem;display:flex;justify-content:space-between;gap:8px}.ocard h4 span{color:var(--accent);white-space:nowrap}
-.ocard ul{margin:6px 0 0;padding-left:18px;font-size:.88rem;line-height:1.45}.ocard.hid ul{display:none}
+.ocard ul{margin:6px 0 0;padding-left:18px;font-size:.88rem;line-height:1.45}.ocard.hid ul{visibility:hidden}.owide{width:12.5rem;text-align:center}
 .obar{display:flex;height:10px;border-radius:6px;overflow:hidden;gap:2px;margin:8px 0}.obar i{display:block;background:var(--accent-soft)}.obar i.d{background:var(--accent)}.obar i.c{background:color-mix(in srgb,var(--accent) 55%,var(--accent-soft))}
 .otimer{font-size:3.6rem;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;margin:6px 0 0;letter-spacing:1px}.otimer.warn{color:#d9541e}
 .ocur{text-align:center;font-weight:700;color:var(--accent);margin:2px 0 6px}
@@ -922,7 +922,7 @@ const oDup=(()=>{const c={};OT.forEach(t=>{const k=shortT(t);c[k]=(c[k]||0)+1});
 const oName=t=>{ if(oDup[shortT(t)]>1){ const r=t.t.split(/:\s*/).slice(1).join(": ").trim(); if(r) return r[0].toUpperCase()+r.slice(1) } return shortT(t) };
 const oEsc=x=>String(x).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const oSt=()=>U.get("oralSt",{}), oHist=()=>U.get("oralHist",[]);
-const ST_L=["Sin estudiar","Flojo","Dominado"];
+const ST_L=["Sin estudiar","Por dominar","Dominado"];
 let oS={v:"list",n:0,f:"all",hide:false,notes:false,prep:false};
 let oT={id:0,t0:0,acc:0,run:false,phase:-1,done:false,secs:0};
 const fm=s=>{s=Math.max(0,Math.ceil(s));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")};
@@ -950,23 +950,23 @@ function oPause(){ if(!oT.run) return; oT.acc=oElapsed(); oStop(); renderOral() 
 function oReset(){ oStop(); oT.acc=0; oT.phase=-1; oT.done=false; renderOral() }
 function oSetSt(n,v){const m=oSt(); m[n]=v; U.set("oralSt",m)}
 function oList(){const st=oSt(); let L=OT.slice();
-  if(oS.f==="esq") L=L.filter(t=>(window.ORAL||{})[t.n]); if(oS.f==="pend") L=L.filter(t=>(st[t.n]||0)<2); return L}
+  if(oS.f==="pend") L=L.filter(t=>(st[t.n]||0)===1); if(oS.f==="new") L=L.filter(t=>!(st[t.n]||0)); return L}
 function renderOral(){
   const box=$("#oralBox"), st=oSt(), O=window.ORAL||{}; let h="";
   const t=OT.find(x=>x.n===oS.n);
   if(oS.v==="list"){
-    const dom=OT.filter(x=>(st[x.n]||0)===2).length, ne=OT.filter(x=>O[x.n]).length;
-    h+=`<h2>Exposición oral · 15 minutos</h2><p class="ohint">${OT.length} temas · ${ne} con esquema · ${dom} dominados. Toca un tema para estudiarlo; toca su estado para cambiarlo.</p>
+    const dom=OT.filter(x=>(st[x.n]||0)===2).length, pd=OT.filter(x=>(st[x.n]||0)===1).length;
+    h+=`<h2>Exposición oral</h2><p class="ohint">${dom} dominados · ${pd} por dominar</p>
     <div class="obtns"><button class="btn" data-a="rand">🎲 Tema al azar</button></div>
-    <div class="ochips">${[["all","Todos"],["esq","Con esquema"],["pend","Por dominar"]].map(([k,l])=>`<button data-a="f" data-k="${k}" class="${oS.f===k?"on":""}">${l}</button>`).join("")}</div>`;
-    const L=oList(); h+=L.length?L.map(x=>{const s=st[x.n]||0;return `<div class="orow" data-a="open" data-n="${x.n}"><span class="on_">${x.n}</span><span class="ot">${oEsc(oName(x))}<small>${O[x.n]?"Esquema listo":"Sin esquema aún"}</small></span><button class="ost s${s}" data-a="st" data-n="${x.n}">${ST_L[s]}</button></div>`}).join(""):'<p class="ohint">No hay temas con este filtro.</p>';
+    <div class="ochips">${[["all","Todos"],["new","Sin estudiar"],["pend","Por dominar"]].map(([k,l])=>`<button data-a="f" data-k="${k}" class="${oS.f===k?"on":""}">${l}</button>`).join("")}</div>`;
+    const L=oList(); h+=L.length?L.map(x=>{const s=st[x.n]||0;return `<div class="orow" data-a="open" data-n="${x.n}"><span class="on_">T${x.n}</span><span class="ot">${oEsc(oName(x))}</span><button class="ost s${s}" data-a="st" data-n="${x.n}">${ST_L[s]}</button></div>`}).join(""):'<p class="ohint">No hay temas con este filtro.</p>';
   } else if(oS.v==="tema"){
     const P=oPhases(oS.n), s=st[oS.n]||0, E=O[oS.n], hs=oHist().filter(x=>x.n===oS.n).slice(-3).reverse();
-    h+=`<div class="obtns"><button class="btn sec2" data-a="back">← Temas</button><button class="ost s${s}" data-a="st" data-n="${oS.n}">${ST_L[s]}</button></div>
+    h+=`<div class="obtns"><button class="btn sec2" data-a="back">← Temas</button></div>
     <h2 style="font-size:1.05rem;line-height:1.3">Tema ${oS.n} · ${oEsc(t.t)}</h2>`;
     if(E){ h+=`<div class="ocard"><b>Clave para recordarlo:</b> ${oEsc(E.clave)}</div>
       <div class="obar">${P.map(x=>`<i style="flex:${x.min}"></i>`).join("")}</div>
-      <div class="obtns"><button class="btn sec2" data-a="hide">${oS.hide?"Mostrar puntos":"Ocultar puntos (recitar)"}</button><button class="btn" data-a="go">⏱ Practicar 15 min</button></div>`;
+      <div class="obtns"><button class="btn sec2 owide" data-a="hide">${oS.hide?"Mostrar esquema":"Ocultar esquema"}</button><button class="btn owide" data-a="go">⏱ Practicar 15 min</button></div>`;
       h+=P.map((x,i)=>`<div class="ocard ${oS.hide?"hid":""}" data-a="peek"><h4>${i+1}. ${oEsc(x.t)}<span>${x.min} min</span></h4><ul>${x.pts.map(p=>`<li>${oEsc(p)}</li>`).join("")}</ul></div>`).join("");
     } else h+=`<div class="ocard">Este tema aún no tiene esquema preparado. Puedes practicar con el cronómetro de 15 minutos igualmente.</div><div class="obtns"><button class="btn" data-a="go">⏱ Practicar 15 min</button></div>`;
     if(hs.length) h+=`<h3 style="margin:16px 0 4px;font-size:.95rem">Últimas prácticas</h3>`+hs.map(x=>`<div class="ohint">${new Date(x.d).toLocaleDateString("es-ES")} · ${fm(x.secs)} · ${x.cov.filter(Boolean).length}/${x.cov.length} apartados</div>`).join("");
@@ -975,7 +975,7 @@ function renderOral(){
     h+=`<div class="obtns"><button class="btn sec2" data-a="exit">← Salir</button></div><h2 style="font-size:1.05rem;line-height:1.3">Tema ${oS.n} · ${oEsc(t.t)}</h2>`;
     if(oT.done){
       h+=`<div class="otimer">${fm(oT.secs)}</div><div class="ocur">Tiempo terminado. ¿Qué apartados cubriste?</div>`+P.map((x,i)=>`<label class="okeep"><input type="checkbox" data-i="${i}" checked> ${oEsc(x.t)}</label>`).join("")+
-      `<div class="ohint">¿Cómo ha ido?</div><div class="obtns"><button class="btn sec2" data-a="fin" data-v="1">Flojo</button><button class="btn" data-a="fin" data-v="2">Dominado</button><button class="btn sec2" data-a="fin" data-v="0">Solo guardar</button></div>`;
+      `<div class="ohint">¿Cómo ha ido?</div><div class="obtns"><button class="btn sec2" data-a="fin" data-v="1">Por dominar</button><button class="btn" data-a="fin" data-v="2">Dominado</button><button class="btn sec2" data-a="fin" data-v="0">Solo guardar</button></div>`;
     } else {
       h+=`<div class="otimer ${rem<=60?"warn":""}" id="oTm">${fm(rem)}</div><div class="ocur" id="oCur">${oEsc(cur)}</div>
       ${oS.prep?"":`<div class="obar" id="oBar">${P.map(x=>`<i style="flex:${x.min}"></i>`).join("")}</div>`}
@@ -1026,7 +1026,7 @@ $("#glSearch").addEventListener("input",()=>{clearTimeout(window._gt);window._gt
 function refresh(){
   U.set("sel",[...sel]);
   $$("#mainTabs button").forEach(b=>b.classList.toggle("on",b.dataset.m===mode));
-  $("#bankInfo").textContent=mode==="cards"?`${CARDS.length} tarjetas · ${temasConBanco.length} temas`:`${B.qs.length} preguntas · ${temasConBanco.length} temas`;
+  $("#bankInfo").textContent=mode==="cards"?`${CARDS.length} tarjetas · ${temasConBanco.filter(t=>t.n<=100).length} temas`:`${B.qs.length} preguntas · ${temasConBanco.filter(t=>t.n<=100).length} temas`;
   const isP=mode==="pod", isO=mode==="oral", isG=mode==="glos"||isO;
   $("#pendSec").hidden=mode==="pod"||mode==="exams"||isG; renderQResume(); renderCardsResume();
   { const isC=mode==="cards"; $("#pendN").textContent=isC?4:5; $("#pendTitle").textContent=isC?"Tarjetas pendientes":"Tests pendientes";
@@ -1035,8 +1035,8 @@ function refresh(){
   $("#glosView").hidden=mode!=="glos"; $("#oralView").hidden=!isO; if(!isO)oStop(); $("#podView").hidden=!isP; $("#podFavView").hidden=!isP; $("#temaSec").hidden=isP||isE||isG; $("#examSec").hidden=!isE; $("#favSec").hidden=isP||isG; $("#homeDock").hidden=isP||isE||isG;
   $("#podDock").hidden=!isP||!podN; document.body.classList.toggle("podplay",isP&&!!podN);
   if(!isP&&podAudio&&!podAudio.paused) podAudio.pause();
-  if(isG){ if(isO){renderOral(); $("#bankInfo").textContent="Oral · 15 minutos por tema"} else {renderGlos(); $("#bankInfo").textContent=(window.GLOS||[]).length+" términos y siglas"} $("#testOpts").hidden=true; $("#cardOpts").hidden=true; $("#histSec").hidden=true; $("#cntSec").hidden=true; $("#pendEmpty").hidden=true; const f1=document.querySelector(".foot"); if(f1)f1.hidden=true; return }
-  if(isP){ renderPod(); $("#testOpts").hidden=true; $("#cardOpts").hidden=true; $("#histSec").hidden=true; const f0=document.querySelector(".foot"); if(f0)f0.hidden=true; $("#bankInfo").textContent="100 pódcasts · uno por tema"; return }
+  if(isG){ if(isO){renderOral(); $("#bankInfo").textContent=OT.length+" temas"} else {renderGlos(); $("#bankInfo").textContent=(window.GLOS||[]).length+" términos y siglas"} $("#testOpts").hidden=true; $("#cardOpts").hidden=true; $("#histSec").hidden=true; $("#cntSec").hidden=true; $("#pendEmpty").hidden=true; const f1=document.querySelector(".foot"); if(f1)f1.hidden=true; return }
+  if(isP){ renderPod(); $("#testOpts").hidden=true; $("#cardOpts").hidden=true; $("#histSec").hidden=true; const f0=document.querySelector(".foot"); if(f0)f0.hidden=true; $("#bankInfo").textContent=`${PODT.length} pódcasts · 100 temas`; return }
   const ft=document.querySelector(".foot"); if(ft) ft.hidden=mode==="cards";
   $("#testOpts").hidden=mode==="cards"; $("#cardOpts").hidden=mode!=="cards"; $("#histSec").hidden=mode!=="tests"; $("#cntSec").hidden=isE; $("#modeN").textContent=isE?1:3; $("#exN").textContent=3;
   
