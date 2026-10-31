@@ -1,5 +1,5 @@
 // Service worker: funciona sin conexión. Cambia VERSION al actualizar el banco de preguntas.
-const VERSION = "v57";
+const VERSION = "v58";
 const CACHE = "test-biblio-" + VERSION;
 const ASSETS = [
   "./", "index.html", "bank.js", "exams.js", "manifest.webmanifest",
