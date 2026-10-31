@@ -658,7 +658,16 @@ const EXAMS=(window.EXAMS||[]).map(e=>{
 }).filter(e=>e.items.length);
 let exSel=new Set(), exfavs=new Set();
 const exPool=()=>{const o=[];EXAMS.forEach(e=>{if(exSel.has(e.id))e.items.forEach(x=>o.push(x))});return o};
-function makeExItem(x){const q=B.qs[x.i];return {i:x.i,h:HID[x.i],p:"0123".split("").map(Number),t:q[0],q:x.q,o:x.o.slice(),c:x.c,e:q[6],a:null,xe:x.eid,xk:x.k}}
+/* Correcciones de texto (por hash de la pregunta original, para no perder favoritos ni progreso) */
+const FIX={
+ "ji88uq":{q:"¿En qué afecta el límite de 15.000 euros por proveedor a las bibliotecas?"},
+ "eu82cr":{o:{"Todas las respuestas anteriores son correctas.":"Todas las demás respuestas son correctas."}}
+};
+/* Preguntas cuyas respuestas se refieren a otras ("B y C son correctas", "Ninguna de las anteriores"...): orden fijo, el del examen */
+const FIXORD=new Set(["14w1w8y","19znia9","zuhqe9","lep8le","1i15bc6","1h61i9l"]);
+let _exq=null; const exqOf=h=>{ if(!_exq){_exq=new Map(); EXAMS.forEach(e=>e.items.forEach(x=>{const k=HID[x.i]; if(FIXORD.has(k)&&!_exq.has(k))_exq.set(k,x)}))} return _exq.get(h) };
+const fixIt=it=>{const f=FIX[it.h]; if(!f)return it; if(f.q)it.q=f.q; if(f.o)it.o=it.o.map(t=>f.o[t]||t); return it};
+function makeExItem(x,p){const q=B.qs[x.i]; p=Array.isArray(p)?p:[0,1,2,3]; return fixIt({i:x.i,h:HID[x.i],p,t:q[0],q:x.q,o:p.map(k=>x.o[k]),c:p.indexOf(x.c),e:q[6],a:null,xe:x.eid,xk:x.k})}
 
 let mode=LS.get("mode","tests");
 let quiz=null;           // test en curso
@@ -1076,8 +1085,9 @@ function pickIndexes(set,N){
   return shuffle(all).slice(0,N); // al azar sobre todo el conjunto, como en un examen real
 }
 function makeItem(i){
-  const q=B.qs[i]; const opts=shuffle([0,1,2,3]); // opts[k] = índice original mostrado en posición k
-  return {i, h:HID[i], p:opts, t:q[0], q:q[1], o:opts.map(k=>q[2+k]), c:opts.indexOf(0), e:q[6], a:null};
+  const q=B.qs[i]; let opts=shuffle([0,1,2,3]);
+  if(FIXORD.has(HID[i])){const x=exqOf(HID[i]); if(x){const f=x.o.map(t=>[0,1,2,3].find(k=>q[2+k]===t)); if(f.every(k=>k!==undefined)) opts=f}} // opts[k] = índice original mostrado en posición k
+  return fixIt({i, h:HID[i], p:opts, t:q[0], q:q[1], o:opts.map(k=>q[2+k]), c:opts.indexOf(0), e:q[6], a:null});
 }
 function start(items,inst,k){
   quiz={items,k:k||0,idx:0,instant:inst,t0:Date.now(),el:0,done:false};
@@ -1290,8 +1300,8 @@ function compact(items){
 function expand(t){
   const items=[]; t.items.forEach(([h,ps,a,xe,xk])=>{
     const i=IDX.get(h); if(i===undefined) return; const row=B.qs[i], p=ps.split("").map(Number);
-    if(xe){const E=EXAMS.find(e=>e.id===xe), x=E&&E.items[xk]; if(x){const it=makeExItem(x); it.a=a<0?null:a; items.push(it); return}}
-    items.push({i,h,p,t:row[0],q:row[1],o:p.map(k=>row[2+k]),c:p.indexOf(0),e:row[6],a:a<0?null:a});
+    if(xe){const E=EXAMS.find(e=>e.id===xe), x=E&&E.items[xk]; if(x){const it=makeExItem(x,p); it.a=a<0?null:a; items.push(it); return}}
+    items.push(fixIt({i,h,p,t:row[0],q:row[1],o:p.map(k=>row[2+k]),c:p.indexOf(0),e:row[6],a:a<0?null:a}));
   }); return items;
 }
 function finish(){
