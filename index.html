@@ -637,6 +637,8 @@ const PODT=(()=>{const o=[];B.temas.filter(t=>t.n<=100).forEach(t=>{o.push(t.n==
   return o})();
 const PODM=new Map(PODT.map(t=>[t.n,t]));
 const shortT=t=>TSHORT[t.n]||t.t.split(/\.\s|:/)[0].trim().replace(/\.$/,"");
+const PODTIT={"69": "Por qué la gestión documental salva empresas", "71": "De la ficha al buscador bibliotecario", "72": "De las fichas bibliotecarias a Unicode", "73": "Metadatos contra la desintegración digital", "74": "Metadatos de preservación contra la obsolescencia digital", "75": "La fragilidad del patrimonio digital", "76": "Así se escanean los manuscritos antiguos", "77": "Cómo HTML y XML organizan el conocimiento", "78": "Arquitectura de la información en bibliotecas digitales", "79": "La trampa de los e-books en bibliotecas", "80": "La carrera por salvar la web española", "81": "Datos Abiertos Enlazados en las bibliotecas", "82": "De la arcilla al papel", "83": "Cómo el reciclaje salvó los libros medievales", "84": "El smartphone de la Edad Media", "85": "El nacimiento del libro impreso", "86": "La gran explosión del libro impreso", "87": "La primera era de la información", "88": "La crisis que inventó el libro moderno", "89": "Cuando los libros rompieron sus cadenas", "90": "De Gutenberg a la imprenta industrial", "91": "De tomos barrocos a libros de bolsillo", "92": "De clubes de lectura a bibliotecas públicas", "93": "La revolución industrial del libro", "94": "El origen radical de las bibliotecas públicas", "95": "La revolución de las bibliotecas", "96": "El nacimiento del libro de bolsillo", "97": "¿De quién es tu libro digital?", "98": "Del tablón romano a la prensa digital", "99": "La regla de los tres ejemplares", "100": "De la Inquisición a los móviles"};
+const podName=t=>PODTIT[t.n]||shortT(t);
 const hq=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)};
 const HID=B.qs.map(r=>hq(r[1]+"|"+r[2]));
 const IDX=new Map(HID.map((h,i)=>[h,i]));
@@ -696,7 +698,7 @@ function renderPod(){
   const row=t=>{
     const na=podAvail[t.n]===false, now=podN===t.n, hd=heard.has(t.n);
     const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"✓ Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
-    return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.lbl||t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(shortT(t))}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`};
+    return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.lbl||t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(podName(t))}</span><span class="ps">${st}</span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`};
   const mk=(i,name,meta,ts,col,H)=>{
     const el=document.createElement("div"); el.className="card block"+(podOpen.has(i)?" open":""); el.dataset.i=i; el.style.setProperty("--bc",col); if(H)el.style.borderLeft="0";
     el.innerHTML=`<div class="head"><div class="info"><div class="name">${name}</div><div class="meta">${meta}</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas">${ts.length?ts.map(row).join(""):'<p class="hint" style="margin:8px 4px">Aún no tienes pódcasts favoritos. Marca la estrella de un tema para verlo aquí.</p>'}</div>`;
@@ -763,7 +765,7 @@ function podPlay(n,fromStart){
   const start=fromStart?0:(podPos()[n]||0);
   podAudio.addEventListener("loadedmetadata",function f(){podAudio.removeEventListener("loadedmetadata",f); if(start&&start<podAudio.duration-5)podAudio.currentTime=start; podAudio.playbackRate=podRate},{once:true});
   podAudio.play().catch(()=>{});
-  $("#podTitle").textContent=`${t.n>1000?"Código de Legislación Bibliotecaria":"Tema "+(t.lbl||n)} · ${shortT(t)}`; $("#podSeek").value=0; $("#podCur").textContent=podFmt(start); $("#podDur").textContent="-0:00";
+  $("#podTitle").textContent=`${t.n>1000?"Código de Legislación Bibliotecaria":"Tema "+(t.lbl||n)} · ${podName(t)}`; $("#podSeek").value=0; $("#podCur").textContent=podFmt(start); $("#podDur").textContent="-0:00";
   $("#podDock").hidden=false; document.body.classList.add("podplay");
   if("mediaSession" in navigator) navigator.mediaSession.metadata=new MediaMetadata({title:t.n>1000?"Extra "+t.lbl.slice(3):`Tema ${t.lbl||n}`,artist:"Facultativo de Bibliotecas",album:t.t.slice(0,120)});
   podUI();
