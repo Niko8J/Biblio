@@ -1203,6 +1203,8 @@ $("#favCards").onclick=()=>{
   const idxs=shuffle([...cfavs].map(h=>CIDX.get(h)).filter(i=>i!==undefined)); if(!idxs.length)return; startCards(idxs);
 };
 const nTemas=()=>quiz.ex?quiz.k||1:quiz.k||new Set(quiz.items.map(x=>x.t)).size;
+const temaList=a=>[...new Set(a)].sort((x,y)=>x-y);
+const temaTxt=(a,k)=>{ if(a&&a.length&&a.length<=6){ const l=a.map(n=>n>100?"Extra":n); return (l.length===1?"Tema ":"Temas ")+(l.length>1?l.slice(0,-1).join(", ")+" y "+l[l.length-1]:l[0]) } k=k||(a?a.length:0); return `${k} ${k===1?"tema":"temas"}` };
 const newId=()=>String(Date.now());
 function pend(){
   let L=U.get("qpend",[]); if(!Array.isArray(L))L=[];
@@ -1315,20 +1317,20 @@ function finish(){
   const d=Date.now(); quiz.d=d;
   if(quiz.ex){
     const hist=U.get("exhist",[]); hist.unshift({d,id:quiz.exid,rev:!!quiz.rev,n:s.total,h:s.h,w:s.w,b:s.b,nota:s.nota,el:quiz.el||0});
-    U.set("exhist",hist.slice(0,60));
+    U.set("exhist",hist);
     const tests=U.get("extests",[]); tests.unshift({d,k:1,el:quiz.el||0,instant:!!quiz.instant,items:compact(quiz.items)});
-    U.set("extests",tests.slice(0,30));
+    U.set("extests",tests.slice(0,1000));
   } else {
-  const hist=U.get("hist",[]); hist.unshift({d,n:s.total,h:s.h,w:s.w,b:s.b,nota:s.nota,el:quiz.el||0,k:quiz.rk||nTemas()});
-  U.set("hist",hist.slice(0,30));
+  const hist=U.get("hist",[]); hist.unshift({d,n:s.total,h:s.h,w:s.w,b:s.b,nota:s.nota,el:quiz.el||0,k:quiz.rk||nTemas(),tt:temaList(quiz.items.map(x=>x.t))});
+  U.set("hist",hist);
   const tests=U.get("tests",[]); tests.unshift({d,k:quiz.rk||nTemas(),el:quiz.el||0,instant:!!quiz.instant,items:compact(quiz.items)});
-  U.set("tests",tests.slice(0,30));
+  U.set("tests",tests.slice(0,1000));
   }
   showResult(s);
 }
 function showResult(s){
   show("result"); revFilter="all"; $$("#rTabs .tab").forEach(t=>t.classList.toggle("on",t.dataset.f==="all"));
-  $("#rInfo").textContent=`${s.total} preguntas · ${nTemas()} ${quiz.ex?(nTemas()===1?"examen":"exámenes"):(nTemas()===1?"tema":"temas")} · ⏱ ${fmtT(quiz.el||0)}`;
+  $("#rInfo").textContent=`${s.total} preguntas · ${quiz.ex?nTemas()+" "+(nTemas()===1?"examen":"exámenes"):temaTxt(temaList(quiz.items.map(x=>x.t)),nTemas())} · ⏱ ${fmtT(quiz.el||0)}`;
   $("#rOk").textContent=s.h; $("#rBad").textContent=s.w; $("#rBlank").textContent=s.b;
   $("#rNota").textContent=fmt(s.nota);
   $("#rFormula").innerHTML=`Puntuación neta: ${s.h} − ${s.w}/3 = <b>${fmt(s.net)}</b> de ${s.total} puntos posibles`;
@@ -1368,9 +1370,9 @@ function renderHome(){
   if(!cu){ $("#btnUser").innerHTML="👤"; $("#btnUser").style.background="var(--surface2,var(--line))"; $("#btnUser").title="Iniciar sesión"; }
   else{ $("#btnUser").innerHTML=cu.photo?`<img src="${cu.photo}" alt="">`:esc(cu.name.trim().charAt(0).toUpperCase()||"?");
   $("#btnUser").style.background=cu.photo?"":`hsl(${parseInt(hq(cu.id),36)%360} 45% 42%)`; $("#btnUser").title=cu.name; }
-  const hist=U.get("hist",[]), saved=new Set(U.get("tests",[]).map(t=>t.d));
-  $("#hist").innerHTML=hist.slice(0,8).map(h=>`<${saved.has(h.d)?'button':'div'} class="card hrow ${h.nota>=5?'pass':'fail'}${saved.has(h.d)?' click':''}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div>
-    <div class="d"><b>${h.n} preguntas</b> · ${h.k} ${h.ex?(h.k===1?"examen":"exámenes"):(h.k===1?"tema":"temas")}<br>${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""} · ${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short"})}</div></${saved.has(h.d)?'button':'div'}>`).join("");
+  const hist=U.get("hist",[]), tst=U.get("tests",[]), saved=new Set(tst.map(t=>t.d)); const ttOld=d=>{const t=tst.find(t=>t.d===d); if(!t)return null; return temaList(t.items.map(r=>{const i=IDX.get(r[0]); return i===undefined?null:B.qs[i][0]}).filter(v=>v!==null))};
+  $("#hist").innerHTML=hist.map(h=>`<${saved.has(h.d)?'button':'div'} class="card hrow ${h.nota>=5?'pass':'fail'}${saved.has(h.d)?' click':''}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div>
+    <div class="d"><b>${h.n} preguntas</b> · ${h.ex?h.k+" "+(h.k===1?"examen":"exámenes"):temaTxt(h.tt||ttOld(h.d),h.k)}<br>${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""} · ${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short"})}</div></${saved.has(h.d)?'button':'div'}>`).join("");
   refresh();
 }
 $("#hist").addEventListener("click",e=>{
@@ -1624,7 +1626,7 @@ async function signedIn(u){
 const jparse=s=>{try{return JSON.parse(s)}catch(e){return undefined}};
 function mergeVal(k,a,b){ // a=local, b=remote
   if(SET_KEYS.has(k)&&Array.isArray(a)&&Array.isArray(b)) return [...new Set([...a,...b])];
-  if(LIST_KEYS.has(k)&&Array.isArray(a)&&Array.isArray(b)){const m=new Map();[...a,...b].forEach(x=>{if(x&&!m.has(x.d))m.set(x.d,x)});return [...m.values()].sort((x,y)=>y.d-x.d).slice(0,30)}
+  if(LIST_KEYS.has(k)&&Array.isArray(a)&&Array.isArray(b)){const m=new Map();[...a,...b].forEach(x=>{if(x&&!m.has(x.d))m.set(x.d,x)});return [...m.values()].sort((x,y)=>y.d-x.d)}
   return undefined;
 }
 async function syncInitial(uid){
