@@ -1092,6 +1092,7 @@ function pickIndexes(set,N){
 function makeItem(i){
   const q=B.qs[i]; let opts=shuffle([0,1,2,3]);
   if(FIXORD.has(HID[i])){const x=exqOf(HID[i]); if(x){const f=x.o.map(t=>[0,1,2,3].find(k=>q[2+k]===t)); if(f.every(k=>k!==undefined)) opts=f}} // opts[k] = índice original mostrado en posición k
+  else { const k=[0,1,2,3].find(k=>/^todas las (respuestas )?anteriores/i.test(q[2+k])); if(k!==undefined) {const r=[0,1,2,3].filter(j=>j!==k); opts=(k===0?r:shuffle(r)).concat(k)} } // «Todas las anteriores»: siempre en último lugar; si es la correcta, el resto en el orden del banco; si no, el resto al azar
   return fixIt({i, h:HID[i], p:opts, t:q[0], q:q[1], o:opts.map(k=>q[2+k]), c:opts.indexOf(0), e:q[6], a:null});
 }
 function start(items,inst,k){
@@ -1388,7 +1389,7 @@ function renderQResume(){
   if(E){renderExams();return}
   if(mode!=="tests")return;
   box.innerHTML=pend().filter(sv=>!sv.ex).map(sv=>{const a=sv.items.filter(x=>x.a!==null).length;
-    return resRow(dShort(sv.id)+" · Test",`${sv.items.length} preguntas · ${a} contestadas · vas por la ${sv.idx+1}`,sv.id)}).join("");
+    return resRow(dShort(sv.id)+" · Test · "+temaTxt(temaList(sv.items.map(x=>x.t)),sv.k),`${sv.items.length} preguntas · ${a} contestadas · vas por la ${sv.idx+1}`,sv.id)}).join("");
 }
 async function resumeClick(e){
   const row=e.target.closest("[data-id]"); if(!row)return; const id=row.dataset.id, x=e.target.closest('button[data-act="x"]');
