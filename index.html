@@ -279,12 +279,12 @@ html,body{max-width:100%}.top>div{min-width:0}@media(max-width:430px){.top h1{fo
 .prow .pn{font-weight:700;color:var(--bc);flex:none;width:46px;text-align:center;display:flex;flex-direction:column;align-items:center;line-height:1.15}
 .prow .pn small{font-weight:600;font-size:.68rem;color:var(--muted);font-variant-numeric:tabular-nums;min-height:.8rem}
 .prow{height:68px;box-sizing:border-box}
-.prow .pr{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.prow .pr{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px}
 .prow .pdl{width:84px;text-align:center;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;font-size:.68rem;font-weight:700;padding:3px 0;cursor:pointer;font-variant-numeric:tabular-nums}
 .prow .pdl.has{color:var(--bad,#b3261e);border-color:currentColor;background:transparent}
 .prow .pdl.busy{color:var(--bc);border-color:var(--bc)}
 .prow .pt{flex:1;min-width:0;font-size:.88rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.prow .ps{font-size:.75rem;color:var(--muted);min-height:1.05rem;line-height:1.05rem;text-align:right;white-space:nowrap}
+.prow .ps{font-size:.75rem;color:var(--muted);width:84px;min-height:1.05rem;line-height:1.05rem;text-align:center;white-space:nowrap}
 .prow .pi{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--bc);color:var(--surface);font-size:.8rem}
 .prow.now{background:color-mix(in srgb,var(--bc) 16%,transparent)}
 .prow.na{opacity:.45;cursor:default}
@@ -391,7 +391,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 
   <section class="sec" id="oralView" hidden><div id="oralBox"></div></section>
   <section class="sec" id="glosView" hidden>
-    <div class="glbar"><div class="glw"><input class="fld" id="glSearch" type="search" placeholder="Buscar término o palabra (con «comillas», frase exacta)…" autocomplete="off"><button type="button" class="glx" id="glClear" aria-label="Borrar búsqueda" hidden>✕</button></div><div style="display:flex;align-items:center;gap:8px"><button class="tog" id="glFavBtn" style="--bc:var(--gold)">★ Solo favoritos</button><div id="glCount" style="margin:0"></div></div></div>
+    <div class="glbar"><div class="glw"><input class="fld" id="glSearch" type="search" placeholder="Buscar término o palabra…" autocomplete="off"><button type="button" class="glx" id="glClear" aria-label="Borrar búsqueda" hidden>✕</button></div><div style="display:flex;align-items:center;gap:8px"><button class="tog" id="glFavBtn" style="--bc:var(--gold)">★ Solo favoritos</button><div id="glCount" style="margin:0"></div></div></div>
     <div id="glList"></div>
   </section>
   <section class="sec" id="podView" hidden>
@@ -768,7 +768,7 @@ function renderPod0(){
   host.innerHTML=""; const host2=$("#podFavList"); host2.innerHTML=""; const host3=$("#podDlList"); host3.innerHTML="";
   const row=t=>{
     const na=podAvail[t.n]===false&&!podDlSet.has(t.n), now=podN===t.n, hd=heard.has(t.n);
-    const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"✓ Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
+    const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
     return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.lbl||t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(podName(t))}</span><span class="pr"><span class="ps">${st}</span><button class="pdl${podDlSet.has(t.n)&&!podDlCtl[t.n]?" has":""}${podDlCtl[t.n]?" busy":""}" data-dl="${t.n}">${podDlLabel(t.n)}</button></span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`};
   const mk=(i,name,meta,ts,col,H,emp)=>{
     const el=document.createElement("div"); el.className="card block"+(podOpen.has(i)?" open":""); el.dataset.i=i; el.style.setProperty("--bc",col); if(H)el.style.borderLeft="0";
