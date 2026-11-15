@@ -269,6 +269,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #btnAcct.on::after{content:"";position:absolute;right:3px;bottom:3px;width:11px;height:11px;border-radius:50%;background:#2fb457;border:2px solid var(--surface)}
 /* Pódcasts */
 #mainTabs{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}#mainTabs button{grid-column:span 2;font-size:.86rem;padding:10px 0;min-width:0;white-space:nowrap}#mainTabs button:nth-child(n+4){grid-column:span 2}
+.gal{display:block;margin-top:3px;font-size:.78rem;color:var(--muted);font-style:italic}
 #glSearch{width:100%;box-sizing:border-box;margin:0 0 6px;padding-right:40px}#glSearch::-webkit-search-cancel-button{-webkit-appearance:none;display:none}.glw{position:relative}.glx{position:absolute;right:6px;top:6px;width:32px;height:32px;border:0;border-radius:50%;background:var(--surface2);color:var(--muted);font-size:.95rem;line-height:1;cursor:pointer}.glbar{position:sticky;top:0;z-index:5;background:var(--bg,#fff);padding:6px 0}#glCount{font-size:.78rem;opacity:.7;margin:2px 2px 6px}.glL{font-weight:800;font-size:1.05rem;margin:14px 0 4px;color:var(--accent,#2a6)}.glI{padding:7px 2px;border-bottom:1px solid rgba(128,128,128,.2);display:flex;gap:6px;align-items:flex-start}.glI .gs{flex:none;border:0;background:transparent;font-size:1.3rem;line-height:1;padding:2px 4px 0 0;color:var(--muted);cursor:pointer}.glI .gs.on{color:var(--gold)}.glI>div{flex:1;min-width:0}.glI b{display:block}.glI span{opacity:.88;font-size:.92rem}mark.hl{background:#ffe066;color:#000;border-radius:3px;padding:0 1px}
 html,body{max-width:100%}.top>div{min-width:0}@media(max-width:430px){.top h1{font-size:1.15rem}.top{gap:8px}}
 .prow{display:flex;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer}
@@ -1119,12 +1120,12 @@ function renderGlos(){
   if(words.length){ hl=x=>{ const n=nf(x), m=new Array(x.length).fill(0); words.forEach(w=>{let i=-1; while((i=n.indexOf(w,i+1))>=0){for(let k=i;k<i+w.length;k++)m[k]=1}});
     let o="",on=false; for(let i=0;i<x.length;i++){ if(m[i]&&!on){o+='<mark class="hl">';on=true} if(!m[i]&&on){o+="</mark>";on=false} o+=esc(x[i]) } return o+(on?"</mark>":"") } }
   const GF=new Set(U.get("glFav",[])); const onlyF=!!window._glF; $("#glFavBtn").classList.toggle("on",onlyF);
-  const R=G.filter(r=>{if(onlyF&&!GF.has(r[0]))return false; const t=nf(r[0]+" "+r[1]).replace(/\s+/g," "); return words.every(w=>t.includes(w))});
+  const R=G.filter(r=>{if(onlyF&&!GF.has(r[0]))return false; const t=nf(r[0]+" "+r[1]+" "+(r[2]||"")).replace(/\s+/g," "); return words.every(w=>t.includes(w))});
   if(words.length) R.sort((a,b)=>(nf(b[0]).includes(words[0])?1:0)-(nf(a[0]).includes(words[0])?1:0));
   $("#glCount").textContent=(words.length||onlyF)?`${R.length} resultado${R.length===1?"":"s"}`:`${G.length} términos`;
   let h="",last="";
   R.slice(0,words.length?400:2000).forEach(r=>{ const L=words.length?"":(nf(r[0])[0]||"#").toUpperCase(); if(L!==last){last=L; if(L)h+=`<div class="glL">${/[A-Z]/.test(L)?L:"#"}</div>`}
-    h+=`<div class="glI"><button class="gs ${GF.has(r[0])?"on":""}" data-t="${esc(r[0]).replace(/"/g,"&quot;")}">${GF.has(r[0])?"★":"☆"}</button><div><b>${hl(r[0])}</b><span>${hl(r[1])}</span></div></div>` });
+    h+=`<div class="glI"><button class="gs ${GF.has(r[0])?"on":""}" data-t="${esc(r[0]).replace(/"/g,"&quot;")}">${GF.has(r[0])?"★":"☆"}</button><div><b>${hl(r[0])}</b><span>${hl(r[1])}</span>${r[2]?`<span class="gal">También: ${hl(r[2])}</span>`:""}</div></div>` });
   box.innerHTML=h||'<p style="opacity:.7">Sin resultados.</p>';
 }
 $("#glFavBtn").onclick=()=>{window._glF=!window._glF;renderGlos()};
@@ -1323,7 +1324,7 @@ setInterval(()=>{
 
 /* ---------- Tarjeta ---------- */
 function bcOf(t){return `var(${BLOCKCOL[B.temas[t-1].b]})`}
-function renderQ(){
+function renderQ(keep){
   const it=quiz.items[quiz.idx], N=quiz.items.length;
   $("#qCount").textContent=`${quiz.idx+1} / ${N}`; $("#qTimer").textContent=fmtT(quiz.el||0);
   $("#progBar").style.width=((quiz.idx+1)/N*100)+"%";
@@ -1340,7 +1341,7 @@ function renderQ(){
   const last=quiz.idx===N-1;
   $("#btnNext").textContent=last?"Resolver ✓":"Siguiente →";
   $("#btnSolve").hidden=last;
-  window.scrollTo({top:0});
+  if(!keep) window.scrollTo({top:0});
 }
 function setStar(b,on){b.classList.toggle("on",on);b.textContent=starTxt(on);b.setAttribute("aria-pressed",on)}
 $("#btnFav").onclick=e=>{e.stopPropagation();const it=quiz.items[quiz.idx];const on=toggleFav(hOf(it));setStar($("#btnFav"),on)};
@@ -1348,10 +1349,10 @@ function answer(k){
   const it=quiz.items[quiz.idx];
   if(quiz.instant&&it.a!==null) return;
   it.a=(!quiz.instant&&it.a===k)?null:k;      // en modo examen, volver a pulsar deselecciona
-  saveQuiz(); renderQ();
+  const y=window.scrollY; saveQuiz(); renderQ(true); window.scrollTo(0,y);
 }
 $("#qOpts").addEventListener("click",e=>{const b=e.target.closest(".opt");if(b)answer(+b.dataset.k)});
-$("#btnClear").onclick=()=>{quiz.items[quiz.idx].a=null;saveQuiz();renderQ()};
+$("#btnClear").onclick=()=>{quiz.items[quiz.idx].a=null;const y=window.scrollY;saveQuiz();renderQ(true);window.scrollTo(0,y)};
 $("#btnPrev").onclick=()=>{if(quiz.idx>0){quiz.idx--;saveQuiz();renderQ()}};
 $("#btnNext").onclick=()=>{ if(quiz.idx<quiz.items.length-1){quiz.idx++;saveQuiz();renderQ()} else solve(); };
 $("#btnSolve").onclick=solve;
