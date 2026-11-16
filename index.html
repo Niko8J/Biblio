@@ -266,6 +266,15 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 .dlg h3{padding-right:34px}
 #dlgAcct .dlg h3{padding-right:0}
 #btnAcct{position:relative}
+.acList{display:grid;gap:10px;margin-top:12px}
+dialog.wide{width:min(94vw,560px)}
+.prsum{display:grid;gap:7px;margin:10px 0 8px}.prs{display:grid;grid-template-columns:92px 1fr 54px;align-items:center;gap:8px;font-size:.82rem}.prs i{display:block;height:8px;border-radius:6px;background:var(--surface2);overflow:hidden}.prs i b{display:block;height:100%;background:var(--accent,#6c7bff);border-radius:6px}.prs span{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.prh,.prr{display:grid;grid-template-columns:1fr repeat(4,54px);align-items:center;gap:2px}
+.prh{position:sticky;top:0;background:var(--surface);z-index:3;padding:6px 0;font-size:.6rem;color:var(--muted);text-align:center;border-bottom:1px solid var(--line)}
+.prB{font-weight:800;font-size:.85rem;margin:14px 0 2px}
+.prr{padding:6px 0;border-bottom:1px solid var(--line);font-size:.84rem}.prr .pt2{min-width:0;line-height:1.25}.prr .pt2 small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;color:var(--muted);font-size:.72rem;overflow:hidden}
+.prr input{width:22px;height:22px;justify-self:center;accent-color:var(--ok)}
+.prr.all .pt2 b{color:var(--ok)}
 #btnAcct.on::after{content:"";position:absolute;right:3px;bottom:3px;width:11px;height:11px;border-radius:50%;background:#2fb457;border:2px solid var(--surface)}
 /* Pódcasts */
 #mainTabs{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}#mainTabs button{grid-column:span 2;font-size:.86rem;padding:10px 0;min-width:0;white-space:nowrap}#mainTabs button:nth-child(n+4){grid-column:span 2}
@@ -607,9 +616,25 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   </div>
   <div id="acIn2" hidden>
     <h3>Cuenta</h3>
-    <p id="acWho" style="color:var(--ink);font-weight:700"></p>
-    <div class="row" style="flex-wrap:wrap"><button class="btn" id="acSignOut">Cerrar sesión</button></div>
+    <p id="acWho" style="color:var(--ink);font-weight:700;margin-bottom:2px"></p>
+    <p id="acMail2" class="hint" style="margin-top:0"></p>
+    <div class="acList">
+      <button class="btn" id="acProg" style="width:100%">📊 Mi progreso por temas</button>
+      <button class="btn ghost" id="acNameB" style="width:100%">Cambiar nombre</button>
+      <div id="acNameF" hidden><input class="fld" id="acNameI" maxlength="40" placeholder="Nombre" autocomplete="name"><div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn ghost" id="acNameX">Cancelar</button><button class="btn" id="acNameOk">Guardar</button></div></div>
+      <button class="btn ghost" id="acPassB" style="width:100%">Cambiar contraseña</button>
+      <div id="acPassF" hidden><input class="fld" id="acPassOld" type="password" placeholder="Contraseña actual" autocomplete="current-password" style="margin-bottom:8px"><input class="fld" id="acPassNew" type="password" placeholder="Nueva contraseña (mínimo 6 caracteres)" autocomplete="new-password" style="margin-bottom:8px"><input class="fld" id="acPassNew2" type="password" placeholder="Repite la nueva contraseña" autocomplete="new-password"><div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn ghost" id="acPassX">Cancelar</button><button class="btn" id="acPassOk">Guardar</button></div></div>
+      <p class="hint" id="acMsg2" style="min-height:1.2em;margin:0"></p>
+      <button class="btn ghost" id="acSignOut" style="width:100%">Cerrar sesión</button>
+    </div>
   </div>
+</div></dialog>
+<dialog id="dlgProg" class="wide"><div class="dlg">
+  <button class="dlgx" id="prX" aria-label="Cerrar">✕</button>
+  <h3>Mi progreso</h3>
+  <div id="prSum"></div>
+  <p class="hint" style="margin:6px 0 4px">Marca o desmarca a mano. «Escuchado» se marca al terminar el pódcast del tema y «Examinado» al aprobar un test que incluya todas sus preguntas.</p>
+  <div id="prList"></div>
 </div></dialog>
 <dialog id="dlgUser"><div class="dlg">
   <button class="dlgx" id="uClose" aria-label="Cerrar">✕</button>
@@ -755,13 +780,16 @@ function podURL(n){return `audio/${podFile(n)}.m4a`}
 function podFmt(t){t=Math.max(0,Math.floor(t||0));const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0")}
 function podPos(){return U.get("podpos",{})}
 function podHeard(){return new Set(U.get("podheard",[]))}
+function progMark(n,i){ const p=U.get("prog",{}), a=p[n]||[0,0,0,0]; if(a[i])return; a[i]=1; p[n]=a; U.set("prog",p) }
+let podMarked=null;
+function podAutoMark(){ if(!podN||podMarked===podN)return; podMarked=podN; const t=Math.floor(podN); if(t===podN&&t<=100||podN===28.1||podN===28) progMark(podN===28.1?28:t,2) }
 function podSave(force){
   if(!podN||!podAudio||!podAudio.duration)return;
   const now=Date.now(); if(!force&&now-podSaveAt<4000)return; podSaveAt=now;
   const p=podPos(), t=podAudio.currentTime;
   if(t>podAudio.duration-8){delete p[podN]} else p[podN]=Math.floor(t);
   U.set("podpos",p);
-  if(t>podAudio.duration*0.95){const h=podHeard();h.add(podN);U.set("podheard",[...h])}
+  if(t>podAudio.duration*0.95){const h=podHeard();h.add(podN);U.set("podheard",[...h]);podAutoMark()}
 }
 function renderPod(){ keepScroll("#podList .block.open .temas, #podFavView .block.open .temas, #podDlView .block.open .temas",b=>b.parentElement.id+b.dataset.i,renderPod0) }
 function renderPod0(){
@@ -806,13 +834,14 @@ function podEnsure(){
   podAudio=new Audio(); podAudio.preload="metadata";
   podAudio.addEventListener("timeupdate",()=>{
     const d=podAudio.duration||0;
+    if(d&&podAudio.currentTime<d*0.9)podMarked=null;
     if(d){ $("#podSeek").value=Math.round(podAudio.currentTime/d*1000); $("#podCur").textContent=podFmt(podAudio.currentTime); $("#podDur").textContent="-"+podFmt(d-podAudio.currentTime) }
     podSave(false);
   });
   podAudio.addEventListener("loadedmetadata",()=>{$("#podDur").textContent="-"+podFmt(podAudio.duration-podAudio.currentTime); if(podN&&podAudio.duration){podDurs[podN]=Math.round(podAudio.duration);LS.set("podDurs",podDurs)}});
   podAudio.addEventListener("play",podUI); podAudio.addEventListener("pause",()=>{podSave(true);podUI()});
   podAudio.addEventListener("ended",()=>{
-    const h=podHeard();h.add(podN);U.set("podheard",[...h]); const p=podPos();delete p[podN];U.set("podpos",p);
+    const h=podHeard();h.add(podN);U.set("podheard",[...h]); podAutoMark(); const p=podPos();delete p[podN];U.set("podpos",p);
     const ids=PODT.map(t=>t.n), nx=ids.slice(ids.indexOf(podN)+1).filter(n=>podAvail[n]!==false)[0];
     if(nx)podPlay(nx,true); else podUI();
   });
@@ -1418,6 +1447,7 @@ function finish(){
   U.set("hist",hist);
   const tests=U.get("tests",[]); tests.unshift({d,k:quiz.rk||nTemas(),el:quiz.el||0,instant:!!quiz.instant,items:compact(quiz.items)});
   U.set("tests",tests.slice(0,1000));
+  if(s.nota>=5){ const by={}; quiz.items.forEach(x=>{ if(x.i!==undefined&&x.t) (by[x.t]=by[x.t]||new Set()).add(x.i) }); Object.keys(by).forEach(t=>{ if(by[t].size>=perTema[t]) progMark(t,3) }) }
   }
   showResult(s);
 }
@@ -1662,7 +1692,7 @@ async function getAdapter(){
   const [ap,au,fs]=await Promise.all([import(base+"firebase-app.js"),import(base+"firebase-auth.js"),import(base+"firebase-firestore.js")]);
   const app=ap.initializeApp(FBCFG), auth=au.getAuth(app), db=fs.getFirestore(app);
   const col=uid=>fs.collection(db,"users",uid,"kv");
-  const mapU=u=>u?{uid:u.uid,email:u.email||"",name:u.displayName||""}:null;
+  const mapU=u=>u?{uid:u.uid,email:u.email||"",name:u.displayName||"",pw:(u.providerData||[]).some(p=>p.providerId==="password")}:null;
   AD={
     onAuth:cb=>au.onAuthStateChanged(auth,u=>cb(mapU(u))),
     google:()=>au.signInWithPopup(auth,new au.GoogleAuthProvider()),
@@ -1670,6 +1700,8 @@ async function getAdapter(){
     signUp:(e,p)=>au.createUserWithEmailAndPassword(auth,e,p),
     reset:e=>au.sendPasswordResetEmail(auth,e),
     signOut:()=>au.signOut(auth),
+    setName:n=>au.updateProfile(auth.currentUser,{displayName:n}),
+    setPass:async(old,nw)=>{const u=auth.currentUser; await au.reauthenticateWithCredential(u,au.EmailAuthProvider.credential(u.email,old)); await au.updatePassword(u,nw)},
     getAll:async uid=>(await fs.getDocs(col(uid))).docs.map(d=>({id:d.id,...d.data()})),
     setMany:async(uid,docs)=>{const b=fs.writeBatch(db);docs.forEach(x=>b.set(fs.doc(db,"users",uid,"kv",x.id),{v:x.v,t:x.t,d:!!x.d}));await b.commit()},
     listen:(uid,cb,err)=>fs.onSnapshot(col(uid),snap=>{if(snap.metadata.hasPendingWrites&&!snap.docChanges().length)return;cb(snap.docChanges().filter(c=>c.type!=="removed"&&!c.doc.metadata.hasPendingWrites).map(c=>({id:c.doc.id,...c.doc.data()})))},err)
@@ -1712,7 +1744,7 @@ function migrate(prev,ns){
 async function signedIn(u){
   const ns="fb:"+u.uid;
   if(cur!==ns){ if(!onFb())LS.set("curLocal",cur); migrate(cur,ns); cur=ns; LS.set("cur",cur); }
-  LS.set("acct",{uid:u.uid,email:u.email,name:u.name});
+  LS.set("acct",{uid:u.uid,email:u.email,name:u.name,pw:u.pw});
   try{ await syncInitial(u.uid); startListen(u.uid); syncMsg="Sincronizado."; }catch(e){ syncMsg="No se pudo sincronizar. Se reintentará."; setTimeout(()=>{ if(adUser)resync() },30000); }
   loadUser(true); reloadUI(); acctUI();
 }
@@ -1774,19 +1806,49 @@ function acctUI(){
   const a=LS.get("acct",null), b=$("#btnAcct");
   b.classList.toggle("on",!!a); b.title=a?`Sesión iniciada: ${a.email}`:"Iniciar sesión para sincronizar";
   $("#acOut").hidden=!!a; $("#acIn2").hidden=!a;
-  if(a){ $("#acWho").textContent=a.email||a.name||"Cuenta"; }
+  if(a){ $("#acWho").textContent=a.name||a.email||"Cuenta"; $("#acMail2").textContent=a.name?a.email:""; $("#acPassB").hidden=a.pw===false; }
 }
 const setAcMsg=t=>{$("#acMsg").textContent=t};
 async function acAction(fn){
   setAcMsg(""); try{ await getAdapter(); await fn(); }catch(e){ setAcMsg(errMsg(e)) }
 }
 const acCreds=()=>{const e=$("#acMail").value.trim(),p=$("#acPass").value; if(!e){setAcMsg("Escribe tu correo.");return null} return [e,p]};
-$("#btnAcct").onclick=()=>{acctUI();setAcMsg("");$("#dlgAcct").showModal()};
+$("#btnAcct").onclick=()=>{acctUI();setAcMsg("");acForm("");$("#dlgAcct").showModal()};
 $("#acX").onclick=()=>$("#dlgAcct").close();
 $("#acGoogle").onclick=()=>acAction(async()=>{ await AD.google(); $("#dlgAcct").close() });
 $("#acIn").onclick=()=>acAction(async()=>{ const c=acCreds(); if(!c)return; await AD.signIn(...c); $("#dlgAcct").close() });
 $("#acNew").onclick=()=>acAction(async()=>{ const c=acCreds(); if(!c)return; await AD.signUp(...c); $("#dlgAcct").close() });
 $("#acReset").onclick=()=>acAction(async()=>{ const c=$("#acMail").value.trim(); if(!c){setAcMsg("Escribe tu correo y vuelve a pulsar.");return} await AD.reset(c); setAcMsg("Te hemos enviado un correo para cambiar la contraseña.") });
+const setAc2=t=>{$("#acMsg2").textContent=t};
+function acForm(w){ $("#acNameF").hidden=w!=="n"; $("#acPassF").hidden=w!=="p"; $("#acNameB").hidden=w==="n"; $("#acPassB").hidden=w==="p"||(LS.get("acct",{}).pw===false); setAc2("") }
+$("#acNameB").onclick=()=>{ acForm("n"); $("#acNameI").value=(LS.get("acct",{}).name)||""; $("#acNameI").focus() };
+$("#acNameX").onclick=()=>acForm("");
+$("#acNameOk").onclick=async()=>{ const n=$("#acNameI").value.trim(); if(!n){$("#acNameI").focus();return}
+  try{ await getAdapter(); await AD.setName(n); const a=LS.get("acct",{}); a.name=n; LS.set("acct",a); if(adUser)adUser.name=n; acForm(""); acctUI(); setAc2("Nombre cambiado.") }catch(e){ setAc2(errMsg(e)) } };
+$("#acPassB").onclick=()=>{ acForm("p"); ["#acPassOld","#acPassNew","#acPassNew2"].forEach(i=>$(i).value=""); $("#acPassOld").focus() };
+$("#acPassX").onclick=()=>acForm("");
+$("#acPassOk").onclick=async()=>{ const o=$("#acPassOld").value, n=$("#acPassNew").value, n2=$("#acPassNew2").value;
+  if(!o){setAc2("Escribe tu contraseña actual.");return} if(n.length<6){setAc2("La nueva contraseña debe tener al menos 6 caracteres.");return} if(n!==n2){setAc2("Las contraseñas nuevas no coinciden.");return}
+  try{ await getAdapter(); await AD.setPass(o,n); acForm(""); setAc2("Contraseña cambiada.") }catch(e){ setAc2(errMsg(e)) } };
+/* ---------- Progreso por temas ---------- */
+const PR_COLS=["Subrayado","Resumido","Escuchado","Examinado"];
+const PR_T=()=>B.temas.filter(t=>t.n<=100);
+function prSum(){
+  const p=U.get("prog",{}), T=PR_T();
+  $("#prSum").innerHTML='<div class="prsum">'+PR_COLS.map((c,i)=>{const n=T.filter(t=>(p[t.n]||[])[i]).length;return `<div class="prs"><b>${c}</b><i><b style="width:${T.length?Math.round(n/T.length*100):0}%"></b></i><span>${n}/${T.length}</span></div>`}).join("")+'</div>';
+}
+function prRender(){
+  const p=U.get("prog",{}); let h='<div class="prh"><span></span>'+PR_COLS.map(c=>`<span>${c}</span>`).join("")+'</div>';
+  B.blocks.forEach((bl,bi)=>{ const ts=PR_T().filter(t=>t.b===bi); if(!ts.length)return;
+    h+=`<div class="prB">${esc(bl.name)}</div>`+ts.map(t=>{const a=p[t.n]||[0,0,0,0];return `<div class="prr${a.every(Boolean)?" all":""}" data-n="${t.n}"><div class="pt2"><b>Tema ${t.n}</b><small>${esc(shortT(t))}</small></div>${[0,1,2,3].map(i=>`<input type="checkbox" data-i="${i}" aria-label="${PR_COLS[i]} tema ${t.n}"${a[i]?" checked":""}>`).join("")}</div>`}).join("") });
+  $("#prList").innerHTML=h; prSum();
+}
+$("#prList").addEventListener("change",e=>{
+  const c=e.target.closest("input[data-i]"); if(!c)return; const r=c.closest(".prr"), n=r.dataset.n, p=U.get("prog",{}), a=p[n]||[0,0,0,0];
+  a[+c.dataset.i]=c.checked?1:0; p[n]=a; U.set("prog",p); r.classList.toggle("all",a.every(Boolean)); prSum();
+});
+$("#acProg").onclick=()=>{ $("#dlgAcct").close(); prRender(); $("#dlgProg").showModal(); $("#dlgProg").scrollTop=0 };
+$("#prX").onclick=()=>$("#dlgProg").close();
 $("#acSignOut").onclick=async()=>{
   $("#dlgAcct").close();
   try{ await syncPush() }catch(e){}
