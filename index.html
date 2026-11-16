@@ -267,13 +267,13 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #dlgAcct .dlg h3{padding-right:0}
 #btnAcct{position:relative}
 .acList{display:grid;gap:10px;margin-top:12px}
-dialog.wide{width:min(94vw,560px);max-height:78vh}
+dialog.wide{width:min(84vw,460px);max-height:78vh}
 .dlgi{position:absolute;top:10px;left:10px;width:32px;height:32px;border-radius:50%;border:1.5px solid var(--muted);background:transparent;color:var(--muted);font:italic 700 1rem var(--serif,serif);z-index:2}
 .prinfo{background:var(--surface2);border-radius:12px;padding:10px 12px;margin:8px 0}
 .prsum{display:grid;gap:7px;margin:10px 0 12px}.prs{display:grid;grid-template-columns:92px 1fr 54px;align-items:center;gap:8px;font-size:.82rem}.prs i{display:block;height:8px;border-radius:6px;background:var(--surface2);overflow:hidden}.prs i b{display:block;height:100%;background:var(--accent,#6c7bff);border-radius:6px}.prs span{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
 #prList .temas{max-height:none;padding:0 12px 8px}
 .prh,.prc{display:grid;grid-template-columns:repeat(4,1fr);text-align:center}
-.prh{position:sticky;top:0;background:var(--surface2);z-index:3;padding:8px 0 6px;font-size:.66rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--line)}
+.prh{position:sticky;top:0;background:var(--surface);z-index:5;padding:8px 0 6px;margin-bottom:8px;font-size:.66rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--line)}
 .prr{padding:9px 0 4px;border-bottom:1px solid var(--line)}.prr:last-child{border-bottom:0}
 .prr .pt2{font-size:.86rem;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}.prr .pt2 b{margin-right:4px}
 .prr input{width:28px;height:28px;justify-self:center;accent-color:var(--ok);margin:0 0 4px}
@@ -621,7 +621,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <h3>Cuenta</h3>
     <p id="acWho" style="color:var(--ink);font-weight:700"></p>
     <div class="acList">
-      <button class="btn" id="acProg" style="width:100%">📊 Mi progreso por temas</button>
+      <button class="btn" id="acProg" style="width:100%">Mi progreso</button>
       <button class="btn ghost" id="acPassB" style="width:100%">Cambiar contraseña</button>
       <div id="acPassF" hidden><input class="fld" id="acPassOld" type="password" placeholder="Contraseña actual" autocomplete="current-password" style="margin-bottom:8px"><input class="fld" id="acPassNew" type="password" placeholder="Nueva contraseña (mínimo 6 caracteres)" autocomplete="new-password" style="margin-bottom:8px"><input class="fld" id="acPassNew2" type="password" placeholder="Repite la nueva contraseña" autocomplete="new-password"><div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn ghost" id="acPassX">Cancelar</button><button class="btn" id="acPassOk">Guardar</button></div></div>
       <p class="hint" id="acMsg2" style="min-height:1.2em;margin:0"></p>
@@ -1835,23 +1835,24 @@ function prSum(){
 }
 const prOpen=new Set();
 function prRender(){
-  const p=U.get("prog",{}), host=$("#prList"); host.innerHTML="";
+  const p=U.get("prog",{}), host=$("#prList"); host.innerHTML=`<div class="prh">${PR_COLS.map(c=>`<span>${c}</span>`).join("")}</div>`;
   B.blocks.forEach((bl,bi)=>{ const ts=PR_T().filter(t=>t.b===bi); if(!ts.length)return;
     const full=ts.filter(t=>(p[t.n]||[]).filter(Boolean).length===4).length;
     const el=document.createElement("div"); el.className="card block"+(prOpen.has(bi)?" open":""); el.dataset.i=bi; el.style.setProperty("--bc",`var(${BLOCKCOL[bi]})`);
-    el.innerHTML=`<div class="head"><div class="info"><div class="name">${esc(bl.name)}</div><div class="meta">Temas ${bl.from}–${bl.to} · <span class="prm">${full}/${ts.length}</span> completos</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas"><div class="prh">${PR_COLS.map(c=>`<span>${c}</span>`).join("")}</div>`+ts.map(t=>{const a=p[t.n]||[0,0,0,0];return `<div class="prr${a.every(Boolean)?" all":""}" data-n="${t.n}"><div class="pt2"><b>Tema ${t.n}</b>${esc(shortT(t))}</div><div class="prc">${[0,1,2,3].map(i=>`<input type="checkbox" data-i="${i}" aria-label="${PR_COLS[i]} tema ${t.n}"${a[i]?" checked":""}>`).join("")}</div></div>`}).join("")+`</div>`;
+    el.innerHTML=`<div class="head"><div class="info"><div class="name">${esc(bl.name)}</div><div class="meta">Temas ${bl.from}–${bl.to} · <span class="prm">${full}/${ts.length}</span> completos</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas">`+ts.map(t=>{const a=p[t.n]||[0,0,0,0];return `<div class="prr${a.every(Boolean)?" all":""}" data-n="${t.n}"><div class="pt2"><b>Tema ${t.n}</b>${esc(shortT(t))}</div><div class="prc">${[0,1,2,3].map(i=>`<input type="checkbox" data-i="${i}" aria-label="${PR_COLS[i]} tema ${t.n}"${a[i]?" checked":""}>`).join("")}</div></div>`}).join("")+`</div>`;
     host.appendChild(el) });
   prSum();
 }
 $("#prList").addEventListener("click",e=>{ const h=e.target.closest(".head"); if(!h)return; const b=h.parentElement, i=+b.dataset.i; b.classList.toggle("open"); if(b.classList.contains("open"))prOpen.add(i); else prOpen.delete(i) });
 function prBackfill(){
-  if(U.get("progbf",0))return; U.set("progbf",1);
   const p=U.get("prog",{}), add=(n,i)=>{const a=p[n]||[0,0,0,0]; a[i]=1; p[n]=a};
-  U.get("podheard",[]).forEach(n=>{ if(n<=100&&Math.floor(n)===n) add(n,2); else if(n===28.1) add(28,2) });
-  const hist=U.get("hist",[]), tests=U.get("tests",[]);
-  hist.forEach(h=>{ if(!(h.nota>=5))return; const t=tests.find(x=>x.d===h.d); if(!t)return;
-    const by={}; t.items.forEach(r=>{const i=IDX.get(r[0]); if(i!==undefined)(by[B.qs[i][0]]=by[B.qs[i][0]]||new Set()).add(i)});
-    Object.keys(by).forEach(k=>{ if(by[k].size>=perTema[k]) add(k,3) }) });
+  if(!U.get("progbf",0)){ U.set("progbf",1);
+    U.get("podheard",[]).forEach(n=>{ if(n<=100&&Math.floor(n)===n) add(n,2); else if(n===28.1) add(28,2) }); }
+  if(!U.get("progbf2",0)){ U.set("progbf2",1);
+    const hist=U.get("hist",[]), tests=U.get("tests",[]);
+    hist.forEach(h=>{ if(!(h.nota>=5))return; const t=tests.find(x=>x.d===h.d); if(!t)return;
+      const by={}; t.items.forEach(r=>{const i=IDX.get(r[0]); if(i!==undefined)(by[B.qs[i][0]]=by[B.qs[i][0]]||new Set()).add(i)});
+      Object.keys(by).forEach(k=>{ if(by[k].size>=Math.ceil(perTema[k]*0.9)) add(k,3) }) }); }
   U.set("prog",p);
 }
 $("#prList").addEventListener("change",e=>{
