@@ -267,6 +267,7 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #dlgAcct .dlg h3{padding-right:0}
 #btnAcct{position:relative}
 .acList{display:grid;gap:10px;margin-top:12px}
+dialog{overscroll-behavior:contain}body:has(dialog[open]){overflow:hidden}
 dialog.wide{width:min(84vw,460px);max-height:78vh}
 .dlgi{position:absolute;top:10px;left:10px;width:32px;height:32px;border-radius:50%;border:1.5px solid var(--muted);background:transparent;color:var(--muted);font:italic 700 1rem var(--serif,serif);z-index:2}
 .prinfo{background:var(--surface2);border-radius:12px;padding:10px 12px;margin:8px 0}
@@ -621,7 +622,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <h3>Cuenta</h3>
     <p id="acWho" style="color:var(--ink);font-weight:700"></p>
     <div class="acList">
-      <button class="btn" id="acProg" style="width:100%">Mi progreso</button>
+      <button class="btn" id="acProg" style="width:100%">📊 Mi progreso</button>
       <button class="btn ghost" id="acPassB" style="width:100%">Cambiar contraseña</button>
       <div id="acPassF" hidden><input class="fld" id="acPassOld" type="password" placeholder="Contraseña actual" autocomplete="current-password" style="margin-bottom:8px"><input class="fld" id="acPassNew" type="password" placeholder="Nueva contraseña (mínimo 6 caracteres)" autocomplete="new-password" style="margin-bottom:8px"><input class="fld" id="acPassNew2" type="password" placeholder="Repite la nueva contraseña" autocomplete="new-password"><div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn ghost" id="acPassX">Cancelar</button><button class="btn" id="acPassOk">Guardar</button></div></div>
       <p class="hint" id="acMsg2" style="min-height:1.2em;margin:0"></p>
@@ -633,7 +634,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <button class="dlgx" id="prX" aria-label="Cerrar">✕</button>
   <button class="dlgi" id="prI" aria-label="Cómo funciona">i</button>
   <h3 style="text-align:center;margin:0 36px 4px">Mi progreso</h3>
-  <p class="hint prinfo" id="prInfo" hidden>Marca o desmarca las casillas a mano cuando quieras. «Escuchado» se marca solo al terminar el pódcast del tema y «Examinado» al aprobar (nota de 5 o más) un test que incluya todas las preguntas del tema. Si la desmarcas y lo repites, se vuelve a marcar.</p>
+  <p class="hint prinfo" id="prInfo" hidden>Marca o desmarca las casillas a mano cuando quieras. «Escuchado» se marca solo al terminar el pódcast del tema y «Examinado» al aprobar un test que incluya todas las preguntas del tema. Si la desmarcas y lo repites, se vuelve a marcar.</p>
   <div id="prSum"></div>
   <div id="prList"></div>
 </div></dialog>
@@ -1600,6 +1601,11 @@ document.addEventListener("keydown",e=>{
   else if(e.key==="ArrowRight") rateCard(true);
 });
 
+document.addEventListener("touchmove",e=>{
+  const d=document.querySelector("dialog[open]"); if(!d)return;
+  for(let n=e.target;n&&n!==document;n=n.parentElement){ if(n.scrollHeight>n.clientHeight+1&&/(auto|scroll)/.test(getComputedStyle(n).overflowY)) return; if(n===d)break }
+  e.preventDefault();
+},{passive:false});
 document.querySelectorAll("dialog").forEach(d=>d.addEventListener("click",e=>{ if(e.target===d) d.close() }));
 /* ---------- Usuarios: perfil y foto ---------- */
 function renderLogin(){
