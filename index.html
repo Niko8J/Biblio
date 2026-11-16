@@ -267,13 +267,16 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 #dlgAcct .dlg h3{padding-right:0}
 #btnAcct{position:relative}
 .acList{display:grid;gap:10px;margin-top:12px}
-dialog.wide{width:min(94vw,560px)}
-.prsum{display:grid;gap:7px;margin:10px 0 8px}.prs{display:grid;grid-template-columns:92px 1fr 54px;align-items:center;gap:8px;font-size:.82rem}.prs i{display:block;height:8px;border-radius:6px;background:var(--surface2);overflow:hidden}.prs i b{display:block;height:100%;background:var(--accent,#6c7bff);border-radius:6px}.prs span{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
-.prh,.prr{display:grid;grid-template-columns:1fr repeat(4,54px);align-items:center;gap:2px}
-.prh{position:sticky;top:0;background:var(--surface);z-index:3;padding:6px 0;font-size:.6rem;color:var(--muted);text-align:center;border-bottom:1px solid var(--line)}
-.prB{font-weight:800;font-size:.85rem;margin:14px 0 2px}
-.prr{padding:6px 0;border-bottom:1px solid var(--line);font-size:.84rem}.prr .pt2{min-width:0;line-height:1.25}.prr .pt2 small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;color:var(--muted);font-size:.72rem;overflow:hidden}
-.prr input{width:22px;height:22px;justify-self:center;accent-color:var(--ok)}
+dialog.wide{width:min(94vw,560px);max-height:78vh}
+.dlgi{position:absolute;top:10px;left:10px;width:32px;height:32px;border-radius:50%;border:1.5px solid var(--muted);background:transparent;color:var(--muted);font:italic 700 1rem var(--serif,serif);z-index:2}
+.prinfo{background:var(--surface2);border-radius:12px;padding:10px 12px;margin:8px 0}
+.prsum{display:grid;gap:7px;margin:10px 0 12px}.prs{display:grid;grid-template-columns:92px 1fr 54px;align-items:center;gap:8px;font-size:.82rem}.prs i{display:block;height:8px;border-radius:6px;background:var(--surface2);overflow:hidden}.prs i b{display:block;height:100%;background:var(--accent,#6c7bff);border-radius:6px}.prs span{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+#prList .temas{max-height:none;padding:0 12px 8px}
+.prh,.prc{display:grid;grid-template-columns:repeat(4,1fr);text-align:center}
+.prh{position:sticky;top:0;background:var(--surface2);z-index:3;padding:8px 0 6px;font-size:.66rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--line)}
+.prr{padding:9px 0 4px;border-bottom:1px solid var(--line)}.prr:last-child{border-bottom:0}
+.prr .pt2{font-size:.86rem;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}.prr .pt2 b{margin-right:4px}
+.prr input{width:28px;height:28px;justify-self:center;accent-color:var(--ok);margin:0 0 4px}
 .prr.all .pt2 b{color:var(--ok)}
 #btnAcct.on::after{content:"";position:absolute;right:3px;bottom:3px;width:11px;height:11px;border-radius:50%;background:#2fb457;border:2px solid var(--surface)}
 /* Pódcasts */
@@ -616,12 +619,9 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   </div>
   <div id="acIn2" hidden>
     <h3>Cuenta</h3>
-    <p id="acWho" style="color:var(--ink);font-weight:700;margin-bottom:2px"></p>
-    <p id="acMail2" class="hint" style="margin-top:0"></p>
+    <p id="acWho" style="color:var(--ink);font-weight:700"></p>
     <div class="acList">
       <button class="btn" id="acProg" style="width:100%">📊 Mi progreso por temas</button>
-      <button class="btn ghost" id="acNameB" style="width:100%">Cambiar nombre</button>
-      <div id="acNameF" hidden><input class="fld" id="acNameI" maxlength="40" placeholder="Nombre" autocomplete="name"><div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn ghost" id="acNameX">Cancelar</button><button class="btn" id="acNameOk">Guardar</button></div></div>
       <button class="btn ghost" id="acPassB" style="width:100%">Cambiar contraseña</button>
       <div id="acPassF" hidden><input class="fld" id="acPassOld" type="password" placeholder="Contraseña actual" autocomplete="current-password" style="margin-bottom:8px"><input class="fld" id="acPassNew" type="password" placeholder="Nueva contraseña (mínimo 6 caracteres)" autocomplete="new-password" style="margin-bottom:8px"><input class="fld" id="acPassNew2" type="password" placeholder="Repite la nueva contraseña" autocomplete="new-password"><div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn ghost" id="acPassX">Cancelar</button><button class="btn" id="acPassOk">Guardar</button></div></div>
       <p class="hint" id="acMsg2" style="min-height:1.2em;margin:0"></p>
@@ -631,9 +631,10 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 </div></dialog>
 <dialog id="dlgProg" class="wide"><div class="dlg">
   <button class="dlgx" id="prX" aria-label="Cerrar">✕</button>
-  <h3>Mi progreso</h3>
+  <button class="dlgi" id="prI" aria-label="Cómo funciona">i</button>
+  <h3 style="text-align:center;margin:0 36px 4px">Mi progreso</h3>
+  <p class="hint prinfo" id="prInfo" hidden>Marca o desmarca las casillas a mano cuando quieras. «Escuchado» se marca solo al terminar el pódcast del tema y «Examinado» al aprobar (nota de 5 o más) un test que incluya todas las preguntas del tema. Si la desmarcas y lo repites, se vuelve a marcar.</p>
   <div id="prSum"></div>
-  <p class="hint" style="margin:6px 0 4px">Marca o desmarca a mano. «Escuchado» se marca al terminar el pódcast del tema y «Examinado» al aprobar un test que incluya todas sus preguntas.</p>
   <div id="prList"></div>
 </div></dialog>
 <dialog id="dlgUser"><div class="dlg">
@@ -1700,7 +1701,6 @@ async function getAdapter(){
     signUp:(e,p)=>au.createUserWithEmailAndPassword(auth,e,p),
     reset:e=>au.sendPasswordResetEmail(auth,e),
     signOut:()=>au.signOut(auth),
-    setName:n=>au.updateProfile(auth.currentUser,{displayName:n}),
     setPass:async(old,nw)=>{const u=auth.currentUser; await au.reauthenticateWithCredential(u,au.EmailAuthProvider.credential(u.email,old)); await au.updatePassword(u,nw)},
     getAll:async uid=>(await fs.getDocs(col(uid))).docs.map(d=>({id:d.id,...d.data()})),
     setMany:async(uid,docs)=>{const b=fs.writeBatch(db);docs.forEach(x=>b.set(fs.doc(db,"users",uid,"kv",x.id),{v:x.v,t:x.t,d:!!x.d}));await b.commit()},
@@ -1806,7 +1806,7 @@ function acctUI(){
   const a=LS.get("acct",null), b=$("#btnAcct");
   b.classList.toggle("on",!!a); b.title=a?`Sesión iniciada: ${a.email}`:"Iniciar sesión para sincronizar";
   $("#acOut").hidden=!!a; $("#acIn2").hidden=!a;
-  if(a){ $("#acWho").textContent=a.name||a.email||"Cuenta"; $("#acMail2").textContent=a.name?a.email:""; $("#acPassB").hidden=a.pw===false; }
+  if(a){ $("#acWho").textContent=a.email||"Cuenta"; $("#acPassB").hidden=a.pw===false; }
 }
 const setAcMsg=t=>{$("#acMsg").textContent=t};
 async function acAction(fn){
@@ -1820,11 +1820,7 @@ $("#acIn").onclick=()=>acAction(async()=>{ const c=acCreds(); if(!c)return; awai
 $("#acNew").onclick=()=>acAction(async()=>{ const c=acCreds(); if(!c)return; await AD.signUp(...c); $("#dlgAcct").close() });
 $("#acReset").onclick=()=>acAction(async()=>{ const c=$("#acMail").value.trim(); if(!c){setAcMsg("Escribe tu correo y vuelve a pulsar.");return} await AD.reset(c); setAcMsg("Te hemos enviado un correo para cambiar la contraseña.") });
 const setAc2=t=>{$("#acMsg2").textContent=t};
-function acForm(w){ $("#acNameF").hidden=w!=="n"; $("#acPassF").hidden=w!=="p"; $("#acNameB").hidden=w==="n"; $("#acPassB").hidden=w==="p"||(LS.get("acct",{}).pw===false); setAc2("") }
-$("#acNameB").onclick=()=>{ acForm("n"); $("#acNameI").value=(LS.get("acct",{}).name)||""; $("#acNameI").focus() };
-$("#acNameX").onclick=()=>acForm("");
-$("#acNameOk").onclick=async()=>{ const n=$("#acNameI").value.trim(); if(!n){$("#acNameI").focus();return}
-  try{ await getAdapter(); await AD.setName(n); const a=LS.get("acct",{}); a.name=n; LS.set("acct",a); if(adUser)adUser.name=n; acForm(""); acctUI(); setAc2("Nombre cambiado.") }catch(e){ setAc2(errMsg(e)) } };
+function acForm(w){ $("#acPassF").hidden=w!=="p"; $("#acPassB").hidden=w==="p"||(LS.get("acct",{}).pw===false); setAc2("") }
 $("#acPassB").onclick=()=>{ acForm("p"); ["#acPassOld","#acPassNew","#acPassNew2"].forEach(i=>$(i).value=""); $("#acPassOld").focus() };
 $("#acPassX").onclick=()=>acForm("");
 $("#acPassOk").onclick=async()=>{ const o=$("#acPassOld").value, n=$("#acPassNew").value, n2=$("#acPassNew2").value;
@@ -1837,17 +1833,33 @@ function prSum(){
   const p=U.get("prog",{}), T=PR_T();
   $("#prSum").innerHTML='<div class="prsum">'+PR_COLS.map((c,i)=>{const n=T.filter(t=>(p[t.n]||[])[i]).length;return `<div class="prs"><b>${c}</b><i><b style="width:${T.length?Math.round(n/T.length*100):0}%"></b></i><span>${n}/${T.length}</span></div>`}).join("")+'</div>';
 }
+const prOpen=new Set();
 function prRender(){
-  const p=U.get("prog",{}); let h='<div class="prh"><span></span>'+PR_COLS.map(c=>`<span>${c}</span>`).join("")+'</div>';
+  const p=U.get("prog",{}), host=$("#prList"); host.innerHTML="";
   B.blocks.forEach((bl,bi)=>{ const ts=PR_T().filter(t=>t.b===bi); if(!ts.length)return;
-    h+=`<div class="prB">${esc(bl.name)}</div>`+ts.map(t=>{const a=p[t.n]||[0,0,0,0];return `<div class="prr${a.every(Boolean)?" all":""}" data-n="${t.n}"><div class="pt2"><b>Tema ${t.n}</b><small>${esc(shortT(t))}</small></div>${[0,1,2,3].map(i=>`<input type="checkbox" data-i="${i}" aria-label="${PR_COLS[i]} tema ${t.n}"${a[i]?" checked":""}>`).join("")}</div>`}).join("") });
-  $("#prList").innerHTML=h; prSum();
+    const full=ts.filter(t=>(p[t.n]||[]).filter(Boolean).length===4).length;
+    const el=document.createElement("div"); el.className="card block"+(prOpen.has(bi)?" open":""); el.dataset.i=bi; el.style.setProperty("--bc",`var(${BLOCKCOL[bi]})`);
+    el.innerHTML=`<div class="head"><div class="info"><div class="name">${esc(bl.name)}</div><div class="meta">Temas ${bl.from}–${bl.to} · <span class="prm">${full}/${ts.length}</span> completos</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas"><div class="prh">${PR_COLS.map(c=>`<span>${c}</span>`).join("")}</div>`+ts.map(t=>{const a=p[t.n]||[0,0,0,0];return `<div class="prr${a.every(Boolean)?" all":""}" data-n="${t.n}"><div class="pt2"><b>Tema ${t.n}</b>${esc(shortT(t))}</div><div class="prc">${[0,1,2,3].map(i=>`<input type="checkbox" data-i="${i}" aria-label="${PR_COLS[i]} tema ${t.n}"${a[i]?" checked":""}>`).join("")}</div></div>`}).join("")+`</div>`;
+    host.appendChild(el) });
+  prSum();
+}
+$("#prList").addEventListener("click",e=>{ const h=e.target.closest(".head"); if(!h)return; const b=h.parentElement, i=+b.dataset.i; b.classList.toggle("open"); if(b.classList.contains("open"))prOpen.add(i); else prOpen.delete(i) });
+function prBackfill(){
+  if(U.get("progbf",0))return; U.set("progbf",1);
+  const p=U.get("prog",{}), add=(n,i)=>{const a=p[n]||[0,0,0,0]; a[i]=1; p[n]=a};
+  U.get("podheard",[]).forEach(n=>{ if(n<=100&&Math.floor(n)===n) add(n,2); else if(n===28.1) add(28,2) });
+  const hist=U.get("hist",[]), tests=U.get("tests",[]);
+  hist.forEach(h=>{ if(!(h.nota>=5))return; const t=tests.find(x=>x.d===h.d); if(!t)return;
+    const by={}; t.items.forEach(r=>{const i=IDX.get(r[0]); if(i!==undefined)(by[B.qs[i][0]]=by[B.qs[i][0]]||new Set()).add(i)});
+    Object.keys(by).forEach(k=>{ if(by[k].size>=perTema[k]) add(k,3) }) });
+  U.set("prog",p);
 }
 $("#prList").addEventListener("change",e=>{
   const c=e.target.closest("input[data-i]"); if(!c)return; const r=c.closest(".prr"), n=r.dataset.n, p=U.get("prog",{}), a=p[n]||[0,0,0,0];
-  a[+c.dataset.i]=c.checked?1:0; p[n]=a; U.set("prog",p); r.classList.toggle("all",a.every(Boolean)); prSum();
+  a[+c.dataset.i]=c.checked?1:0; p[n]=a; U.set("prog",p); r.classList.toggle("all",a.every(Boolean)); prSum(); const bl=r.closest(".block"), ts=bl.querySelectorAll(".prr"); bl.querySelector(".prm").textContent=[...ts].filter(x=>x.classList.contains("all")).length+"/"+ts.length;
 });
-$("#acProg").onclick=()=>{ $("#dlgAcct").close(); prRender(); $("#dlgProg").showModal(); $("#dlgProg").scrollTop=0 };
+$("#prI").onclick=()=>{$("#prInfo").hidden=!$("#prInfo").hidden};
+$("#acProg").onclick=()=>{ $("#dlgAcct").close(); prBackfill(); $("#prInfo").hidden=true; prRender(); $("#dlgProg").showModal(); $("#dlgProg").scrollTop=0 };
 $("#prX").onclick=()=>$("#dlgProg").close();
 $("#acSignOut").onclick=async()=>{
   $("#dlgAcct").close();
