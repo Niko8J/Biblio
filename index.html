@@ -270,6 +270,9 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 .acList{display:grid;gap:10px;margin-top:12px}
 dialog{overscroll-behavior:contain}body:has(dialog[open]){overflow:hidden}
 dialog.wide{width:min(84vw,460px);max-height:78vh}
+#dlgChg{position:fixed;top:12px;bottom:auto;margin:0 auto;max-height:calc(100dvh - 190px);overflow:auto;z-index:20}
+.chg{padding:10px 2px;border-top:1px solid var(--line);font-size:.88rem;line-height:1.35}.chg:first-child{border-top:0}
+.chg b.t{display:block;margin-bottom:2px}.chg .a{color:var(--muted)}.chg .n{font-weight:700}
 .dlgi{position:absolute;top:10px;left:10px;width:32px;height:32px;border-radius:50%;border:1.5px solid var(--muted);background:transparent;color:var(--muted);font:italic 700 1rem var(--serif,serif);z-index:2}
 .prinfo{background:var(--surface2);border-radius:12px;padding:10px 12px;margin:8px 0}
 .prsum{display:grid;gap:7px;margin:10px 0 12px}.prs{display:grid;grid-template-columns:92px 1fr 54px;align-items:center;gap:8px;font-size:.82rem}.prs i{display:block;height:8px;border-radius:6px;background:var(--surface2);overflow:hidden}.prs i b{display:block;height:100%;background:var(--accent,#6c7bff);border-radius:6px}.prs span{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -423,7 +426,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   </section>
   <section class="sec" id="podDocView" hidden>
     <h2><span class="n">4</span>Temas actualizados por internet</h2>
-    <p class="hint"><a href="https://claude.ai/artifact/V5QcM4hPxd7m8yKwtSNxhy" target="_blank" rel="noopener">Abrir el documento con la lista de temas actualizados</a></p>
+    <button class="btn" id="chgOpen" style="width:100%">Ver la lista de temas actualizados</button>
   </section>
 
   <section class="sec" id="examSec" hidden>
@@ -642,6 +645,11 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <p class="hint prinfo" id="prInfo" hidden>Marca o desmarca las casillas a mano cuando quieras. «Escuchado» se marca solo al terminar el pódcast del tema y «Examinado» al aprobar un test que incluya todas las preguntas del tema. Si la desmarcas y lo repites, se vuelve a marcar.</p>
   <div id="prSum"></div>
   <div id="prList"></div>
+</div></dialog>
+<dialog id="dlgChg" class="wide"><div class="dlg">
+  <button class="dlgx" id="chgX" aria-label="Cerrar">✕</button>
+  <h3 style="text-align:center;margin:0 36px 8px">Temas actualizados por internet</h3>
+  <div id="chgList"></div>
 </div></dialog>
 <dialog id="dlgUser"><div class="dlg">
   <button class="dlgx" id="uClose" aria-label="Cerrar">✕</button>
@@ -1887,6 +1895,9 @@ $("#prList").addEventListener("change",e=>{
 });
 $("#prI").onclick=()=>{$("#prInfo").hidden=!$("#prInfo").hidden};
 $("#acProg").onclick=()=>{ $("#dlgAcct").close(); prBackfill(); $("#prInfo").hidden=true; prRender(); $("#dlgProg").showModal(); $("#dlgProg").scrollTop=0 };
+const POD_CHG=[[4, "CGPJ en funciones; juzgados unipersonales", "CGPJ renovado en septiembre de 2024; Tribunales de Instancia (LO 1/2025), implantados a lo largo de 2025"], [9, "705 eurodiputados", "720 eurodiputados desde la legislatura 2024-2029"], [10, "Reserva de discapacidad del 7 %", "10 % (2 % para discapacidad intelectual); RDL 6/2023: evaluación del desempeño obligatoria, carrera horizontal, oferta de empleo público en 2 años (antes 3), directivos públicos"], [14, "PGE 2023 vigentes", "PGE de 2023 prorrogados desde 2024; prorrogados también para 2026 (acuerdo del 23 de diciembre de 2025)"], [20, "Directiva 2019/790 sin transposición", "RDL 24/2021 transpone las Directivas 2019/789 y 2019/790: minería de textos y datos, conservación del patrimonio cultural, obras fuera del circuito comercial"], [21, "Mecenazgo: 150 € al 80 %, resto 35 %", "Desde 2024 (RDL 6/2023): 250 € al 80 %, resto 40 %, 45 % con recurrencia (donar a la misma entidad durante 3 años, antes 4)"], [23, "ENS: RD 3/2010", "ENS: RD 311/2022; eIDAS 2 y Cartera Europea de Identidad Digital"], [24, "IV Plan de Gobierno Abierto", "V Plan de Gobierno Abierto 2025-2029 (octubre de 2025)"], [26, "Ministerio de Cultura y Deporte y su estructura", "Ministerio de Cultura (el deporte pasa a Educación, FP y Deportes); estructura según RD 323/2024; Dirección General del Libro, del Cómic y de la Lectura"], ["30 y 31", "ISO 11620:2014", "ISO 11620:2023"], [32, "ISO 9001:2015; ISO 9000:2005 (error del apunte)", "ISO 9001:2026, publicada el 16 de septiembre de 2026 (3 años para migrar); es ISO 9000:2015"], [33, "III Plan Estratégico de REBIUN 2020", "IV Plan 2020-2023 y, hoy, V Plan Estratégico de REBIUN 2024-2027"], [49, "Manifiesto de la Biblioteca Pública de 1994", "Nuevo Manifiesto IFLA-UNESCO de 2022, vinculado a los ODS"], [50, "Ley Orgánica 6/2001 de Universidades; plan de REBIUN 2020-2023", "LO 2/2023 del Sistema Universitario (LOSU); V Plan de REBIUN 2024-2027"], [52, "Plan estratégico 2021-2025 (Biblioteca Nacional)", "Plan Estratégico 2026-2028, aprobado por el Real Patronato el 18 de junio de 2026"], [53, "Madroño IV Plan 2021-2025; CENL y LIBER 2018-2022", "Madroño 2030 (V Plan 2026-2030); CENL 2023-2027; LIBER 2023-2027"], [55, "WCAG 2.1", "WCAG 2.2 (octubre de 2023); Ley 11/2023 de accesibilidad aplicable desde el 28 de junio de 2025"], [59, "ISO 690:2010; ISO 3297:2020", "ISO 690:2021; ISO 3297:2022"], [69, "ISO 30300:2011", "ISO 30300:2020 (requisitos en ISO 30301:2019)"], [78, "WCAG 2.1", "WCAG 2.2; ISO/IEC 40500:2025 sustituye a la de 2012"], [100, "Barómetro de Hábitos de Lectura anterior", "Barómetro 2025 (enero de 2026): lee por ocio el 66,2 % (65,5 % en 2024)"]];
+$("#chgOpen").onclick=()=>{ $("#chgList").innerHTML=POD_CHG.map(r=>`<div class="chg"><b class="t">Tema ${r[0]}</b><div class="a">Antes: ${esc(r[1])}</div><div><span class="n">Ahora:</span> ${esc(r[2])}</div></div>`).join(""); const d=$("#dlgChg"); if(!d.open)d.show(); d.scrollTop=0 };
+$("#chgX").onclick=()=>$("#dlgChg").close();
 $("#prX").onclick=()=>$("#dlgProg").close();
 $("#acSignOut").onclick=async()=>{
   $("#dlgAcct").close();
