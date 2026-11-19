@@ -875,7 +875,7 @@ function podPlay(n,fromStart){
   podAudio.play().catch(()=>{});
   podSetTitle(t); $("#podSeek").value=0; $("#podCur").textContent=podFmt(start); $("#podDur").textContent="-0:00";
   $("#podDock").hidden=false; document.body.classList.add("podplay"); podSetFull(true);
-  if("mediaSession" in navigator) navigator.mediaSession.metadata=new MediaMetadata({title:t.n>1000?"Extra "+t.lbl.slice(3):`Tema ${t.lbl||n}`,artist:"Facultativo de Bibliotecas",album:t.t.slice(0,120)});
+  if("mediaSession" in navigator) navigator.mediaSession.metadata=new MediaMetadata({title:(t.n>1000?"Extra "+t.lbl.slice(3):`Tema ${t.lbl||n}`)+(t.t?". "+t.t:""),artist:"Facultativo de Bibliotecas",album:"Podcasts"});
   podUI();
 }
 function podSetTitle(t){
