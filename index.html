@@ -141,6 +141,7 @@ body.nomin{min-height:0}
 .hrow .sc{font:700 1.25rem var(--serif);width:62px}
 .hrow .d{flex:1;font-size:.85rem;color:var(--muted)}
 .hrow .d b{color:var(--ink)}
+.hdel{padding:9px 12px;cursor:pointer;flex:none}
 .hrow.pass{border-left:5px solid var(--ok)!important}.hrow.fail{border-left:5px solid var(--bad)!important}
 #flBody .block .temas{max-height:none;overflow:visible;padding:8px}#flBody .block.open .temas{display:grid;gap:10px}
 #exList .head{flex-wrap:wrap;row-gap:4px}#exList .xmeta{flex-basis:100%;order:9}#exList .temas{padding:8px;display:none}#exList .block.open .temas{display:grid;gap:8px}
@@ -281,7 +282,7 @@ dialog.wide{width:min(84vw,460px);max-height:78vh}
 .prr.all .pt2 b{color:var(--ok)}
 #btnAcct.on::after{content:"";position:absolute;right:3px;bottom:3px;width:11px;height:11px;border-radius:50%;background:#2fb457;border:2px solid var(--surface)}
 /* Pódcasts */
-#mainTabs{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}#mainTabs button{grid-column:span 2;font-size:.86rem;padding:10px 0;min-width:0;white-space:nowrap}#mainTabs button:nth-child(n+4){grid-column:span 2}
+#mainTabs{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}#mainTabs button{grid-column:span 2;font-size:.86rem;padding:10px 0;min-width:0;white-space:nowrap}#mainTabs button:nth-child(n+4){grid-column:span 2}#mainTabs.noOral button:nth-child(n+4){grid-column:span 3}#mainTabs button[hidden]{display:none}
 .gal{display:block;margin-top:3px;font-size:.78rem;color:var(--muted);font-style:italic}
 #glSearch{width:100%;box-sizing:border-box;margin:0 0 6px;padding-right:40px}#glSearch::-webkit-search-cancel-button{-webkit-appearance:none;display:none}.glw{position:relative}.glx{position:absolute;right:6px;top:6px;width:32px;height:32px;border:0;border-radius:50%;background:var(--surface2);color:var(--muted);font-size:.95rem;line-height:1;cursor:pointer}.glbar{position:sticky;top:0;z-index:5;background:var(--bg,#fff);padding:6px 0}#glCount{font-size:.78rem;opacity:.7;margin:2px 2px 6px}.glL{font-weight:800;font-size:1.05rem;margin:14px 0 4px;color:var(--accent,#2a6)}.glI{padding:7px 2px;border-bottom:1px solid rgba(128,128,128,.2);display:flex;gap:6px;align-items:flex-start}.glI .gs{flex:none;border:0;background:transparent;font-size:1.3rem;line-height:1;padding:2px 4px 0 0;color:var(--muted);cursor:pointer}.glI .gs.on{color:var(--gold)}.glI>div{flex:1;min-width:0}.glI b{display:block}.glI span{opacity:.88;font-size:.92rem}mark.hl{background:#ffe066;color:#000;border-radius:3px;padding:0 1px}
 html,body{max-width:100%}.top>div{min-width:0}@media(max-width:430px){.top h1{font-size:1.15rem}.top{gap:8px}}
@@ -419,6 +420,10 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <section class="sec" id="podDlView" hidden>
     <h2><span class="n">3</span>Pódcasts descargados</h2>
     <div id="podDlList"></div>
+  </section>
+  <section class="sec" id="podDocView" hidden>
+    <h2><span class="n">4</span>Temas actualizados por internet</h2>
+    <p class="hint"><a href="https://claude.ai/artifact/V5QcM4hPxd7m8yKwtSNxhy" target="_blank" rel="noopener">Abrir el documento con la lista de temas actualizados</a></p>
   </section>
 
   <section class="sec" id="examSec" hidden>
@@ -793,6 +798,18 @@ function podSave(force){
   U.set("podpos",p);
   if(t>podAudio.duration*0.95){const h=podHeard();h.add(podN);U.set("podheard",[...h]);podAutoMark()}
 }
+const POD_UPD=new Set([4,9,10,14,20,21,23,24,26,30,31,32,33,49,50,52,53,55,59,69,78,100]);
+function isOwner(){try{return ((adUser&&adUser.email)||(LS.get("acct",null)||{}).email||"").toLowerCase()==="nikojota888@gmail.com"}catch(e){return false}}
+function podStar(n){return isOwner()&&POD_UPD.has(n)?"* ":""}
+const RESDEL=()=>new Set(U.get("resdel",[]));
+const getHist=k=>{const d=RESDEL();return U.get(k,[]).filter(h=>!d.has(h.d))};
+const delBtn=d=>isOwner()?`<span class="hdel btn ghost" role="button" aria-label="Descartar" title="Borrar resultado" data-del="${d}">✕</span>`:"";
+function delResult(d){
+  if(!confirm("¿Borrar este resultado? No se puede deshacer."))return;
+  d=+d; const t=U.get("resdel",[]); if(!t.includes(d)){t.push(d);U.set("resdel",t)}
+  [["hist","tests"],["exhist","extests"]].forEach(([h,x])=>{U.set(h,U.get(h,[]).filter(r=>r.d!==d));U.set(x,U.get(x,[]).filter(r=>r.d!==d))});
+  renderHome(); if(mode==="exams")renderExams(); refresh();
+}
 function renderPod(){ keepScroll("#podList .block.open .temas, #podFavView .block.open .temas, #podDlView .block.open .temas",b=>b.parentElement.id+b.dataset.i,renderPod0) }
 function renderPod0(){
   const host=$("#podList"), pos=podPos(), heard=podHeard(), pf=new Set(U.get("podfavs",[]));
@@ -800,7 +817,7 @@ function renderPod0(){
   const row=t=>{
     const na=podAvail[t.n]===false&&!podDlSet.has(t.n), now=podN===t.n, hd=heard.has(t.n);
     const st=na?"No disponible":now?(podAudio&&!podAudio.paused?"Sonando":"En pausa"):hd?"Escuchado":pos[t.n]?podFmt(pos[t.n]):"";
-    return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.lbl||t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${esc(podName(t))}</span><span class="pr"><span class="ps">${st}</span><button class="pdl${podDlSet.has(t.n)&&!podDlCtl[t.n]?" has":""}${podDlCtl[t.n]?" busy":""}" data-dl="${t.n}">${podDlLabel(t.n)}</button></span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`};
+    return `<div class="prow${na?" na":""}${now?" now":""}${hd?" heard":""}" data-n="${t.n}"><button class="pf${pf.has(t.n)?" on":""}" data-fav="${t.n}" aria-label="Favorito">${pf.has(t.n)?"★":"☆"}</button><span class="pn"><span>${t.lbl||t.n}</span><small>${podDurs[t.n]?podFmt(podDurs[t.n]):""}</small></span><span class="pt">${podStar(t.n)}${esc(podName(t))}</span><span class="pr"><span class="ps">${st}</span><button class="pdl${podDlSet.has(t.n)&&!podDlCtl[t.n]?" has":""}${podDlCtl[t.n]?" busy":""}" data-dl="${t.n}">${podDlLabel(t.n)}</button></span><span class="pi">${now&&podAudio&&!podAudio.paused?"❚❚":"▶"}</span></div>`};
   const mk=(i,name,meta,ts,col,H,emp)=>{
     const el=document.createElement("div"); el.className="card block"+(podOpen.has(i)?" open":""); el.dataset.i=i; el.style.setProperty("--bc",col); if(H)el.style.borderLeft="0";
     el.innerHTML=`<div class="head"><div class="info"><div class="name">${name}</div><div class="meta">${meta}</div></div><button class="chev" aria-label="Abrir o cerrar">▾</button></div><div class="temas">${ts.length?ts.map(row).join(""):`<p class="hint" style="margin:8px 4px">${emp||"Aún no tienes pódcasts favoritos. Marca la estrella de un tema para verlo aquí."}</p>`}</div>`;
@@ -1009,19 +1026,20 @@ $("#blocks").addEventListener("click",e=>{
 function renderExams(){ keepScroll("#exList .block.open .temas",b=>b.dataset.id,renderExams0) }
 function renderExams0(){
   const host=$("#exList"), openIds=$$("#exList .block.open").map(b=>b.dataset.id);
-  const hist=U.get("exhist",[]), saved=new Set(U.get("extests",[]).map(t=>t.d)), pd=pend().filter(sv=>sv.ex);
+  const hist=getHist("exhist"), saved=new Set(U.get("extests",[]).map(t=>t.d)), pd=pend().filter(sv=>sv.ex);
   host.innerHTML=EXAMS.map((e,ei)=>{
     const pe=pd.filter(sv=>sv.exid?sv.exid===e.id:ei===0);
     const prow=pe.map(sv=>{const a=sv.items.filter(x=>x.a!==null).length;return resRow(dShort(sv.id)+" · Pendiente",`${a} contestadas de ${sv.items.length} · vas por la ${sv.idx+1}`,sv.id)}).join("");
     const hs=hist.filter(h=>h.id===e.id), hf=hs.filter(h=>!h.rev), best=hf.length?Math.max(...hf.map(h=>h.nota)):null, on=exSel.has(e.id);
     const rows=hs.map(h=>{const ok=h.nota>=5, sv=saved.has(h.d);
-      return `<${sv?"button":"div"} class="card hrow ${ok?"pass":"fail"}${sv?" click":""}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div><div class="d"><b>${h.rev?"Repaso de falladas · "+h.n+" preguntas":ok?"Aprobado":"Suspenso"}</b> · ${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""}<br>${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"})}</div></${sv?"button":"div"}>`}).join("");
+      return `<${sv?"button":"div"} class="card hrow ${ok?"pass":"fail"}${sv?" click":""}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div><div class="d"><b>${h.rev?"Repaso de falladas · "+h.n+" preguntas":ok?"Aprobado":"Suspenso"}</b> · ${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""}<br>${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"})}</div>${delBtn(h.d)}</${sv?"button":"div"}>`}).join("");
     return `<div class="card block${openIds.includes(e.id)?" open":""}" data-id="${esc(e.id)}" style="--bc:var(--c-leg)"><div class="head"><div class="info"><div class="name">${esc(e.name)}</div></div>
       <button class="tog on" data-act="pick">Examinarse</button><button class="chev" data-act="open" aria-label="Ver intentos">▾</button><div class="meta xmeta">${e.items.length} preguntas · ${hf.length} ${hf.length===1?"intento":"intentos"} · ${pe.length} ${pe.length===1?"pendiente":"pendientes"}${best!==null?" · mejor nota "+fmt(best):""}</div></div>
       <div class="temas">${prow}${rows||(prow?"":'<p class="hint" style="margin:6px 8px">Aún no has resuelto este examen.</p>')}</div></div>`}).join("");
 }
 $("#exList").addEventListener("click",e=>{
   if(e.target.closest(".resume")){resumeClick(e);return}
+  const dl=e.target.closest(".hdel"); if(dl){e.stopPropagation();delResult(dl.dataset.del);return}
   const h=e.target.closest(".hrow.click");
   if(h){ const t=U.get("extests",[]).find(t=>String(t.d)===h.dataset.d); if(!t)return;
     const items=expand(t); quiz={items,k:t.k,idx:0,instant:t.instant,el:t.el,done:true,d:t.d,ex:true}; showResult(score(items)); return }
@@ -1165,6 +1183,7 @@ const _glx=()=>{$("#glClear").hidden=!$("#glSearch").value};
 $("#glSearch").addEventListener("input",()=>{_glx();clearTimeout(window._gt);window._gt=setTimeout(renderGlos,120)});
 $("#glClear").addEventListener("click",()=>{$("#glSearch").value="";_glx();renderGlos();$("#glSearch").focus()});
 function refresh(){
+  {const ow=isOwner(); const ob=$('#mainTabs [data-m="oral"]'); ob.hidden=!ow; $("#mainTabs").classList.toggle("noOral",!ow); if(!ow&&mode==="oral"){mode="tests";LS.set("mode",mode)}}
   U.set("sel",[...sel]);
   $$("#mainTabs button").forEach(b=>b.classList.toggle("on",b.dataset.m===mode));
   $("#bankInfo").textContent=mode==="cards"?`${CARDS.length} tarjetas · ${temasConBanco.filter(t=>t.n<=100).length} temas`:`${B.qs.length} preguntas · ${temasConBanco.filter(t=>t.n<=100).length} temas`;
@@ -1173,7 +1192,7 @@ function refresh(){
   { const isC=mode==="cards"; $("#pendN").textContent=isC?4:5; $("#pendTitle").textContent=isC?"Tarjetas pendientes":"Tests pendientes";
     const n=(isC?cpend():pend().filter(x=>!x.ex)).length; const e=$("#pendEmpty"); e.hidden=!!n||mode==="pod"||mode==="exams"; e.textContent=isC?"No tienes ninguna tarjeta pendiente.":"No tienes ningún test pendiente."; }
   const isE=mode==="exams";
-  $("#glosView").hidden=mode!=="glos"; $("#oralView").hidden=!isO; if(!isO)oStop(); $("#podView").hidden=!isP; $("#podFavView").hidden=!isP; $("#podDlView").hidden=!isP; $("#temaSec").hidden=isP||isE||isG; $("#examSec").hidden=!isE; $("#favSec").hidden=isP||isG; $("#homeDock").hidden=isP||isE||isG;
+  $("#glosView").hidden=mode!=="glos"; $("#oralView").hidden=!isO; if(!isO)oStop(); $("#podView").hidden=!isP; $("#podFavView").hidden=!isP; $("#podDlView").hidden=!isP; $("#podDocView").hidden=!isP||!isOwner(); $("#temaSec").hidden=isP||isE||isG; $("#examSec").hidden=!isE; $("#favSec").hidden=isP||isG; $("#homeDock").hidden=isP||isE||isG;
   const pshow=!!podN&&(isP||mode==="glos"); $("#podDock").hidden=!pshow; document.body.classList.toggle("podplay",pshow); podLayout(); if(pshow)podMq();
   if(isG){ if(isO){renderOral(); $("#bankInfo").textContent=OT.length+" temas"} else {renderGlos(); $("#bankInfo").textContent=(window.GLOS||[]).length+" términos y siglas"} $("#testOpts").hidden=true; $("#cardOpts").hidden=true; $("#histSec").hidden=true; $("#cntSec").hidden=true; $("#pendEmpty").hidden=true; const f1=document.querySelector(".foot"); if(f1)f1.hidden=true; return }
   if(isP){ renderPod(); $("#testOpts").hidden=true; $("#cardOpts").hidden=true; $("#histSec").hidden=true; const f0=document.querySelector(".foot"); if(f0)f0.hidden=true; $("#bankInfo").textContent=`${PODT.length} pódcasts · 100 temas`; return }
@@ -1495,12 +1514,13 @@ function renderHome(){
   if(!cu){ $("#btnUser").innerHTML="👤"; $("#btnUser").style.background="var(--surface2,var(--line))"; $("#btnUser").title="Iniciar sesión"; }
   else{ $("#btnUser").innerHTML=cu.photo?`<img src="${cu.photo}" alt="">`:esc(cu.name.trim().charAt(0).toUpperCase()||"?");
   $("#btnUser").style.background=cu.photo?"":`hsl(${parseInt(hq(cu.id),36)%360} 45% 42%)`; $("#btnUser").title=cu.name; }
-  const hist=U.get("hist",[]), tst=U.get("tests",[]), saved=new Set(tst.map(t=>t.d)); const ttOld=d=>{const t=tst.find(t=>t.d===d); if(!t)return null; return temaList(t.items.map(r=>{const i=IDX.get(r[0]); return i===undefined?null:B.qs[i][0]}).filter(v=>v!==null))};
+  const hist=getHist("hist"), tst=U.get("tests",[]), saved=new Set(tst.map(t=>t.d)); const ttOld=d=>{const t=tst.find(t=>t.d===d); if(!t)return null; return temaList(t.items.map(r=>{const i=IDX.get(r[0]); return i===undefined?null:B.qs[i][0]}).filter(v=>v!==null))};
   $("#hist").innerHTML=hist.map(h=>`<${saved.has(h.d)?'button':'div'} class="card hrow ${h.nota>=5?'pass':'fail'}${saved.has(h.d)?' click':''}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div>
-    <div class="d"><b>${h.n} preguntas</b> · ${h.ex?h.k+" "+(h.k===1?"examen":"exámenes"):temaTxt(h.tt||ttOld(h.d),h.k)}<br>${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""} · ${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short"})}</div></${saved.has(h.d)?'button':'div'}>`).join("");
+    <div class="d"><b>${h.n} preguntas</b> · ${h.ex?h.k+" "+(h.k===1?"examen":"exámenes"):temaTxt(h.tt||ttOld(h.d),h.k)}<br>${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""} · ${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short"})}</div>${delBtn(h.d)}</${saved.has(h.d)?'button':'div'}>`).join("");
   refresh();
 }
 $("#hist").addEventListener("click",e=>{
+  const dl=e.target.closest(".hdel"); if(dl){e.stopPropagation();delResult(dl.dataset.del);return}
   const r=e.target.closest(".click"); if(!r) return;
   const t=U.get("tests",[]).find(t=>String(t.d)===r.dataset.d); if(!t) return;
   const items=expand(t);
@@ -1682,7 +1702,7 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){
 /* ---------- Cuenta y sincronización (Firebase) ---------- */
 const FBV="10.14.1", FBCFG=window.FIREBASE_CONFIG||{};
 const fbOK=!!(window.__SYNC_ADAPTER||(FBCFG.apiKey&&!/REEMPLAZA/i.test(FBCFG.apiKey)));
-const SET_KEYS=new Set(["exfavs","favs","cfavs","cknown","podheard","podfavs"]), LIST_KEYS=new Set(["hist","tests","exhist","extests"]);
+const SET_KEYS=new Set(["exfavs","favs","cfavs","cknown","podheard","podfavs","resdel"]), LIST_KEYS=new Set(["hist","tests","exhist","extests"]);
 function onFb(){return typeof cur==="string"&&cur.startsWith("fb:")}
 function tKey(k){return `t:${cur}:${k}`}
 function dKey(){return `dirty:${cur}`}
