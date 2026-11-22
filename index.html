@@ -760,7 +760,7 @@ let quiz=null;           // test en curso
 let cards=null;          // sesión de tarjetas
 let revFilter="all"; const OFFIDX=new Set(); EXAMS.forEach(e=>e.items.concat(e.extra).forEach(x=>OFFIDX.add(x.i))); const isOff=x=>x.xe!==undefined||OFFIDX.has(x.i);
 const OFFYR=new Map(); EXAMS.forEach(e=>{const y=e.tag||(e.id.match(/\d{4}/)||[])[0]; if(y)e.items.concat(e.extra).forEach(x=>{const l=OFFYR.get(x.i)||[]; if(!l.includes(y))l.push(y); OFFYR.set(x.i,l)})}); const exVar=t=>/2026/.test(t)?"--y26":/2025/.test(t)?"--y25":/2023/.test(t)?"--y23":"--yb"; // color por año del examen (--yb: tests de libros)
-const offTag=x=>{if(x.xe!==undefined)return ""; const l=OFFYR.get(x.i); return l&&l.length?` · Examen ${l.slice().sort((p,q)=>(q.match(/\d{4}/)||[0])[0]-(p.match(/\d{4}/)||[0])[0]).map(t=>`<b style="color:var(${exVar(t)})">${t}</b>`).join(" y ")}`:""};
+const offTag=x=>{if(x.xe!==undefined)return ""; const l=OFFYR.get(x.i); if(!(l&&l.length))return ""; const o=l.slice().sort((p,q)=>(q.match(/\d{4}/)||[0])[0]-(p.match(/\d{4}/)||[0])[0]); return ` · <b style="color:var(${exVar(o[0])})">Examen</b> ${o.map(t=>`<b style="color:var(${exVar(t)})">${t}</b>`).join(" y ")}`};
 /* ---------- Pódcasts ---------- */
 let podN=0, podRate=1, podAudio=null, podAvail={}, podProbed=false, podSaveAt=0, podDurs=LS.get("podDurs",{});
 let podOpen=new Set();
