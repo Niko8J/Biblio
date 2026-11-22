@@ -748,7 +748,7 @@ const FIX={
 };
 /* Preguntas cuyas respuestas se refieren a otras ("B y C son correctas", "Ninguna de las anteriores"...): orden fijo, el del examen */
 const FIXORD=new Set(["14w1w8y","19znia9","zuhqe9","lep8le","1i15bc6","1h61i9l"]);
-let _exq=null; const exqOf=h=>{ if(!_exq){_exq=new Map(); EXAMS.forEach(e=>e.items.forEach(x=>{const k=HID[x.i]; if(FIXORD.has(k)&&!_exq.has(k))_exq.set(k,x)}))} return _exq.get(h) };
+let _exq=null; const exqOf=i=>{ if(!_exq){_exq=new Map(); EXAMS.forEach(e=>e.items.forEach(x=>{ if(!_exq.has(x.i))_exq.set(x.i,x)}))} return _exq.get(i) }; // preguntas de examen oficial: siempre en el orden del examen
 const fixIt=it=>{const f=FIX[it.h]; if(!f)return it; if(f.q)it.q=f.q; if(f.o)it.o=it.o.map(t=>f.o[t]||t); return it};
 function makeExItem(x,p){const q=B.qs[x.i]; p=Array.isArray(p)?p:[0,1,2,3]; return fixIt({i:x.i,h:HID[x.i],p,t:q[0],q:x.q,o:p.map(k=>x.o[k]),c:p.indexOf(x.c),e:q[6],a:null,xe:x.eid,xk:x.k})}
 
@@ -1242,8 +1242,8 @@ function pickIndexes(set,N){
 }
 function makeItem(i){
   const q=B.qs[i]; let opts=shuffle([0,1,2,3]);
-  if(FIXORD.has(HID[i])){const x=exqOf(HID[i]); if(x){const f=x.o.map(t=>[0,1,2,3].find(k=>q[2+k]===t)); if(f.every(k=>k!==undefined)) opts=f}} // opts[k] = índice original mostrado en posición k
-  else { const k=[0,1,2,3].find(k=>/^todas las (respuestas )?anteriores/i.test(q[2+k])); if(k!==undefined) {const r=[0,1,2,3].filter(j=>j!==k); opts=(k===0?r:shuffle(r)).concat(k)} } // «Todas las anteriores»: siempre en último lugar; si es la correcta, el resto en el orden del banco; si no, el resto al azar
+  let fix=false; { const x=exqOf(i); if(x){const f=x.o.map((t,j)=>j===x.c?0:[1,2,3].find(k=>q[2+k]===t)); const used=new Set(); const g=f.map(k=>{if(k===undefined||used.has(k))return null; used.add(k); return k}); const rest=[0,1,2,3].filter(k=>!used.has(k)); opts=g.map(k=>k===null?rest.shift():k); fix=true} } // la correcta en su letra del examen; las demás, por texto (si el banco la reformuló, en orden) // opts[k] = índice original mostrado en posición k
+  if(!fix){ const k=[0,1,2,3].find(k=>/^todas las (respuestas )?anteriores/i.test(q[2+k])); if(k!==undefined) {const r=[0,1,2,3].filter(j=>j!==k); opts=(k===0?r:shuffle(r)).concat(k)} } // «Todas las anteriores»: siempre en último lugar; si es la correcta, el resto en el orden del banco; si no, el resto al azar
   return fixIt({i, h:HID[i], p:opts, t:q[0], q:q[1], o:opts.map(k=>q[2+k]), c:opts.indexOf(0), e:q[6], a:null});
 }
 function start(items,inst,k){
