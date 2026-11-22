@@ -709,7 +709,7 @@ let AD=null, adUser=null, syncUnsub=null, syncTimer=0, syncMsg="", syncBusy=fals
 const U={get(k,d){return cur?LS.get(`u:${cur}:${k}`,d):d},set(k,v){if(cur){LS.set(`u:${cur}:${k}`,v);syncTouch(k)}},del(k){if(cur){LS.del(`u:${cur}:${k}`);syncTouch(k)}}};
 
 /* ---------- Datos ---------- */
-const TSHORT={12:"La Ley 39/2015 del Procedimiento Administrativo Común",16:"Estructura y competencias en bibliotecas de las Administraciones Públicas",24:"La Ley 19/2013 de Transparencia y Buen Gobierno",71:"OPAC, herramientas de descubrimiento y portales bibliotecarios",61:"Fuentes de información de publicaciones periódicas y oficiales"};
+const TSHORT={22:"Políticas de igualdad",27:"Gestión de recursos humanos y liderazgo",28:"Gestión presupuestaria y contratos",29:"Procesos, calidad y planificación estratégica",12:"La Ley 39/2015 del Procedimiento Administrativo Común",16:"Estructura y competencias en bibliotecas de las Administraciones Públicas",24:"La Ley 19/2013 de Transparencia y Buen Gobierno",71:"OPAC, herramientas de descubrimiento y portales bibliotecarios",61:"Fuentes de información de publicaciones periódicas y oficiales"};
 const EPT=["El debate del precio fijo del libro","Quién manda en las bibliotecas españolas","¿Protección o acceso en la Biblioteca Nacional?","El dilema del depósito legal español","Derechos de autor en bibliotecas públicas","La trampa del Código de Legislación Bibliotecaria","Transparencia frente a secretos oficiales"];
 const PODT=(()=>{const o=[];B.temas.filter(t=>t.n<=100).forEach(t=>{o.push(t.n===28?{...t,lbl:"28.1"}:t);
   if(t.n===28)o.push({n:28.2,t:"La importancia de los presupuestos en las bibliotecas",b:t.b,lbl:"28.2",f:"Tema_28.2"});
