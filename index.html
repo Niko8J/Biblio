@@ -593,6 +593,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
     <button class="tab" data-f="bad">Falladas</button>
     <button class="tab" data-f="blank">En blanco</button>
     <button class="tab" data-f="ok">Acertadas</button>
+    <button class="tab" data-f="exam">De examen</button>
   </div>
   <div id="rList"></div>
 </main>
@@ -754,7 +755,7 @@ function makeExItem(x,p){const q=B.qs[x.i]; p=Array.isArray(p)?p:[0,1,2,3]; retu
 let mode=LS.get("mode","tests");
 let quiz=null;           // test en curso
 let cards=null;          // sesión de tarjetas
-let revFilter="all";
+let revFilter="all"; const OFFIDX=new Set(); EXAMS.forEach(e=>e.items.forEach(x=>OFFIDX.add(x.i))); const isOff=x=>x.xe!==undefined||OFFIDX.has(x.i);
 /* ---------- Pódcasts ---------- */
 let podN=0, podRate=1, podAudio=null, podAvail={}, podProbed=false, podSaveAt=0, podDurs=LS.get("podDurs",{});
 let podOpen=new Set();
@@ -1495,7 +1496,7 @@ function showResult(s){
 function renderReview(){
   const host=$("#rList"); const items=quiz.items.map((x,i)=>({x,i}));
   const st=x=>x.a===null?"blank":x.a===x.c?"ok":"bad";
-  const f=items.filter(({x})=>revFilter==="all"||st(x)===revFilter);
+  const f=items.filter(({x})=>revFilter==="all"||(revFilter==="exam"?isOff(x):st(x)===revFilter));
   if(!f.length){host.innerHTML=`<p class="empty">No hay preguntas en esta categoría.</p>`;return}
   const lab={ok:"Acertada",bad:"Fallada",blank:"En blanco"}, col={ok:"var(--ok)",bad:"var(--bad)",blank:"var(--blank)"};
   host.innerHTML=f.map(({x,i})=>{const s=st(x);
