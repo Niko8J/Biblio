@@ -691,7 +691,7 @@ const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.par
           del(k){try{localStorage.removeItem(k)}catch(e){}}};
 const fmt=(x,d=2)=>x.toFixed(d).replace(".",",");
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-const L="ABCD";
+const L="ABCD"; const NO=q=>q[5]?4:3;
 
 /* ---------- Usuarios (todo se guarda en este dispositivo) ---------- */
 let users=LS.get("users",null), cur=LS.get("cur",null);
@@ -733,11 +733,11 @@ const temasConBanco=B.temas.filter(t=>perTema[t.n]);
 let sel,count,instant,favs,known,cfavs,cardCount,onlyUnk;
 /* ---------- Exámenes oficiales (preguntas del banco, en el orden oficial) ---------- */
 const EXAMS=(window.EXAMS||[]).map(e=>{
-  const items=[]; e.qs.forEach(q=>{
-    const i=IDX.get(hq(q.q+"|"+q.o[q.a])); if(i===undefined) return;
-    items.push({i,k:items.length,q:q.q,o:q.o,c:q.a});
-  });
-  items.forEach(x=>x.eid=e.id); return {id:e.id,name:e.name,items};
+  const items=[], extra=[]; e.qs.forEach(q=>{
+    const i=IDX.get(hq((q.bs||q.q)+"|"+(q.bc||q.o[q.a]))); if(i===undefined) return;
+    if(q.r) extra.push({i,q:q.q,o:q.o,c:q.a}); else items.push({i,k:items.length,q:q.q,o:q.o,c:q.a});
+  }); // extra = preguntas de reserva que no entran en el examen de 100, pero son oficiales (banco y etiqueta)
+  items.forEach(x=>x.eid=e.id); extra.forEach(x=>x.eid=e.id); return {id:e.id,name:e.name,tag:e.tag,items,extra};
 }).filter(e=>e.items.length);
 let exSel=new Set(), exfavs=new Set();
 const exPool=()=>{const o=[];EXAMS.forEach(e=>{if(exSel.has(e.id))e.items.forEach(x=>o.push(x))});return o};
@@ -748,14 +748,15 @@ const FIX={
 };
 /* Preguntas cuyas respuestas se refieren a otras ("B y C son correctas", "Ninguna de las anteriores"...): orden fijo, el del examen */
 const FIXORD=new Set(["14w1w8y","19znia9","zuhqe9","lep8le","1i15bc6","1h61i9l"]);
-let _exq=null; const exqOf=i=>{ if(!_exq){_exq=new Map(); EXAMS.forEach(e=>e.items.forEach(x=>{ if(!_exq.has(x.i))_exq.set(x.i,x)}))} return _exq.get(i) }; // preguntas de examen oficial: siempre en el orden del examen
+let _exq=null; const exqOf=i=>{ if(!_exq){_exq=new Map(); EXAMS.forEach(e=>e.items.concat(e.extra).forEach(x=>{ if(!_exq.has(x.i))_exq.set(x.i,x)}))} return _exq.get(i) }; // preguntas de examen oficial: siempre en el orden del examen
 const fixIt=it=>{const f=FIX[it.h]; if(!f)return it; if(f.q)it.q=f.q; if(f.o)it.o=it.o.map(t=>f.o[t]||t); return it};
-function makeExItem(x,p){const q=B.qs[x.i]; p=Array.isArray(p)?p:[0,1,2,3]; return fixIt({i:x.i,h:HID[x.i],p,t:q[0],q:x.q,o:p.map(k=>x.o[k]),c:p.indexOf(x.c),e:q[6],a:null,xe:x.eid,xk:x.k})}
+function makeExItem(x,p){const q=B.qs[x.i]; p=Array.isArray(p)?p:x.o.map((_,j)=>j); return fixIt({i:x.i,h:HID[x.i],p,t:q[0],q:x.q,o:p.map(k=>x.o[k]),c:p.indexOf(x.c),e:q[6],a:null,xe:x.eid,xk:x.k})}
 
 let mode=LS.get("mode","tests");
 let quiz=null;           // test en curso
 let cards=null;          // sesión de tarjetas
-let revFilter="all"; const OFFIDX=new Set(); EXAMS.forEach(e=>e.items.forEach(x=>OFFIDX.add(x.i))); const isOff=x=>x.xe!==undefined||OFFIDX.has(x.i);
+let revFilter="all"; const OFFIDX=new Set(); EXAMS.forEach(e=>e.items.concat(e.extra).forEach(x=>OFFIDX.add(x.i))); const isOff=x=>x.xe!==undefined||OFFIDX.has(x.i);
+const OFFYR=new Map(); EXAMS.forEach(e=>{const y=e.tag||(e.id.match(/\d{4}/)||[])[0]; if(y)e.items.concat(e.extra).forEach(x=>{const l=OFFYR.get(x.i)||[]; if(!l.includes(y))l.push(y); OFFYR.set(x.i,l)})}); const offTag=x=>{if(x.xe!==undefined)return ""; const l=OFFYR.get(x.i); return l&&l.length?` · Examen ${l.slice().sort().join(" y ")}`:""};
 /* ---------- Pódcasts ---------- */
 let podN=0, podRate=1, podAudio=null, podAvail={}, podProbed=false, podSaveAt=0, podDurs=LS.get("podDurs",{});
 let podOpen=new Set();
@@ -1241,9 +1242,9 @@ function pickIndexes(set,N){
   return shuffle(all).slice(0,N); // al azar sobre todo el conjunto, como en un examen real
 }
 function makeItem(i){
-  const q=B.qs[i]; let opts=shuffle([0,1,2,3]);
-  let fix=false; { const x=exqOf(i); if(x){const f=x.o.map((t,j)=>j===x.c?0:[1,2,3].find(k=>q[2+k]===t)); const used=new Set(); const g=f.map(k=>{if(k===undefined||used.has(k))return null; used.add(k); return k}); const rest=[0,1,2,3].filter(k=>!used.has(k)); opts=g.map(k=>k===null?rest.shift():k); fix=true} } // la correcta en su letra del examen; las demás, por texto (si el banco la reformuló, en orden) // opts[k] = índice original mostrado en posición k
-  if(!fix){ const k=[0,1,2,3].find(k=>/^todas las (respuestas )?anteriores/i.test(q[2+k])); if(k!==undefined) {const r=[0,1,2,3].filter(j=>j!==k); opts=(k===0?r:shuffle(r)).concat(k)} } // «Todas las anteriores»: siempre en último lugar; si es la correcta, el resto en el orden del banco; si no, el resto al azar
+  const q=B.qs[i]; const NQ=NO(q), RG=[0,1,2,3].slice(0,NQ); let opts=shuffle(RG.slice());
+  let fix=false; { const x=exqOf(i); if(x){const f=x.o.map((t,j)=>j===x.c?0:RG.slice(1).find(k=>q[2+k]===t)); const used=new Set(); const g=f.map(k=>{if(k===undefined||used.has(k))return null; used.add(k); return k}); const rest=RG.filter(k=>!used.has(k)); opts=g.map(k=>k===null?rest.shift():k); fix=true} } // la correcta en su letra del examen; las demás, por texto (si el banco la reformuló, en orden) // opts[k] = índice original mostrado en posición k
+  if(!fix){ const k=RG.find(k=>/^todas las (respuestas )?anteriores/i.test(q[2+k])); if(k!==undefined) {const r=RG.filter(j=>j!==k); opts=(k===0?r:shuffle(r)).concat(k)} } // «Todas las anteriores»: siempre en último lugar; si es la correcta, el resto en el orden del banco; si no, el resto al azar
   return fixIt({i, h:HID[i], p:opts, t:q[0], q:q[1], o:opts.map(k=>q[2+k]), c:opts.indexOf(0), e:q[6], a:null});
 }
 function start(items,inst,k){
@@ -1270,7 +1271,7 @@ function itemCard(isC,i){
     if(c[1]==="c"){ const p=q.split(BLANK); html=`<div class="qtext">${esc(p[0])}<mark class="ans">${esc(a)}</mark>${esc(p.slice(1).join("______"))}</div>` }
     else html=`<div class="qtext">${esc(q)}</div><div class="opt ok" style="cursor:default">${esc(a)}</div>`;
   } else { const q=B.qs[i]; t=q[0]; h=HID[i];
-    html=`<div class="qtext">${esc(q[1])}</div>`+[0,1,2,3].map(k=>`<div class="opt${k===0?" ok":""}" style="cursor:default"><span class="l">${"ABCD"[k]}</span><span>${esc(q[2+k])}</span></div>`).join("")+(q[6]?`<p class="hint" style="margin:10px 0 0">${esc(q[6])}</p>`:"");
+    html=`<div class="qtext">${esc(q[1])}</div>`+[0,1,2,3].slice(0,NO(q)).map(k=>`<div class="opt${k===0?" ok":""}" style="cursor:default"><span class="l">${"ABCD"[k]}</span><span>${esc(q[2+k])}</span></div>`).join("")+(q[6]?`<p class="hint" style="margin:10px 0 0">${esc(q[6])}</p>`:"");
   }
   const set=isC?cfavs:favs;
   d.style.setProperty("--st",bcOf(t));
@@ -1333,7 +1334,7 @@ function openFavList(){
       if(c[1]==="c"){ const p=q.split(BLANK); html=`<div class="qtext">${esc(p[0])}<mark class="ans">${esc(a)}</mark>${esc(p.slice(1).join("______"))}</div>` }
       else html=`<div class="qtext">${esc(q)}</div><div class="opt ok" style="cursor:default">${esc(a)}</div>`;
     } else { const q=B.qs[i]; t=q[0]; h=HID[i];
-      html=`<div class="qtext">${esc(q[1])}</div>`+[0,1,2,3].map(k=>`<div class="opt${k===0?" ok":""}" style="cursor:default"><span class="l">${"ABCD"[k]}</span><span>${esc(q[2+k])}</span></div>`).join("")+(q[6]?`<p class="hint" style="margin:10px 0 0">${esc(q[6])}</p>`:"");
+      html=`<div class="qtext">${esc(q[1])}</div>`+[0,1,2,3].slice(0,NO(q)).map(k=>`<div class="opt${k===0?" ok":""}" style="cursor:default"><span class="l">${"ABCD"[k]}</span><span>${esc(q[2+k])}</span></div>`).join("")+(q[6]?`<p class="hint" style="margin:10px 0 0">${esc(q[6])}</p>`:"");
     }
     d.style.setProperty("--st",bcOf(t));
     d.innerHTML=`<div class="tag">${esc(temaTag(t))}<button class="star on" aria-label="Quitar de favoritas">★</button></div><div class="hint" style="margin:-2px 0 10px;font-size:.8rem">${esc(temaName(t))}</div>`+html;
@@ -1459,7 +1460,7 @@ function compact(items){
 function expand(t){
   const items=[]; t.items.forEach(([h,ps,a,xe,xk])=>{
     const i=IDX.get(h); if(i===undefined) return; const row=B.qs[i], p=ps.split("").map(Number);
-    if(xe){const E=EXAMS.find(e=>e.id===xe), x=E&&E.items[xk]; if(x){const it=makeExItem(x,p); it.a=a<0?null:a; items.push(it); return}}
+    if(xe){const E=EXAMS.find(e=>e.id===xe), x=E&&(E.items.concat(E.extra).find(y=>HID[y.i]===h)||E.items[xk]); if(x){const it=makeExItem(x,p); it.a=a<0?null:a; items.push(it); return}}
     items.push(fixIt({i,h,p,t:row[0],q:row[1],o:p.map(k=>row[2+k]),c:p.indexOf(0),e:row[6],a:a<0?null:a}));
   }); return items;
 }
@@ -1500,7 +1501,7 @@ function renderReview(){
   if(!f.length){host.innerHTML=`<p class="empty">No hay preguntas en esta categoría.</p>`;return}
   const lab={ok:"Acertada",bad:"Fallada",blank:"En blanco"}, col={ok:"var(--ok)",bad:"var(--bad)",blank:"var(--blank)"};
   host.innerHTML=f.map(({x,i})=>{const s=st(x);
-    return `<article class="card rev" style="--st:${col[s]}"><div class="tag">${lab[s]} <span>· Pregunta ${i+1} · ${x.t>100?"Extra":"Tema "+x.t}</span><button class="star ${curFavs().has(hOf(x))?"on":""}" data-h="${hOf(x)}" aria-label="Favorita">${starTxt(curFavs().has(hOf(x)))}</button></div>
+    return `<article class="card rev" style="--st:${col[s]}"><div class="tag">${lab[s]} <span>· Pregunta ${i+1} · ${x.t>100?"Extra":"Tema "+x.t}${offTag(x)}</span><button class="star ${curFavs().has(hOf(x))?"on":""}" data-h="${hOf(x)}" aria-label="Favorita">${starTxt(curFavs().has(hOf(x)))}</button></div>
     <p class="qtext">${esc(x.q)}</p><div class="opts">${x.o.map((t,k)=>`<div class="opt ${k===x.c?"ok":k===x.a?"bad":""}"><span class="l">${L[k]}</span><span class="x">${esc(t)}${k===x.a&&k!==x.c?" <small>(tu respuesta)</small>":""}</span></div>`).join("")}</div>
     <div class="expl"><b>Explicación.</b> ${esc(x.e)}</div></article>`}).join("");
 }
