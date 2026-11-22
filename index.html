@@ -19,7 +19,7 @@
   --accent:#3a4fb5; --accent-ink:#fff; --accent-soft:#e6e9f7; --gold:#b8893b;
   --ok:#2c7a4b; --ok-bg:#e3f2e9; --bad:#b3372f; --bad-bg:#fbe6e3; --blank:#8a8f9c;
   --c-leg:#37599a; --c-bib:#a1307f; --c-bd:#1e86a6; --c-tic:#6a47a0; --c-his:#a8741a;
-  --y26:#d9532b; --y25:#0f8f8c; --y23:#b38600; --yb:#d6457a;
+  --c-rep:#5f6b7a; --y26:#37599a; --y25:#a1307f; --y23:#1e86a6; --yb:#d6457a;
   --shadow:0 1px 2px rgba(27,36,55,.06),0 8px 24px rgba(27,36,55,.07);
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -31,7 +31,7 @@
     --accent:#8d9cff; --accent-ink:#0e1230; --accent-soft:#232b4d; --gold:#d9ac5b;
     --ok:#6cc596; --ok-bg:#16301f; --bad:#ef8176; --bad-bg:#3a1c1a; --blank:#7e869a;
     --c-leg:#7d9be0; --c-bib:#e58bc8; --c-bd:#5ec3dc; --c-tic:#a98ae0; --c-his:#e0b05a;
-    --y26:#f2865f; --y25:#4fd0cc; --y23:#e8c34a; --yb:#f27aa6;
+    --c-rep:#a3adbb; --y26:#7d9be0; --y25:#e58bc8; --y23:#5ec3dc; --yb:#f27aa6;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
   }
 }
@@ -40,7 +40,7 @@
   --accent:#8d9cff; --accent-ink:#0e1230; --accent-soft:#232b4d; --gold:#d9ac5b;
   --ok:#6cc596; --ok-bg:#16301f; --bad:#ef8176; --bad-bg:#3a1c1a; --blank:#7e869a;
   --c-leg:#7d9be0; --c-bib:#e58bc8; --c-bd:#5ec3dc; --c-tic:#a98ae0; --c-his:#e0b05a;
-    --y26:#f2865f; --y25:#4fd0cc; --y23:#e8c34a; --yb:#f27aa6;
+    --c-rep:#a3adbb; --y26:#7d9be0; --y25:#e58bc8; --y23:#5ec3dc; --yb:#f27aa6;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -89,6 +89,18 @@ body.nomin{min-height:0}
 .tog{border:1.5px solid var(--bc);color:var(--bc);background:transparent;border-radius:10px;padding:6px 12px;font-size:.82rem;font-weight:700;white-space:nowrap}
 .tog.on{background:var(--bc);color:var(--surface)}
 .tog.part{background:color-mix(in srgb,var(--bc) 18%,transparent)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.76rem;color:var(--muted);margin:0 0 10px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}#exTabs{margin:6px 0 10px}.qwrap{position:relative;margin-bottom:12px}.qwrap .fld{width:100%;padding-right:42px}#exQx{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:50%;background:var(--surface2);color:var(--muted);font-size:.9rem}
+.sh{display:flex;align-items:center;gap:10px;width:100%;padding:6px 2px;margin:14px 0 8px;border:0;background:transparent;color:var(--sc);text-align:left}
+.sh .sl{font-family:var(--serif);font-weight:700;font-size:1.05rem}.sh .ln{flex:1;height:2px;background:var(--sc);opacity:.4;border-radius:2px}.sh .sn{font-size:.76rem;color:var(--muted);white-space:nowrap}.sh .chev{transform:none;border:0;background:transparent;color:var(--sc);font-size:.9rem;padding:0 2px}
+.sec2.shut>.sb{display:none}.sec2.shut .sh .chev{transform:rotate(180deg)}.grp{margin-bottom:10px;overflow:hidden;border-left:5px solid var(--bc)}
+.grp .gh{display:flex;align-items:center;gap:10px;width:100%;padding:14px 12px 14px 14px;border:0;background:transparent;text-align:left;color:var(--ink,inherit)}
+.grp .gname{flex:1;min-width:0;font-family:var(--serif);font-weight:700;font-size:1.02rem}
+.grp .gmeta{color:var(--muted);font-size:.78rem;white-space:nowrap}
+.grp.open>.gh .chev{transform:rotate(180deg)}
+.grp .gbody{display:none;border-top:1px solid var(--line);padding:8px;background:var(--surface2)}
+.grp.open .gbody{display:block}
+.grp .gbody .block{margin-bottom:7px}.grp .gbody .block .head{padding:9px 10px 9px 12px}.grp .gbody .name{font-size:.92rem}
+.grp .gsearch{margin-bottom:8px}
 .chev{border:0;background:transparent;padding:6px 8px;font-size:1.1rem;color:var(--muted);transition:transform .2s}
 .block.open .chev{transform:rotate(180deg)}
 .temas{display:none;border-top:1px solid var(--line);padding:6px 6px 8px;max-height:420px;overflow:auto;background:var(--surface2)}
@@ -434,6 +446,8 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 
   <section class="sec" id="examSec" hidden>
     <h2><span class="n" id="exN">1</span>Elige el examen</h2>
+    <div class="tabs" id="exTabs"><button class="tab on" data-t="of">Oficiales</button><button class="tab" data-t="etd">Estudio de Técnicas Documentales</button><button class="tab" data-t="inq">Inqnable</button></div>
+    <div class="qwrap"><input class="fld" id="exQ" type="text" placeholder="Buscar" aria-label="Buscar examen" autocomplete="off"><button type="button" id="exQx" aria-label="Borrar búsqueda" hidden>✕</button></div>
     <div id="exList"></div>
     <p class="hint" id="exInfo"></p>
   </section>
@@ -740,7 +754,7 @@ const EXAMS=(window.EXAMS||[]).map(e=>{
     const i=IDX.get(hq((q.bs||q.q)+"|"+(q.bc||q.o[q.a]))); if(i===undefined) return;
     if(q.r) extra.push({i,q:q.q,o:q.o,c:q.a}); else items.push({i,k:items.length,q:q.q,o:q.o,c:q.a});
   }); // extra = preguntas de reserva que no entran en el examen de 100, pero son oficiales (banco y etiqueta)
-  items.forEach(x=>x.eid=e.id); extra.forEach(x=>x.eid=e.id); return {id:e.id,name:e.name,tag:e.tag,items,extra};
+  items.forEach(x=>x.eid=e.id); extra.forEach(x=>x.eid=e.id); return {id:e.id,name:e.name,tag:e.tag,th:e.th,tab:e.tab,items,extra};
 }).filter(e=>e.items.length);
 let exSel=new Set(), exfavs=new Set();
 const exPool=()=>{const o=[];EXAMS.forEach(e=>{if(exSel.has(e.id))e.items.forEach(x=>o.push(x))});return o};
@@ -759,8 +773,8 @@ let mode=LS.get("mode","tests");
 let quiz=null;           // test en curso
 let cards=null;          // sesión de tarjetas
 let revFilter="all"; const OFFIDX=new Set(); EXAMS.forEach(e=>e.items.concat(e.extra).forEach(x=>OFFIDX.add(x.i))); const isOff=x=>x.xe!==undefined||OFFIDX.has(x.i);
-const OFFYR=new Map(); EXAMS.forEach(e=>{const y=e.tag||(e.id.match(/\d{4}/)||[])[0]; if(y)e.items.concat(e.extra).forEach(x=>{const l=OFFYR.get(x.i)||[]; if(!l.includes(y))l.push(y); OFFYR.set(x.i,l)})}); const exVar=t=>/2026/.test(t)?"--y26":/2025/.test(t)?"--y25":/2023/.test(t)?"--y23":"--yb"; // color por año del examen (--yb: tests de libros)
-const offTag=x=>{if(x.xe!==undefined)return ""; const l=OFFYR.get(x.i); if(!(l&&l.length))return ""; const o=l.slice().sort((p,q)=>(q.match(/\d{4}/)||[0])[0]-(p.match(/\d{4}/)||[0])[0]); return ` · <b style="color:var(${exVar(o[0])})">Examen</b> ${o.map(t=>`<b style="color:var(${exVar(t)})">${t}</b>`).join(" y ")}`};
+const OFFYR=new Map(); EXAMS.forEach(e=>{const y=e.tag||(e.id.match(/\d{4}/)||[])[0]; if(y)e.items.concat(e.extra).forEach(x=>{const l=OFFYR.get(x.i)||[]; if(!l.includes(y))l.push(y); OFFYR.set(x.i,l)})}); const exTh={"Legislación":"--c-leg","Biblioteconomía":"--c-bib","Bibliografía y documentación":"--c-bd","Tecnologías de la información":"--c-tic","Historia del libro y las bibliotecas":"--c-his","Repaso completo":"--c-rep"}, TH_ORD=Object.keys(exTh), exCol=e=>e.th?(exTh[e.th]||"--c-bd"):exVar(e.tag||e.id), exVar=t=>/2026/.test(t)?"--y26":/2025/.test(t)?"--y25":/2023/.test(t)?"--y23":"--yb"; // color por año del examen (--yb: tests de libros)
+const offTag=x=>{if(x.xe!==undefined)return ""; const l=OFFYR.get(x.i); if(!(l&&l.length))return ""; const lib=l.includes("libro"), o=l.filter(t=>t!=="libro").sort((p,q)=>(q.match(/\d{4}/)||[0])[0]-(p.match(/\d{4}/)||[0])[0]); const P=[]; if(o.length)P.push(`<b style="color:var(${exVar(o[0])})">Examen</b> ${o.map(t=>`<b style="color:var(${exVar(t)})">${t}</b>`).join(" y ")}`); if(lib)P.push(`<b style="color:var(--yb)">Libro</b>`); return " · "+P.join(" · ")};
 /* ---------- Pódcasts ---------- */
 let podN=0, podRate=1, podAudio=null, podAvail={}, podProbed=false, podSaveAt=0, podDurs=LS.get("podDurs",{});
 let podOpen=new Set();
@@ -1038,25 +1052,46 @@ $("#blocks").addEventListener("click",e=>{
   if(e.target.matches("input[data-n]")){const n=+e.target.dataset.n; e.target.checked?sel.add(n):sel.delete(n); refresh()}
 });
 function renderExams(){ keepScroll("#exList .block.open .temas",b=>b.dataset.id,renderExams0) }
+const gOpen=new Set(U.get("exgrp",[])), gShut=new Set(U.get("exshut",[]));
 function renderExams0(){
   const host=$("#exList"), openIds=$$("#exList .block.open").map(b=>b.dataset.id);
   const hist=getHist("exhist"), saved=new Set(U.get("extests",[]).map(t=>t.d)), pd=pend().filter(sv=>sv.ex);
-  host.innerHTML=EXAMS.map((e,ei)=>{
+  const card=(e,ei)=>{
     const pe=pd.filter(sv=>sv.exid?sv.exid===e.id:ei===0);
     const prow=pe.map(sv=>{const a=sv.items.filter(x=>x.a!==null).length;return resRow(dShort(sv.id)+" · Pendiente",`${a} contestadas de ${sv.items.length} · vas por la ${sv.idx+1}`,sv.id)}).join("");
     const hs=hist.filter(h=>h.id===e.id), hf=hs.filter(h=>!h.rev), best=hf.length?Math.max(...hf.map(h=>h.nota)):null, on=exSel.has(e.id);
     const rows=hs.map(h=>{const ok=h.nota>=5, sv=saved.has(h.d);
       return `<${sv?"button":"div"} class="card hrow ${ok?"pass":"fail"}${sv?" click":""}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div><div class="d"><b>${h.rev?"Repaso de falladas · "+h.n+" preguntas":ok?"Aprobado":"Suspenso"}</b> · ${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""}<br>${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"})}</div>${delBtn(h.d)}</${sv?"button":"div"}>`}).join("");
-    return `<div class="card block${openIds.includes(e.id)?" open":""}" data-id="${esc(e.id)}" style="--bc:var(${exVar(e.tag||e.id)})"><div class="head"><div class="info"><div class="name">${esc(e.name)}</div></div>
+    const nm=e.name;
+    return {hf:hf.length+pe.length,html:`<div class="card block${openIds.includes(e.id)?" open":""}" data-id="${esc(e.id)}" style="--bc:var(${exCol(e)})"><div class="head"><div class="info"><div class="name">${esc(nm)}</div></div>
       <button class="tog on" data-act="pick">Examinarse</button><button class="chev" data-act="open" aria-label="Ver intentos">▾</button><div class="meta xmeta">${e.items.length} preguntas · ${hf.length} ${hf.length===1?"intento":"intentos"} · ${pe.length} ${pe.length===1?"pendiente":"pendientes"}${best!==null?" · mejor nota "+fmt(best):""}</div></div>
-      <div class="temas">${prow}${rows||(prow?"":'<p class="hint" style="margin:6px 8px">Aún no has resuelto este examen.</p>')}</div></div>`}).join("");
+      <div class="temas">${prow}${rows||(prow?"":'<p class="hint" style="margin:6px 8px">Aún no has resuelto este examen.</p>')}</div></div>`}};
+  const tab=U.get("extab","of"), q=norm($("#exQ").value.trim()), out=[], tabOf=e=>e.tab||(e.tag==="libro"||e.th?"etd":"of");
+  const inTab=EXAMS.map((e,ei)=>[e,ei]).filter(([e])=>tabOf(e)===tab);
+  $$("#exTabs .tab").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
+  const secs=new Map();
+  inTab.forEach(([e,ei])=>{ if(q&&!norm(e.name+" "+(e.th||"")+" "+(e.tag||"")).includes(q))return;
+    const k=e.th||(e.tag||"").match(/\d{4}/)?.[0]||"Otros"; if(!secs.has(k))secs.set(k,{c:exCol(e),l:[]}); secs.get(k).l.push(card(e,ei).html) });
+  const ord=tab==="etd"?[...secs.keys()].sort((a,b)=>(TH_ORD.indexOf(a)+99)%99-(TH_ORD.indexOf(b)+99)%99):[...secs.keys()];
+  ord.map(k=>[secs.get(k),k]).forEach(([s,k])=>{ const shut=!q&&gShut.has(tab+k);
+    out.push(`<div class="sec2${shut?" shut":""}" data-k="${esc(tab+k)}" style="--sc:var(${s.c})"><button class="sh"><span class="sl">${esc(k)}</span><span class="ln"></span><span class="sn">${s.l.length} ${tab==="of"?(s.l.length===1?"examen":"exámenes"):(s.l.length===1?"test":"tests")}</span><span class="chev">▾</span></button><div class="sb">${s.l.join("")}</div></div>`) });
+  $("#exQx").hidden=!q;
+  if(!out.length)out.push(`<p class="hint">${q?"Ningún examen coincide.":tab==="inq"?"Aún no hay tests en esta pestaña.":"Aún no hay tests."}</p>`);
+  host.innerHTML=out.join("");
 }
+$("#exQ").addEventListener("input",()=>renderExams0());
+$("#exQx").onclick=()=>{$("#exQ").value="";renderExams0();$("#exQ").focus()};
+$("#exTabs").addEventListener("click",e=>{const b=e.target.closest(".tab"); if(!b)return; U.set("extab",b.dataset.t); renderExams0()});
+$("#exList").addEventListener("input",e=>{ if(!e.target.matches(".gsearch"))return; const q=norm(e.target.value), b=e.target.closest(".gbody"); let n=0;
+  b.querySelectorAll(".block").forEach(x=>{const ok=!q||norm(x.querySelector(".name").textContent).includes(q); x.hidden=!ok; if(ok)n++}); b.querySelector(".gnone").hidden=n>0 });
 $("#exList").addEventListener("click",e=>{
   if(e.target.closest(".resume")){resumeClick(e);return}
   const dl=e.target.closest(".hdel"); if(dl){e.stopPropagation();delResult(dl.dataset.del);return}
   const h=e.target.closest(".hrow.click");
   if(h){ const t=U.get("extests",[]).find(t=>String(t.d)===h.dataset.d); if(!t)return;
     const items=expand(t); quiz={items,k:t.k,idx:0,instant:t.instant,el:t.el,done:true,d:t.d,ex:true}; showResult(score(items)); return }
+  const sh=e.target.closest(".sh"); if(sh){const s=sh.parentElement; s.classList.toggle("shut"); const k=s.dataset.k; s.classList.contains("shut")?gShut.add(k):gShut.delete(k); U.set("exshut",[...gShut]); return}
+  const gh=e.target.closest(".gh"); if(gh){const g=gh.parentElement; g.classList.toggle("open"); const k=g.dataset.g; g.classList.contains("open")?gOpen.add(k):gOpen.delete(k); U.set("exgrp",[...gOpen]); return}
   const bl=e.target.closest(".block"); if(!bl)return; const act=e.target.closest("[data-act]")?.dataset.act;
   if(act==="pick"){exSel=new Set([bl.dataset.id]);U.set("exsel",[...exSel]);$("#btnStart").click()}
   else bl.classList.toggle("open");
