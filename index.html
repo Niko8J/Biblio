@@ -446,7 +446,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 
   <section class="sec" id="examSec" hidden>
     <h2><span class="n" id="exN">1</span>Elige el examen</h2>
-    <div class="tabs" id="exTabs"><button class="tab on" data-t="of">Oficiales</button><button class="tab" data-t="etd">Estudio de Técnicas Documentales</button><button class="tab" data-t="inq">Inqnable</button></div>
+    <div class="tabs" id="exTabs"><button class="tab on" data-t="of">Oficiales</button><button class="tab" data-t="etd">EDT 2023</button><button class="tab" data-t="edt26">EDT 2026</button><button class="tab" data-t="inq">Inqnable</button></div>
     <div class="qwrap"><input class="fld" id="exQ" type="text" placeholder="Buscar" aria-label="Buscar examen" autocomplete="off"><button type="button" id="exQx" aria-label="Borrar búsqueda" hidden>✕</button></div>
     <div id="exList"></div>
     <p class="hint" id="exInfo"></p>
@@ -1072,7 +1072,7 @@ function renderExams0(){
   const secs=new Map();
   inTab.forEach(([e,ei])=>{ if(q&&!norm(e.name+" "+(e.th||"")+" "+(e.tag||"")).includes(q))return;
     const k=e.th||(e.tag||"").match(/\d{4}/)?.[0]||"Otros"; if(!secs.has(k))secs.set(k,{c:exCol(e),l:[]}); secs.get(k).l.push(card(e,ei).html) });
-  const ord=tab==="etd"?[...secs.keys()].sort((a,b)=>(TH_ORD.indexOf(a)+99)%99-(TH_ORD.indexOf(b)+99)%99):[...secs.keys()];
+  const ord=(tab==="etd"||tab==="edt26")?[...secs.keys()].sort((a,b)=>(TH_ORD.indexOf(a)+99)%99-(TH_ORD.indexOf(b)+99)%99):[...secs.keys()];
   ord.map(k=>[secs.get(k),k]).forEach(([s,k])=>{ const shut=!q&&gShut.has(tab+k);
     out.push(`<div class="sec2${shut?" shut":""}" data-k="${esc(tab+k)}" style="--sc:var(${s.c})"><button class="sh"><span class="sl">${esc(k)}</span><span class="ln"></span><span class="sn">${s.l.length} ${tab==="of"?(s.l.length===1?"examen":"exámenes"):(s.l.length===1?"test":"tests")}</span><span class="chev">▾</span></button><div class="sb">${s.l.join("")}</div></div>`) });
   $("#exQx").hidden=!q;
