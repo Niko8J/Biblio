@@ -19,7 +19,7 @@
   --accent:#3a4fb5; --accent-ink:#fff; --accent-soft:#e6e9f7; --gold:#b8893b;
   --ok:#2c7a4b; --ok-bg:#e3f2e9; --bad:#b3372f; --bad-bg:#fbe6e3; --blank:#8a8f9c;
   --c-leg:#37599a; --c-bib:#a1307f; --c-bd:#1e86a6; --c-tic:#6a47a0; --c-his:#a8741a;
-  --c-rep:#5f6b7a; --y26:#37599a; --y25:#a1307f; --y23:#1e86a6; --yb:#d6457a;
+  --c-rep:#5f6b7a; --y26:#37599a; --y25:#a1307f; --y23:#1e86a6; --y24:#2e8b57; --y22:#c9742a; --y21:#7b4fb8; --y19:#8c6a3c; --yb:#d6457a;
   --shadow:0 1px 2px rgba(27,36,55,.06),0 8px 24px rgba(27,36,55,.07);
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -31,7 +31,7 @@
     --accent:#8d9cff; --accent-ink:#0e1230; --accent-soft:#232b4d; --gold:#d9ac5b;
     --ok:#6cc596; --ok-bg:#16301f; --bad:#ef8176; --bad-bg:#3a1c1a; --blank:#7e869a;
     --c-leg:#7d9be0; --c-bib:#e58bc8; --c-bd:#5ec3dc; --c-tic:#a98ae0; --c-his:#e0b05a;
-    --c-rep:#a3adbb; --y26:#7d9be0; --y25:#e58bc8; --y23:#5ec3dc; --yb:#f27aa6;
+    --c-rep:#a3adbb; --y26:#7d9be0; --y25:#e58bc8; --y23:#5ec3dc; --y24:#6fcf97; --y22:#f0a35e; --y21:#b99af0; --y19:#cfa56e; --yb:#f27aa6;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
   }
 }
@@ -40,7 +40,7 @@
   --accent:#8d9cff; --accent-ink:#0e1230; --accent-soft:#232b4d; --gold:#d9ac5b;
   --ok:#6cc596; --ok-bg:#16301f; --bad:#ef8176; --bad-bg:#3a1c1a; --blank:#7e869a;
   --c-leg:#7d9be0; --c-bib:#e58bc8; --c-bd:#5ec3dc; --c-tic:#a98ae0; --c-his:#e0b05a;
-    --c-rep:#a3adbb; --y26:#7d9be0; --y25:#e58bc8; --y23:#5ec3dc; --yb:#f27aa6;
+    --c-rep:#a3adbb; --y26:#7d9be0; --y25:#e58bc8; --y23:#5ec3dc; --y24:#6fcf97; --y22:#f0a35e; --y21:#b99af0; --y19:#cfa56e; --yb:#f27aa6;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -773,7 +773,7 @@ let mode=LS.get("mode","tests");
 let quiz=null;           // test en curso
 let cards=null;          // sesión de tarjetas
 let revFilter="all"; const OFFIDX=new Set(); EXAMS.forEach(e=>e.items.concat(e.extra).forEach(x=>OFFIDX.add(x.i))); const isOff=x=>x.xe!==undefined||OFFIDX.has(x.i);
-const OFFYR=new Map(); EXAMS.forEach(e=>{const y=e.tag||(e.id.match(/\d{4}/)||[])[0]; if(y)e.items.concat(e.extra).forEach(x=>{const l=OFFYR.get(x.i)||[]; if(!l.includes(y))l.push(y); OFFYR.set(x.i,l)})}); const exTh={"Legislación":"--c-leg","Biblioteconomía":"--c-bib","Bibliografía y documentación":"--c-bd","Tecnologías de la información":"--c-tic","Historia del libro y las bibliotecas":"--c-his","Repaso completo":"--c-rep"}, TH_ORD=Object.keys(exTh), exCol=e=>e.th?(exTh[e.th]||"--c-bd"):exVar(e.tag||e.id), exVar=t=>/2026/.test(t)?"--y26":/2025/.test(t)?"--y25":/2023/.test(t)?"--y23":"--yb"; // color por año del examen (--yb: tests de libros)
+const OFFYR=new Map(); EXAMS.forEach(e=>{const y=e.tag||(e.id.match(/\d{4}/)||[])[0]; if(y)e.items.concat(e.extra).forEach(x=>{const l=OFFYR.get(x.i)||[]; if(!l.includes(y))l.push(y); OFFYR.set(x.i,l)})}); const exTh={"Legislación":"--c-leg","Biblioteconomía":"--c-bib","Bibliografía y documentación":"--c-bd","Tecnologías de la información":"--c-tic","Historia del libro y las bibliotecas":"--c-his","Repaso completo":"--c-rep"}, TH_ORD=Object.keys(exTh), exCol=e=>e.th?(exTh[e.th]||"--c-bd"):exVar(e.tag||e.id), exVar=t=>/2026/.test(t)?"--y26":/2025/.test(t)?"--y25":/2024/.test(t)?"--y24":/2023/.test(t)?"--y23":/2022/.test(t)?"--y22":/2021/.test(t)?"--y21":/2019/.test(t)?"--y19":"--yb"; // color por año del examen (--yb: tests de libros)
 const offTag=x=>{if(x.xe!==undefined)return ""; const l=OFFYR.get(x.i); if(!(l&&l.length))return ""; const lib=l.includes("libro"), o=l.filter(t=>t!=="libro").sort((p,q)=>(q.match(/\d{4}/)||[0])[0]-(p.match(/\d{4}/)||[0])[0]); const P=[]; if(o.length)P.push(`<b style="color:var(${exVar(o[0])})">Examen</b> ${o.map(t=>`<b style="color:var(${exVar(t)})">${t}</b>`).join(" y ")}`); if(lib)P.push(`<b style="color:var(--yb)">Libro</b>`); return " · "+P.join(" · ")};
 /* ---------- Pódcasts ---------- */
 let podN=0, podRate=1, podAudio=null, podAvail={}, podProbed=false, podSaveAt=0, podDurs=LS.get("podDurs",{});
