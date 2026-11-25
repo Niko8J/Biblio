@@ -84,7 +84,7 @@ body.nomin{min-height:0}
 .block{margin-bottom:10px;overflow:hidden;border-left:5px solid var(--bc)}
 .block .head{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px}
 .block .info{flex:1;min-width:0}
-.block .name{font-family:var(--serif);font-weight:700;font-size:1.02rem}.block .name .xn{font-weight:400}.block .name .xn b{font-weight:700}
+.block .name{font-family:var(--serif);font-weight:700;font-size:1.02rem}.block .name .xn{font-weight:400}.block .name .xn u{text-decoration-thickness:2px;text-underline-offset:3px}
 .block .meta{color:var(--muted);font-size:.8rem}
 .tog{border:1.5px solid var(--bc);color:var(--bc);background:transparent;border-radius:10px;padding:6px 12px;font-size:.82rem;font-weight:700;white-space:nowrap}
 .tog.on{background:var(--bc);color:var(--surface)}
@@ -1062,7 +1062,7 @@ function renderExams0(){
     const hs=hist.filter(h=>h.id===e.id), hf=hs.filter(h=>!h.rev), best=hf.length?Math.max(...hf.map(h=>h.nota)):null, on=exSel.has(e.id);
     const rows=hs.map(h=>{const ok=h.nota>=5, sv=saved.has(h.d);
       return `<${sv?"button":"div"} class="card hrow ${ok?"pass":"fail"}${sv?" click":""}" data-d="${h.d}"><div class="sc">${fmt(h.nota)}</div><div class="d"><b>${h.rev?"Repaso de falladas · "+h.n+" preguntas":ok?"Aprobado":"Suspenso"}</b> · ${h.h} ✔ · ${h.w} ✘ · ${h.b} en blanco${h.el?` · ⏱ ${fmtT(h.el)}`:""}<br>${new Date(h.d).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"})}</div>${delBtn(h.d)}</${sv?"button":"div"}>`}).join("");
-    const nm=esc(e.name).replace(/^(Facultativo|Auxiliar|Ayudante)\b(.*)$/,'<span class="xn"><b>$1</b>$2</span>');
+    const nm=esc(e.name).replace(/^(Facultativo|Auxiliar|Ayudante)\b(.*)$/,'<span class="xn"><u>$1</u>$2</span>');
     return {hf:hf.length+pe.length,html:`<div class="card block${openIds.includes(e.id)?" open":""}" data-id="${esc(e.id)}" style="--bc:var(${exCol(e)})"><div class="head"><div class="info"><div class="name">${nm}</div></div>
       <button class="tog on" data-act="pick">Examinarse</button><button class="chev" data-act="open" aria-label="Ver intentos">▾</button><div class="meta xmeta">${e.items.length} preguntas · ${hf.length} ${hf.length===1?"intento":"intentos"} · ${pe.length} ${pe.length===1?"pendiente":"pendientes"}${best!==null?" · mejor nota "+fmt(best):""}</div></div>
       <div class="temas">${prow}${rows||(prow?"":'<p class="hint" style="margin:6px 8px">Aún no has resuelto este examen.</p>')}</div></div>`}};
