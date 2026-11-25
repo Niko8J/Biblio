@@ -84,7 +84,7 @@ body.nomin{min-height:0}
 .block{margin-bottom:10px;overflow:hidden;border-left:5px solid var(--bc)}
 .block .head{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px}
 .block .info{flex:1;min-width:0}
-.block .name{font-family:var(--serif);font-weight:700;font-size:1.02rem}.block .name .xn{font-weight:400}.block .name .xn u{text-decoration-thickness:2px;text-underline-offset:3px}
+.block .name{font-family:var(--serif);font-weight:700;font-size:1.02rem}.block .name .xn{font-weight:400}.block .name .xn u{text-underline-offset:3px}
 .block .meta{color:var(--muted);font-size:.8rem}
 .tog{border:1.5px solid var(--bc);color:var(--bc);background:transparent;border-radius:10px;padding:6px 12px;font-size:.82rem;font-weight:700;white-space:nowrap}
 .tog.on{background:var(--bc);color:var(--surface)}
@@ -254,9 +254,9 @@ body.guest .star,body.guest #favSec,body.guest #resumeBox,body.guest #histSec{di
 .star.on{color:var(--gold)}
 .qcard .star,.fcard .star{position:absolute;right:10px;top:8px;z-index:2}
 .rev .tag .star{margin-left:auto;font-size:1.35rem;padding:0 4px}
-.favbox{display:flex;align-items:center;gap:12px;padding:12px 14px}
+.favbox{display:flex;align-items:center;gap:12px;padding:7px 12px}
 .favbox .t{flex:1;min-width:0}
-.favbox .btn{padding:10px 14px;font-size:.9rem}
+.favbox .btn{padding:7px 14px;font-size:.9rem}
 .favbox .col{display:grid;gap:8px}
 .hrow.click{cursor:pointer;width:100%;text-align:left;border:1px solid var(--line)}
 @media(hover:hover){.hrow.click:hover{border-color:var(--accent)}}
@@ -489,7 +489,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
   <section class="sec" id="favSec">
     <h2><span class="n" id="favN">4</span><span id="favTitle">Preguntas favoritas</span></h2>
     <div class="card favbox" id="favBox" style="cursor:pointer">
-      <span class="ric" aria-hidden="true">★</span><div class="t"><b id="favCount">0 favoritas</b><div class="hint" id="favHint" style="margin:0"></div></div>
+      <span class="ric" aria-hidden="true">★</span><div class="t"><b id="favCount">0 favoritas</b></div>
       <div class="col"><button class="btn" id="favView">Ver</button><button class="btn" id="favTest" hidden></button><button class="btn" id="favCards" hidden></button></div>
     </div>
   </section>
@@ -1268,7 +1268,6 @@ function refresh(){
   const isC=mode==="cards", nf=isC?cfavs.size:curFavs().size;
   $("#favTitle").textContent=isC?"Tarjetas favoritas":"Preguntas favoritas"; $("#favN").textContent=isC?3:isE?2:4;
   $("#favCount").textContent=nf===1?"1 favorita":`${nf} favoritas`;
-  $("#favHint").textContent=isC?"Márcalas con ☆ mientras estudias las tarjetas.":(isE?"Márcalas con ☆ durante un examen o al revisar un resultado.":"Márcalas con ☆ durante un test o al revisar un resultado.");
   $("#favView").disabled=!nf;
 }
 $("#optInstant").checked=instant;
