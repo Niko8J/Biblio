@@ -19,7 +19,7 @@
   --accent:#3a4fb5; --accent-ink:#fff; --accent-soft:#e6e9f7; --gold:#b8893b;
   --ok:#2c7a4b; --ok-bg:#e3f2e9; --bad:#b3372f; --bad-bg:#fbe6e3; --blank:#8a8f9c;
   --c-leg:#37599a; --c-bib:#a1307f; --c-bd:#1e86a6; --c-tic:#6a47a0; --c-his:#a8741a;
-  --c-rep:#5f6b7a; --y26:#37599a; --y25:#a1307f; --y23:#1e86a6; --y24:#2e8b57; --y22:#c9742a; --y21:#7b4fb8; --y19:#8c6a3c; --yb:#d6457a;
+  --c-rep:#5f6b7a; --y26:#37599a; --y25:#a1307f; --y23:#1e86a6; --y24:#6a47a0; --y22:#a8741a; --y21:#2e8b57; --y19:#c2562d; --yb:#d6457a;
   --shadow:0 1px 2px rgba(27,36,55,.06),0 8px 24px rgba(27,36,55,.07);
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -31,7 +31,7 @@
     --accent:#8d9cff; --accent-ink:#0e1230; --accent-soft:#232b4d; --gold:#d9ac5b;
     --ok:#6cc596; --ok-bg:#16301f; --bad:#ef8176; --bad-bg:#3a1c1a; --blank:#7e869a;
     --c-leg:#7d9be0; --c-bib:#e58bc8; --c-bd:#5ec3dc; --c-tic:#a98ae0; --c-his:#e0b05a;
-    --c-rep:#a3adbb; --y26:#7d9be0; --y25:#e58bc8; --y23:#5ec3dc; --y24:#6fcf97; --y22:#f0a35e; --y21:#b99af0; --y19:#cfa56e; --yb:#f27aa6;
+    --c-rep:#a3adbb; --y26:#7d9be0; --y25:#e58bc8; --y23:#5ec3dc; --y24:#a98ae0; --y22:#e0b05a; --y21:#6fcf97; --y19:#f0916a; --yb:#f27aa6;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
   }
 }
@@ -40,7 +40,7 @@
   --accent:#8d9cff; --accent-ink:#0e1230; --accent-soft:#232b4d; --gold:#d9ac5b;
   --ok:#6cc596; --ok-bg:#16301f; --bad:#ef8176; --bad-bg:#3a1c1a; --blank:#7e869a;
   --c-leg:#7d9be0; --c-bib:#e58bc8; --c-bd:#5ec3dc; --c-tic:#a98ae0; --c-his:#e0b05a;
-    --c-rep:#a3adbb; --y26:#7d9be0; --y25:#e58bc8; --y23:#5ec3dc; --y24:#6fcf97; --y22:#f0a35e; --y21:#b99af0; --y19:#cfa56e; --yb:#f27aa6;
+    --c-rep:#a3adbb; --y26:#7d9be0; --y25:#e58bc8; --y23:#5ec3dc; --y24:#a98ae0; --y22:#e0b05a; --y21:#6fcf97; --y19:#f0916a; --yb:#f27aa6;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -89,7 +89,7 @@ body.nomin{min-height:0}
 .tog{border:1.5px solid var(--bc);color:var(--bc);background:transparent;border-radius:10px;padding:6px 12px;font-size:.82rem;font-weight:700;white-space:nowrap}
 .tog.on{background:var(--bc);color:var(--surface)}
 .tog.part{background:color-mix(in srgb,var(--bc) 18%,transparent)}
-.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.76rem;color:var(--muted);margin:0 0 10px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}#exTabs{margin:6px 0 10px}.qwrap{position:relative;margin-bottom:12px}.qwrap .fld{width:100%;padding-right:42px}#exQx{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:50%;background:var(--surface2);color:var(--muted);font-size:.9rem}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.76rem;color:var(--muted);margin:0 0 10px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}#exTabs{margin:6px 0 10px;display:grid;grid-template-columns:repeat(3,1fr)}#exTabs .tab{text-align:center;padding:8px 6px}.qwrap{position:relative;margin-bottom:12px}.qwrap .fld{width:100%;padding-right:42px}#exQx{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:50%;background:var(--surface2);color:var(--muted);font-size:.9rem}
 .sh{display:flex;align-items:center;gap:10px;width:100%;padding:6px 2px;margin:14px 0 8px;border:0;background:transparent;color:var(--sc);text-align:left}
 .sh .sl{font-family:var(--serif);font-weight:700;font-size:1.05rem}.sh .ln{flex:1;height:2px;background:var(--sc);opacity:.4;border-radius:2px}.sh .sn{font-size:.76rem;color:var(--muted);white-space:nowrap}.sh .chev{transform:none;border:0;background:transparent;color:var(--sc);font-size:.9rem;padding:0 2px}
 .sec2.shut>.sb{display:none}.sec2.shut .sh .chev{transform:rotate(180deg)}.grp{margin-bottom:10px;overflow:hidden;border-left:5px solid var(--bc)}
@@ -446,7 +446,7 @@ html,body,button,input,label,.prow,.card{touch-action:manipulation}
 
   <section class="sec" id="examSec" hidden>
     <h2><span class="n" id="exN">1</span>Elige el examen</h2>
-    <div class="tabs" id="exTabs"><button class="tab on" data-t="of">Oficiales</button><button class="tab" data-t="etd">EDT 2023</button><button class="tab" data-t="edt26">EDT 2026</button><button class="tab" data-t="inq">Inqnable</button></div>
+    <div class="tabs" id="exTabs"><button class="tab on" data-t="of">Oficiales</button><button class="tab" data-t="etd">EDT 2023</button><button class="tab" data-t="edt26">EDT 2026</button></div>
     <div class="qwrap"><input class="fld" id="exQ" type="text" placeholder="Buscar" aria-label="Buscar examen" autocomplete="off"><button type="button" id="exQx" aria-label="Borrar búsqueda" hidden>✕</button></div>
     <div id="exList"></div>
     <p class="hint" id="exInfo"></p>
@@ -1066,7 +1066,7 @@ function renderExams0(){
     return {hf:hf.length+pe.length,html:`<div class="card block${openIds.includes(e.id)?" open":""}" data-id="${esc(e.id)}" style="--bc:var(${exCol(e)})"><div class="head"><div class="info"><div class="name">${nm}</div></div>
       <button class="tog on" data-act="pick">Examinarse</button><button class="chev" data-act="open" aria-label="Ver intentos">▾</button><div class="meta xmeta">${e.items.length} preguntas · ${hf.length} ${hf.length===1?"intento":"intentos"} · ${pe.length} ${pe.length===1?"pendiente":"pendientes"}${best!==null?" · mejor nota "+fmt(best):""}</div></div>
       <div class="temas">${prow}${rows||(prow?"":'<p class="hint" style="margin:6px 8px">Aún no has resuelto este examen.</p>')}</div></div>`}};
-  const tab=U.get("extab","of"), q=norm($("#exQ").value.trim()), out=[], tabOf=e=>e.tab||(e.tag==="libro"||e.th?"etd":"of");
+  const tab=(x=>["of","etd","edt26"].includes(x)?x:"of")(U.get("extab","of")), q=norm($("#exQ").value.trim()), out=[], tabOf=e=>e.tab||(e.tag==="libro"||e.th?"etd":"of");
   const inTab=EXAMS.map((e,ei)=>[e,ei]).filter(([e])=>tabOf(e)===tab);
   $$("#exTabs .tab").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
   const secs=new Map();
