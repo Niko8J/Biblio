@@ -1250,7 +1250,7 @@ function refresh(){
   
   if(isE){ if($("#favSec").nextElementSibling!==$("#examSec")) $("#favSec").after($("#examSec")) } else if($("#examSec").nextElementSibling!==$("#temaSec")) $("#temaSec").before($("#examSec")); $("#histEmpty").hidden=!!U.get("hist",[]).length;
   if(isE) renderExams(); else renderBlocks();
-  const k=isE?exSel.size:sel.size; if(isE) $("#bankInfo").textContent=`${EXAMS.length} ${EXAMS.length===1?"examen oficial":"exámenes oficiales"}`;
+  const k=isE?exSel.size:sel.size; if(isE) $("#bankInfo").textContent=(()=>{const nO2=EXAMS.filter(e=>(e.tab||(e.tag==="libro"||e.th?"etd":"of"))==="of").length,nE=EXAMS.length-nO2;return `${nO2} ${nO2===1?"examen oficial":"exámenes oficiales"} · ${nE} ${nE===1?"test":"tests"} de EDT`})();
   if(isE) $("#exInfo").hidden=true;
   $("#selInfo").textContent=k?`${k} ${k===1?"tema elegido":"temas elegidos"} · ${poolSize()} ${mode==="cards"?"tarjetas":"preguntas"} disponibles`:"Elige al menos un tema para empezar.";
   const b=$("#btnStart");
